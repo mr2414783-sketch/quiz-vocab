@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masukan Peserta — Rekap Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#241B12;
+    --panel:#FFF9EC;
+    --red:#E23F35;
+    --red-dim:#B23A2E;
+    --gold:#F2B705;
+    --green:#3F9142;
+    --line: rgba(36,27,18,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#FDE9A8;color:var(--ink);font-family:'Nunito',sans-serif;
+    min-height:100vh;padding:24px 14px;
+  }
+  .board{width:100%;max-width:520px;margin:0 auto;}
+  .header{
+    background:var(--ink);border-radius:16px 16px 0 0;padding:18px 22px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .header .eyebrow{font-size:11px;letter-spacing:0.18em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .header .title{font-size:20px;font-weight:800;color:#FFF9EC;margin-top:2px;}
+  .back-link{
+    background:transparent;border:1px solid rgba(255,249,236,0.3);color:#FFF9EC;
+    font-size:11px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;
+    padding:8px 12px;border-radius:8px;cursor:pointer;flex-shrink:0;text-decoration:none;
+    display:inline-block;
+  }
+  .card{
+    background:var(--panel);border:1px solid var(--line);padding:26px 22px;text-align:center;
+  }
+  h1{font-size:19px;font-weight:800;margin:0 0 8px;}
+  p{font-size:13.5px;color:var(--red-dim);font-weight:600;line-height:1.6;margin:0 0 18px;}
+  .btn{
+    font-weight:800;letter-spacing:0.04em;text-transform:uppercase;font-size:14px;
+    border:none;padding:15px 28px;border-radius:10px;cursor:pointer;width:100%;
+  }
+  .btn.login-btn{background:var(--ink);color:#FFF9EC;margin-top:4px;}
+  .btn:disabled{opacity:0.5;}
+  .status-pill{
+    display:inline-block;font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;
+    padding:8px 18px;border-radius:100px;margin-bottom:18px;background:rgba(226,63,53,0.15);color:var(--red);
+  }
+  .login-input{
+    width:100%;background:#FFFFFF;border:1px solid var(--line);color:var(--ink);
+    padding:13px 16px;border-radius:10px;font-size:15px;font-family:'Nunito',sans-serif;
+    font-weight:600;margin-bottom:10px;text-align:left;
+  }
+  .login-input:focus{outline:none;border-color:var(--gold);}
+  .login-error{font-size:12.5px;color:var(--red);font-weight:700;margin:-4px 0 14px;text-align:left;min-height:16px;}
+
+  .section-card{
+    background:var(--panel);border:1px solid var(--line);border-top:none;padding:22px;text-align:left;
+  }
+  .fb-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .fb-head h2{font-size:12.5px;font-weight:800;margin:0;text-transform:uppercase;letter-spacing:0.5px;}
+  .fb-count{font-size:11px;font-weight:800;color:var(--red-dim);background:rgba(226,63,53,0.1);padding:4px 10px;border-radius:100px;}
+  .fb-list{display:flex;flex-direction:column;gap:10px;}
+  .fb-item{
+    background:#FFFFFF;border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+  }
+  .fb-item .fb-name{font-size:12.5px;font-weight:800;color:var(--red-dim);margin-bottom:6px;}
+  .fb-item .fb-msg{font-size:14px;font-weight:600;color:var(--ink);line-height:1.55;white-space:pre-wrap;}
+  .fb-item .fb-time{font-size:11px;font-weight:700;color:rgba(36,27,18,0.5);margin-top:8px;}
+  .fb-empty{font-size:12.5px;color:rgba(36,27,18,0.55);font-weight:600;padding:10px 0;}
+  .clear-fb-btn{
+    font-size:11px;font-weight:800;letter-spacing:0.02em;background:transparent;color:var(--red-dim);
+    border:1px solid var(--line);padding:8px 12px;border-radius:100px;cursor:pointer;margin-top:16px;width:100%;
+  }
+  .footer-note{
+    background:var(--ink);color:rgba(255,249,236,0.55);font-size:11px;text-align:center;
+    padding:12px 18px;border-radius:0 0 16px 16px;font-weight:600;
+  }
+</style>
+</head>
+<body>
+
+<div class="board">
+  <div class="header">
+    <div class="brand">
+      <div class="eyebrow">LC Language Center · Basic Camp</div>
+      <div class="title">💬 Masukan Peserta</div>
+    </div>
+    <a class="back-link" href="admin-1iamt4um1o.html">← Admin</a>
+  </div>
+  <div class="card" id="card">
+    <div class="status-pill">Memuat...</div>
+  </div>
+  <div id="extraSections"></div>
+  <div class="footer-note">Halaman ini rahasia — jangan bagikan link ke murid.</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDPaWjx_MxF6Q8OT_P7FCn9h6MyfADnq8g",
+    authDomain: "quizz-7bac3.firebaseapp.com",
+    databaseURL: "https://quizz-7bac3-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "quizz-7bac3",
+    storageBucket: "quizz-7bac3.firebasestorage.app",
+    messagingSenderId: "105522344136",
+    appId: "1:105522344136:web:3fde8250987b74ad9ff5fd"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+  const card = document.getElementById('card');
+  const extraSections = document.getElementById('extraSections');
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, (c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderLoginForm(errorMsg){
+    extraSections.innerHTML = '';
+    card.innerHTML = `
+      <div class="status-pill">🔐 Akses Terbatas</div>
+      <h1>Masuk sebagai Admin</h1>
+      <p>Halaman masukan ini hanya bisa diakses oleh admin. Pakai email &amp; password admin yang sama.</p>
+      <input type="email" id="adminEmail" class="login-input" placeholder="Email admin" autocomplete="username" />
+      <input type="password" id="adminPass" class="login-input" placeholder="Password" autocomplete="current-password" />
+      <div class="login-error">${errorMsg || ''}</div>
+      <button class="btn login-btn" id="loginBtn">Masuk</button>
+    `;
+    const emailInput = document.getElementById('adminEmail');
+    const passInput = document.getElementById('adminPass');
+    const doLogin = ()=>{
+      const email = emailInput.value.trim();
+      const pass = passInput.value;
+      if(!email || !pass){ renderLoginForm('Isi email dan password terlebih dahulu.'); return; }
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true; btn.textContent = 'Memeriksa...';
+      auth.signInWithEmailAndPassword(email, pass).catch(()=>{
+        renderLoginForm('Email atau password salah.');
+      });
+    };
+    document.getElementById('loginBtn').onclick = doLogin;
+    passInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); doLogin(); } });
+    emailInput.focus();
+  }
+
+  function renderFeedbackPanel(){
+    card.innerHTML = `<div class="status-pill" style="background:rgba(63,145,66,0.15);color:var(--green);">🟢 Masuk sebagai Admin</div><h1>Semua masukan dari peserta</h1><p>Nama di bawah otomatis diambil dari nama login peserta — mereka tidak tahu namanya ikut terkirim.</p>`;
+    extraSections.innerHTML = `
+      <div class="section-card">
+        <div class="fb-head">
+          <h2>Daftar Masukan</h2>
+          <span class="fb-count" id="fbCount">0</span>
+        </div>
+        <div class="fb-list" id="fbList"><div class="fb-empty">Memuat masukan...</div></div>
+        <button class="clear-fb-btn" id="clearFbBtn">Hapus semua masukan</button>
+      </div>
+    `;
+
+    const fbList = document.getElementById('fbList');
+    const fbCount = document.getElementById('fbCount');
+    db.ref('feedback').on('value', (snapshot)=>{
+      const data = snapshot.val() || {};
+      const entries = Object.values(data)
+        .filter(e => e && e.message)
+        .sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+      fbCount.textContent = entries.length;
+      if(entries.length === 0){
+        fbList.innerHTML = '<div class="fb-empty">Belum ada masukan dari peserta.</div>';
+        return;
+      }
+      fbList.innerHTML = entries.map(e=>{
+        const d = e.timestamp ? new Date(e.timestamp) : null;
+        const timeStr = d ? d.toLocaleString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '-';
+        return `<div class="fb-item"><div class="fb-name">👤 ${escapeHtml(e.name || 'Anonim')}</div><div class="fb-msg">${escapeHtml(e.message)}</div><div class="fb-time">${timeStr}</div></div>`;
+      }).join('');
+    });
+
+    document.getElementById('clearFbBtn').onclick = ()=>{
+      if(confirm('Hapus semua masukan peserta? Tindakan ini tidak bisa dibatalkan.')){
+        db.ref('feedback').remove();
+      }
+    };
+  }
+
+  auth.onAuthStateChanged((user)=>{
+    if(user){ renderFeedbackPanel(); } else { renderLoginForm(); }
+  });
+</script>
+</body>
+</html>
