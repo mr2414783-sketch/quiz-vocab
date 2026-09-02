@@ -6558,6 +6558,7 @@ function renderKahootJoin(onBack){
         <div class="section-tag" style="background:#ffd60a;color:#46178f;">🙋 GABUNG KUIS</div>
         <h1 class="intro-title">Masukkan PIN Room</h1>
         <p class="intro-desc" style="font-size:12px;">Minta PIN 6 digit dari host / gurumu.</p>
+        <div id="kahootActiveRoomHint" style="width:100%;"></div>
         <input type="text" id="kahootPinInput" placeholder="PIN 6 digit" maxlength="6" inputmode="numeric" style="width:100%;text-align:center;font-size:26px;letter-spacing:0.15em;font-weight:800;padding:12px;border-radius:10px;border:none;font-family:'Nunito',sans-serif;box-sizing:border-box;">
         <input type="text" id="kahootNameInput" placeholder="Nama kamu" value="${escapeHtmlIdx(savedName)}" style="width:100%;text-align:center;font-size:15px;padding:12px;border-radius:10px;border:none;margin-top:8px;box-sizing:border-box;">
         <button class="btn" id="kahootJoinSubmitBtn" style="margin-top:12px;">Gabung →</button>
@@ -6568,8 +6569,47 @@ function renderKahootJoin(onBack){
   `;
   kahootWireMuteBtn();
   kahootPlayLobbyMusic();
-  document.getElementById('kahootJoinBackBtn').onclick = ()=>{ kahootStopMusic(); onBack(); };
+  document.getElementById('kahootJoinBackBtn').onclick = ()=>{ kahootStopMusic(); kahootStopActiveRoomWatch(); onBack(); };
   document.getElementById('kahootJoinSubmitBtn').onclick = ()=> kahootDoJoin(onBack);
+  kahootWatchActiveRooms();
+}
+
+/* Nunjukin room Kahoot yang lagi kebuka (status masih 'lobby', belum mulai) langsung di
+   halaman "Masukkan PIN", biar peserta yang belum tahu PIN-nya tinggal tap buat isi otomatis.
+   Ini cuma bantuan tampilan doang — peserta tetap bisa isi PIN manual kalau mau. */
+let kahootActiveRoomWatchRef = null;
+function kahootStopActiveRoomWatch(){
+  if(kahootActiveRoomWatchRef){ kahootActiveRoomWatchRef.off(); kahootActiveRoomWatchRef = null; }
+}
+function kahootWatchActiveRooms(){
+  kahootStopActiveRoomWatch();
+  kahootActiveRoomWatchRef = db.ref('kahootSessions').orderByChild('status').equalTo('lobby');
+  kahootActiveRoomWatchRef.on('value', (snap)=>{
+    const hintEl = document.getElementById('kahootActiveRoomHint');
+    if(!hintEl) return;
+    const data = snap.val() || {};
+    const rooms = Object.entries(data).map(([pin, room])=>({
+      pin, hostName: room.hostName || '-', count: Object.keys(room.players || {}).length
+    }));
+    if(rooms.length === 0){
+      hintEl.innerHTML = '';
+      return;
+    }
+    hintEl.innerHTML = `
+      <p class="intro-desc" style="font-size:10.5px;font-weight:800;opacity:0.85;margin:0 0 6px;">🔴 Room lagi kebuka, tap buat isi PIN otomatis:</p>
+      ${rooms.map(r=>`
+        <button type="button" class="btn ghost kahoot-active-room-btn" data-pin="${r.pin}" style="margin-bottom:6px;font-size:12.5px;padding:9px;">
+          PIN <b>${r.pin}</b> · Host ${escapeHtmlIdx(r.hostName)} · ${r.count} peserta
+        </button>
+      `).join('')}
+    `;
+    hintEl.querySelectorAll('.kahoot-active-room-btn').forEach(btn=>{
+      btn.onclick = ()=>{
+        const pinInput = document.getElementById('kahootPinInput');
+        if(pinInput) pinInput.value = btn.dataset.pin;
+      };
+    });
+  });
 }
 
 function kahootDoJoin(onBack){
@@ -6593,6 +6633,7 @@ function kahootDoJoin(onBack){
     kahootMyName = nm;
     sessionRef.child('players/' + kahootMyKey).set({ name: nm, score: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP }).then(()=>{
       sessionRef.child('players/' + kahootMyKey).onDisconnect().remove();
+      kahootStopActiveRoomWatch();
       renderKahootPlayerRoom();
     }).catch((err)=>{ errEl.textContent = 'Gagal gabung: ' + err.message; });
   }).catch((err)=>{ errEl.textContent = 'Gagal gabung: ' + err.message; });
