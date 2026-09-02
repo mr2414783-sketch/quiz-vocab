@@ -5527,9 +5527,16 @@ function renderLeaderboardPage(onBack){
   document.getElementById('lbPageBackBadge').onclick = onBack;
 
   db.ref('profiles').once('value').then((profSnap)=>{
-    return db.ref('xpProfile').once('value').then((xpSnap)=>{
-      const profiles = profSnap.val() || {};
-      const xpAll = xpSnap.val() || {};
+    const profiles = profSnap.val() || {};
+    // BUG LAMA: baca xpProfile digabung dalam SATU promise chain tanpa .catch() sama sekali.
+    // Kalau baca xpProfile ditolak (misal Firebase Rules belum ngizinin baca node ini), promise
+    // chain-nya reject diam-diam dan seluruh papan peringkat macet selamanya di "Memuat...".
+    // Sekarang dipisah: xpProfile dibaca terpisah dengan .catch(), jadi kalau gagal, papan
+    // peringkat TETAP tampil (cuma tanpa info tingkatan), bukan macet total.
+    return db.ref('xpProfile').once('value').then(xpSnap=> xpSnap.val() || {}).catch((err)=>{
+      console.error('Gagal memuat xpProfile buat tingkatan leaderboard:', err);
+      return {};
+    }).then((xpAll)=>{
       const top = Object.entries(lastActivityLeaderboardRaw)
         .filter(([key, e]) => e && e.name && ((e.autoCount||0)+(e.adjust||0)) > 0)
         .map(([key, e])=> ({ key, name: e.name, total: (e.autoCount||0) + (e.adjust||0), photo: (profiles[key] && profiles[key].photo) || null, xp: (xpAll[key] && xpAll[key].xp) || 0 }))
@@ -5563,6 +5570,9 @@ function renderLeaderboardPage(onBack){
         </div>`;
       }).join('');
     });
+  }).catch((err)=>{
+    const listEl = document.getElementById('lbPageList');
+    if(listEl) listEl.innerHTML = `<div class="lb-empty-light">Gagal memuat papan peringkat: ${escapeHtmlIdx(err && err.message ? err.message : String(err))}</div>`;
   });
 }
 
