@@ -3235,16 +3235,19 @@ function showBadgeToast(b){
   };
   step();
 }
-function renderBadgeGrid(){
-  const wrap = document.getElementById('badgeWrap');
-  if(!wrap) return;
-  wrap.innerHTML = BADGE_DEFS.map(b=>{
-    const earned = !!myBadgesEarned[b.id];
+function badgeGridHtmlFor(earnedObj){
+  return BADGE_DEFS.map(b=>{
+    const earned = !!(earnedObj && earnedObj[b.id]);
     return `<div class="badge-item ${earned?'earned':'locked'}" title="${escapeHtmlIdx(b.desc)}">
       <div class="badge-emoji">${earned ? b.emoji : '🔒'}</div>
       <div class="badge-name">${escapeHtmlIdx(b.name)}</div>
     </div>`;
   }).join('');
+}
+function renderBadgeGrid(){
+  const wrap = document.getElementById('badgeWrap');
+  if(!wrap) return;
+  wrap.innerHTML = badgeGridHtmlFor(myBadgesEarned);
 }
 function checkAndAwardBadges(name){
   if(!name) return;
@@ -3861,6 +3864,67 @@ function renderPrivateChat(onBack){
   };
 }
 
+/* ---------------- PROFIL PUBLIK (lihat profil peserta lain, ala Instagram) ---------------- */
+function renderPublicProfile(targetKey, targetName, onBack, onChat){
+  clearTimer();
+  statusVal.textContent = "PROFIL PESERTA";
+  setPresenceStatus('idle');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="reset-row"><button class="reset-btn" id="pubProfileBackBtn">✕ Tutup</button></div>
+      <div class="section-tag">👤 PROFIL PESERTA</div>
+      <div id="pubProfileBody"><div class="lb-empty-light" style="margin-top:14px;">Memuat profil...</div></div>
+    </div>
+  `;
+  document.getElementById('pubProfileBackBtn').onclick = onBack;
+
+  Promise.all([
+    db.ref('profiles/' + targetKey).once('value'),
+    db.ref('badges/' + targetKey).once('value'),
+    db.ref('highlights/' + targetKey).once('value')
+  ]).then(([profSnap, badgeSnap, hlSnap])=>{
+    const p = profSnap.val() || {};
+    const earned = (badgeSnap.val() && badgeSnap.val().earned) || {};
+    const hlVal = hlSnap.val() || {};
+    const highlights = Object.entries(hlVal).map(([id, h])=> Object.assign({ id }, h))
+      .sort((a,b)=> (a.createdAt||0) - (b.createdAt||0));
+    const displayName = p.fullName || targetName;
+    const body = document.getElementById('pubProfileBody');
+    if(!body) return;
+    body.innerHTML = `
+      <div class="ig-profile-header">
+        <div class="ig-profile-avatar">${p.photo ? `<img src="${p.photo}" class="avatar-img" style="width:86px;height:86px;">` : `<div class="avatar-img" style="width:86px;height:86px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;background:var(--panel-2);">${escapeHtmlIdx((targetName||'?')[0].toUpperCase())}</div>`}</div>
+        <div class="ig-profile-stats">
+          <div class="ig-profile-stat"><b>${p.umur ? escapeHtmlIdx(String(p.umur)) : '—'}</b><span>Umur</span></div>
+          <div class="ig-profile-stat"><b>${p.status ? escapeHtmlIdx(p.status) : '—'}</b><span>Status</span></div>
+        </div>
+      </div>
+      <div class="ig-profile-namebox">
+        <div class="full-name">${escapeHtmlIdx(displayName)}</div>
+        <div class="username">@${escapeHtmlIdx(targetName)}</div>
+        ${p.bio ? `<div class="bio">${escapeHtmlIdx(p.bio)}</div>` : ''}
+        ${p.status ? `<div class="status-chip">${escapeHtmlIdx(p.status)}</div>` : ''}
+        ${p.instagram ? `<a class="ig-handle-chip" href="https://instagram.com/${encodeURIComponent(p.instagram)}" target="_blank" rel="noopener noreferrer">📸 @${escapeHtmlIdx(p.instagram)}</a>` : ''}
+      </div>
+      <div id="pubHlWrap">${highlightRowHtml(highlights, false)}</div>
+      <div style="width:100%;text-align:left;margin-top:14px;">
+        <label style="font-size:11px;font-weight:800;color:#8a7a5c;text-transform:uppercase;">🎖 Lencana</label>
+        <div class="badge-grid">${badgeGridHtmlFor(earned)}</div>
+      </div>
+      <button class="btn" id="pubProfileChatBtn" type="button" style="margin-top:16px;">💬 Kirim Pesan</button>
+      <button class="btn ghost" id="pubProfileBackBtn2" style="margin-top:8px;">← Kembali</button>
+    `;
+    wireHighlightRow(targetName, false, null, highlights);
+    document.getElementById('pubProfileChatBtn').onclick = ()=> onChat();
+    document.getElementById('pubProfileBackBtn2').onclick = onBack;
+  }).catch((err)=>{
+    const body = document.getElementById('pubProfileBody');
+    if(body) body.innerHTML = `<div class="lb-empty-light">Gagal memuat profil: ${escapeHtmlIdx(err.message)}</div><button class="btn ghost" id="pubProfileBackBtn2" style="margin-top:10px;">← Kembali</button>`;
+    const backBtn2 = document.getElementById('pubProfileBackBtn2');
+    if(backBtn2) backBtn2.onclick = onBack;
+  });
+}
+
 /* ---------------- DAFTAR PESERTA & CHAT ANTAR PESERTA (dipantau admin) ---------------- */
 function peerConvId(nameA, nameB){
   const a = sanitizeNameForKey(nameA), b = sanitizeNameForKey(nameB);
@@ -3939,7 +4003,12 @@ function renderParticipantDirectory(onBack){
         </button>`;
       }).join('');
       listEl.querySelectorAll('.peer-row').forEach(row=>{
-        row.onclick = ()=> renderPeerChat(row.dataset.name, ()=> renderParticipantDirectory(onBack));
+        row.onclick = ()=> renderPublicProfile(
+          row.dataset.key,
+          row.dataset.name,
+          ()=> renderParticipantDirectory(onBack),
+          ()=> renderPeerChat(row.dataset.name, ()=> renderParticipantDirectory(onBack))
+        );
       });
     };
     renderPdList(list);
