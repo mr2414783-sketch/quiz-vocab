@@ -274,6 +274,7 @@
     <button class="nav-menu-item" data-target="peerMonitorSection">🔎 Pantau Chat Peserta</button>
     <button class="nav-menu-item" data-target="leaderboardSection">🏆 Papan Skor Ujian</button>
     <button class="nav-menu-item" data-target="activityLeaderboardSection">🏅 Leaderboard Aktivitas</button>
+    <button class="nav-menu-item" data-target="xpManageSection">🎖 Kelola XP Peserta</button>
     <button class="nav-menu-item" data-target="historySection">📋 Riwayat Login</button>
     <button class="nav-menu-item" data-target="modeStatusSection">🚦 Kelola Mode Latihan</button>
     <button class="nav-menu-item" data-target="scheduleSection">⏰ Jadwal Otomatis</button>
@@ -661,6 +662,14 @@
         <div id="activityLeaderboardList"><div class="lb-empty">Memuat...</div></div>
       </div>
 
+      <div class="section-card" id="xpManageSection" style="border-top:1px dashed var(--line);">
+        <div class="section-title">🎖 Kelola XP / Level Peserta</div>
+        <p style="font-size:11.5px;margin:0 0 6px;">Nambah atau ngurangin XP peserta secara manual (misal buat kasih bonus/hadiah). XP ini yang dipakai buat hitung Level &amp; gelar peserta, dan terpisah dari Leaderboard Aktivitas di atas.</p>
+        <p style="font-size:11px;margin:0 0 12px;opacity:0.75;">Batas maksimal XP per peserta: <b id="xpMaxDisplay">…</b> (setara Level <b id="xpMaxLevelDisplay">…</b>, batas aman sistem — permintaan yang bikin XP peserta lebih dari itu akan otomatis dipotong pas level segitu).</p>
+        <input type="text" id="xpAdminSearch" class="plain-input" placeholder="🔍 Cari nama peserta..." style="margin-bottom:10px;">
+        <div id="xpManageList"><div class="lb-empty">Memuat...</div></div>
+      </div>
+
       <div class="section-card" id="historySection" style="border-top:1px dashed var(--line);">
         <div class="history-head">
           <h2>📋 Riwayat Login Peserta</h2>
@@ -825,7 +834,7 @@
     `;
 
     /* ---------------- PAGE SWITCHER (menu pojok kiri atas, bukan scroll) ---------------- */
-    const ADMIN_SECTION_IDS = ['examSection','pesertaListSection','classChatSection','groupsSection','peerMonitorSection','leaderboardSection','activityLeaderboardSection','historySection','modeStatusSection','scheduleSection','accentSection','statsSection','exportSection','vocabBankSection','participantSection','dangerZoneSection'];
+    const ADMIN_SECTION_IDS = ['examSection','pesertaListSection','classChatSection','groupsSection','peerMonitorSection','leaderboardSection','activityLeaderboardSection','xpManageSection','historySection','modeStatusSection','scheduleSection','accentSection','statsSection','exportSection','vocabBankSection','participantSection','dangerZoneSection'];
     window.showAdminSection = function(id){
       ADMIN_SECTION_IDS.forEach(sid=>{
         const el = document.getElementById(sid);
@@ -1361,6 +1370,144 @@
       lbAdminSearchInput.addEventListener('input', ()=>{
         lbAdminSearchTerm = lbAdminSearchInput.value.trim().toLowerCase();
         renderActivityLeaderboardList();
+      });
+    }
+
+    /* ---------------- KELOLA XP / LEVEL PESERTA ----------------
+       XP disimpan di node Firebase 'xpProfile/{key}/xp' (sama persis dengan yang dipakai
+       peserta di index.html), TERPISAH dari activityLeaderboard. Admin bisa nambah/ngurangin
+       XP manual di sini. Rumus level & batas maksimal XP disamakan PERSIS dengan index.html
+       (fungsi xpForLevel & const MAX_XP), supaya peserta gak pernah punya XP yang bikin
+       levelnya "nyangkut". Batas XP maksimal = 100.000, level maksimalnya dihitung otomatis
+       dari batas itu (bukan di-hardcode), jadi kalau MAX_XP diganti, sisanya ikut nyesuaiin. */
+    function xpForLevel(level){ return 100 * (level-1) * (level-1); }
+    const XP_ADMIN_MAX = 100000000; // samain sama const MAX_XP di index.html
+    function xpQuickLevel(totalXp){
+      totalXp = Math.max(0, totalXp || 0);
+      let level = 1;
+      while(xpForLevel(level+1) <= totalXp && level < 2000){ level++; }
+      return level;
+    }
+    const XP_ADMIN_MAX_LEVEL = xpQuickLevel(XP_ADMIN_MAX); // otomatis ngikutin XP_ADMIN_MAX
+    const xpMaxDisplayEl = document.getElementById('xpMaxDisplay');
+    if(xpMaxDisplayEl) xpMaxDisplayEl.textContent = XP_ADMIN_MAX.toLocaleString('id-ID') + ' XP';
+    const xpMaxLevelDisplayEl = document.getElementById('xpMaxLevelDisplay');
+    if(xpMaxLevelDisplayEl) xpMaxLevelDisplayEl.textContent = XP_ADMIN_MAX_LEVEL;
+
+    let lastProfilesForXp = {};
+    let lastXpProfileRaw = {};
+    let xpAdminSearchTerm = '';
+    let xpPendingInputs = {};
+
+    function renderXpManageList(){
+      const listEl = document.getElementById('xpManageList');
+      if(!listEl) return;
+      listEl.querySelectorAll('[data-xp-input]').forEach(inp=>{
+        if(inp.value) xpPendingInputs[inp.dataset.xpInput] = inp.value;
+      });
+      const activeEl = document.activeElement;
+      const activeKey = (activeEl && activeEl.matches && activeEl.matches('[data-xp-input]')) ? activeEl.dataset.xpInput : null;
+      const activeSelStart = activeKey ? activeEl.selectionStart : null;
+
+      // Gabungkan semua peserta terdaftar (profiles) + siapapun yang udah punya xpProfile
+      // (jaga-jaga kalau ada xpProfile tanpa profil terdaftar), biar admin bisa kasih XP
+      // ke SIAPAPUN termasuk yang XP-nya masih 0.
+      const allKeys = new Set([...Object.keys(lastProfilesForXp), ...Object.keys(lastXpProfileRaw)]);
+      const rows = Array.from(allKeys)
+        .map(key=>{
+          const name = (lastProfilesForXp[key] && lastProfilesForXp[key].name) || (lastXpProfileRaw[key] && lastXpProfileRaw[key].name) || key;
+          const xp = (lastXpProfileRaw[key] && lastXpProfileRaw[key].xp) || 0;
+          return { key, name, xp, level: xpQuickLevel(xp) };
+        })
+        .filter(r => !xpAdminSearchTerm || r.name.toLowerCase().includes(xpAdminSearchTerm))
+        .sort((a,b)=> b.xp - a.xp);
+
+      if(rows.length === 0){
+        listEl.innerHTML = `<div class="lb-empty">${xpAdminSearchTerm ? 'Tidak ada peserta dengan nama itu.' : 'Belum ada peserta terdaftar.'}</div>`;
+        return;
+      }
+      listEl.innerHTML = rows.map((r,i)=>{
+        const crown = i === 0 && r.xp > 0 ? '👑 ' : '';
+        const pendingVal = xpPendingInputs[r.key] || '';
+        return `<div class="banned-item" data-xp-key="${r.key}" style="flex-wrap:wrap;">
+          <span style="flex:1;min-width:120px;">${crown}<b>${escapeHtml(r.name)}</b><br><span style="font-size:10.5px;opacity:0.7;font-weight:600;">Level ${r.level} · ${r.xp.toLocaleString('id-ID')} XP</span></span>
+          <span style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;flex:0 0 auto;">
+            <input type="number" class="plain-input" data-xp-input="${r.key}" placeholder="cth: 50 / -20" style="width:100px;padding:6px 8px;font-size:12px;" value="${escapeHtml(pendingVal)}">
+            <button class="small-btn" data-xp-action="apply" data-xp-key="${r.key}" style="background:var(--blue);color:#fff;">Tambah</button>
+            <button class="small-btn" data-xp-action="reset" data-xp-key="${r.key}" style="background:var(--red-dim);color:#fff;">↺ Reset 0</button>
+          </span>
+        </div>`;
+      }).join('');
+
+      listEl.querySelectorAll('[data-xp-input]').forEach(inp=>{
+        inp.addEventListener('input', ()=>{
+          const k = inp.dataset.xpInput;
+          if(inp.value) xpPendingInputs[k] = inp.value; else delete xpPendingInputs[k];
+        });
+      });
+      if(activeKey){
+        const restoreEl = listEl.querySelector(`[data-xp-input="${activeKey}"]`);
+        if(restoreEl){
+          restoreEl.focus();
+          try{ restoreEl.setSelectionRange(activeSelStart, activeSelStart); }catch(e){}
+        }
+      }
+
+      listEl.querySelectorAll('[data-xp-action="apply"]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const key = btn.dataset.xpKey;
+          const row = rows.find(r=> r.key === key);
+          const input = listEl.querySelector(`[data-xp-input="${key}"]`);
+          const delta = parseInt(input && input.value, 10);
+          if(!delta || isNaN(delta)){ alert('Isi dulu angka XP-nya (boleh minus buat mengurangi).'); return; }
+          const currentXp = (row && row.xp) || 0;
+          let newXp = currentXp + delta;
+          let clamped = false;
+          if(newXp > XP_ADMIN_MAX){ newXp = XP_ADMIN_MAX; clamped = true; }
+          if(newXp < 0){ newXp = 0; }
+          btn.disabled = true;
+          db.ref('xpProfile/' + key).update({
+            name: (row && row.name) || key,
+            xp: newXp
+          }).then(()=>{
+            delete xpPendingInputs[key];
+            if(input) input.value = '';
+            if(clamped) alert(`XP "${row ? row.name : key}" dipotong ke batas maksimal (${XP_ADMIN_MAX.toLocaleString('id-ID')} XP / Level ${XP_ADMIN_MAX_LEVEL}), soalnya permintaan tadi bakal ngelewatin batas itu.`);
+          }).catch((err)=>{
+            alert('Gagal menambah XP: ' + (err && err.message ? err.message : err));
+          }).finally(()=>{
+            btn.disabled = false;
+          });
+        };
+      });
+      listEl.querySelectorAll('[data-xp-action="reset"]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const key = btn.dataset.xpKey;
+          const row = rows.find(r=> r.key === key);
+          if(!confirm(`Reset XP "${row ? row.name : key}" ke 0? Level peserta ini bakal balik ke Level 1.`)) return;
+          delete xpPendingInputs[key];
+          db.ref('xpProfile/' + key).update({ xp: 0 }).catch((err)=>{
+            alert('Gagal reset XP: ' + (err && err.message ? err.message : err));
+          });
+        };
+      });
+    }
+    db.ref('profiles').on('value', (snapshot)=>{
+      lastProfilesForXp = snapshot.val() || {};
+      renderXpManageList();
+    });
+    db.ref('xpProfile').on('value', (snapshot)=>{
+      lastXpProfileRaw = snapshot.val() || {};
+      renderXpManageList();
+    }, (err)=>{
+      const listEl = document.getElementById('xpManageList');
+      if(listEl) listEl.innerHTML = `<div class="lb-empty">Gagal memuat: ${escapeHtml(err.message)}</div>`;
+    });
+    const xpAdminSearchInput = document.getElementById('xpAdminSearch');
+    if(xpAdminSearchInput){
+      xpAdminSearchInput.addEventListener('input', ()=>{
+        xpAdminSearchTerm = xpAdminSearchInput.value.trim().toLowerCase();
+        renderXpManageList();
       });
     }
 
