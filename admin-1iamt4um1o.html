@@ -282,6 +282,7 @@
     <button class="nav-menu-item" data-target="statsSection">📈 Statistik Soal</button>
     <button class="nav-menu-item" data-target="exportSection">📤 Export Data</button>
     <button class="nav-menu-item" data-target="vocabBankSection">📚 Bank Soal (Kosakata)</button>
+    <button class="nav-menu-item" data-target="ularBankSection">🐍 Bank Soal (Ular Tangga)</button>
     <button class="nav-menu-item" data-target="participantSection">🚫 Kelola Peserta (Ban)</button>
     <button class="nav-menu-item" data-target="spotifySection">🎵 Musik (Spotify)</button>
     <button class="nav-menu-item" data-target="dangerZoneSection" style="color:var(--red-dim);">⚠️ Zona Berbahaya</button>
@@ -814,6 +815,32 @@
         <div id="vocabDeletedList"><div class="lb-empty">Memuat...</div></div>
       </div>
 
+      <div class="section-card" id="ularBankSection" style="border-top:1px dashed var(--line);">
+        <div class="section-title">🐍 Bank Soal Custom (Ular Tangga)</div>
+        <p style="font-size:11.5px;margin:0 0 10px;">Soal pilihan ganda khusus buat game Ular Tangga. Kalau soal ini dilengkapi link Spotify, pas peserta jawab bakal diputer cuplikan lagunya (preview 30 detik gratis) bareng jawabannya.</p>
+
+        <div style="font-size:12.5px;font-weight:800;margin-bottom:6px;">➕ Tambah Soal Baru</div>
+        <input type="text" id="ularAddQuestion" class="plain-input" placeholder="Pertanyaan..." style="margin-bottom:6px;">
+        <input type="text" id="ularAddOpt0" class="plain-input" placeholder="Opsi A" style="margin-bottom:6px;">
+        <input type="text" id="ularAddOpt1" class="plain-input" placeholder="Opsi B" style="margin-bottom:6px;">
+        <input type="text" id="ularAddOpt2" class="plain-input" placeholder="Opsi C" style="margin-bottom:6px;">
+        <input type="text" id="ularAddOpt3" class="plain-input" placeholder="Opsi D" style="margin-bottom:6px;">
+        <select id="ularAddCorrect" class="plain-input" style="margin-bottom:6px;">
+          <option value="0">Jawaban benar: Opsi A</option>
+          <option value="1">Jawaban benar: Opsi B</option>
+          <option value="2">Jawaban benar: Opsi C</option>
+          <option value="3">Jawaban benar: Opsi D</option>
+        </select>
+        <input type="text" id="ularAddSpotify" class="plain-input" placeholder="Link Spotify (opsional) — https://open.spotify.com/track/..." style="margin-bottom:8px;">
+        <button class="small-btn" id="ularAddBtn" style="background:var(--blue);color:#fff;">➕ Tambahkan</button>
+        <div id="ularAddStatusMsg" style="font-size:11.5px;margin-top:8px;"></div>
+
+        <div style="border-top:1px dashed var(--line);margin:16px 0;"></div>
+        <input type="text" id="ularSearchInput" class="plain-input" placeholder="🔍 Cari soal..." style="margin-bottom:8px;">
+        <div style="font-size:10.5px;opacity:0.7;margin-bottom:8px;" id="ularCountInfo"></div>
+        <div id="ularBankList"><div class="lb-empty">Memuat...</div></div>
+      </div>
+
       <div class="section-card" id="participantSection" style="border-top:1px dashed var(--line);">
         <div class="section-title">👥 Kelola Peserta (Ban/Blokir)</div>
         <div style="display:flex;gap:6px;margin-bottom:10px;">
@@ -856,7 +883,7 @@
     `;
 
     /* ---------------- PAGE SWITCHER (menu pojok kiri atas, bukan scroll) ---------------- */
-    const ADMIN_SECTION_IDS = ['examSection','pesertaListSection','classChatSection','groupsSection','peerMonitorSection','leaderboardSection','activityLeaderboardSection','xpManageSection','historySection','modeStatusSection','scheduleSection','accentSection','statsSection','exportSection','vocabBankSection','participantSection','dangerZoneSection','spotifySection'];
+    const ADMIN_SECTION_IDS = ['examSection','pesertaListSection','classChatSection','groupsSection','peerMonitorSection','leaderboardSection','activityLeaderboardSection','xpManageSection','historySection','modeStatusSection','scheduleSection','accentSection','statsSection','exportSection','vocabBankSection','ularBankSection','participantSection','dangerZoneSection','spotifySection'];
     window.showAdminSection = function(id){
       ADMIN_SECTION_IDS.forEach(sid=>{
         const el = document.getElementById(sid);
@@ -1192,6 +1219,97 @@
           statusMsg.textContent = '✓ Dihapus. Menu musik disembunyikan dari peserta.';
         });
       };
+    })();
+
+    /* ---------------- BANK SOAL CUSTOM (ULAR TANGGA) ---------------- */
+    (function(){
+      const qInput = document.getElementById('ularAddQuestion');
+      const opt0 = document.getElementById('ularAddOpt0');
+      const opt1 = document.getElementById('ularAddOpt1');
+      const opt2 = document.getElementById('ularAddOpt2');
+      const opt3 = document.getElementById('ularAddOpt3');
+      const correctSel = document.getElementById('ularAddCorrect');
+      const spotifyInput = document.getElementById('ularAddSpotify');
+      const addBtn = document.getElementById('ularAddBtn');
+      const addStatus = document.getElementById('ularAddStatusMsg');
+      const searchInput = document.getElementById('ularSearchInput');
+      const countInfo = document.getElementById('ularCountInfo');
+      const listEl = document.getElementById('ularBankList');
+      if(!qInput || !addBtn) return;
+
+      let ularBankCache = {};
+
+      addBtn.onclick = ()=>{
+        const question = qInput.value.trim();
+        const options = [opt0.value.trim(), opt1.value.trim(), opt2.value.trim(), opt3.value.trim()];
+        const correctIndex = parseInt(correctSel.value, 10);
+        const spotifyUrl = spotifyInput.value.trim();
+        if(!question || options.some(o=> !o)){
+          addStatus.style.color = 'var(--red-dim)';
+          addStatus.textContent = 'Pertanyaan & keempat opsi wajib diisi semua.';
+          return;
+        }
+        let spotifyParsed = null;
+        if(spotifyUrl){
+          spotifyParsed = spotifyParseUrl(spotifyUrl);
+          if(!spotifyParsed){
+            addStatus.style.color = 'var(--red-dim)';
+            addStatus.textContent = 'Link Spotify gak valid (kosongin aja kalau gak perlu musik). Pastikan link "Share" dari lagu Spotify (open.spotify.com/track/...).';
+            return;
+          }
+        }
+        const data = {
+          question, options, correctIndex,
+          spotifyUrl: spotifyUrl || null,
+          createdAt: firebase.database.ServerValue.TIMESTAMP
+        };
+        addBtn.disabled = true;
+        db.ref('ularCustomQuestions').push(data).then(()=>{
+          qInput.value = ''; opt0.value = ''; opt1.value = ''; opt2.value = ''; opt3.value = ''; spotifyInput.value = '';
+          correctSel.value = '0';
+          addStatus.style.color = 'var(--green)';
+          addStatus.textContent = '✓ Soal tersimpan ke bank Ular Tangga.';
+        }).catch((err)=>{
+          addStatus.style.color = 'var(--red-dim)';
+          addStatus.textContent = 'Gagal menyimpan (kemungkinan Firebase Rules belum mengizinkan path "ularCustomQuestions"): ' + (err && err.message ? err.message : err);
+        }).finally(()=>{ addBtn.disabled = false; });
+      };
+
+      function renderUlarList(){
+        const q = (searchInput.value || '').trim().toLowerCase();
+        const entries = Object.entries(ularBankCache).filter(([id, item])=>{
+          if(!q) return true;
+          return (item.question||'').toLowerCase().includes(q) || (item.options||[]).some(o=>(o||'').toLowerCase().includes(q));
+        }).sort((a,b)=> (b[1].createdAt||0) - (a[1].createdAt||0));
+        countInfo.textContent = entries.length + ' soal custom tersimpan';
+        if(entries.length === 0){
+          listEl.innerHTML = '<div class="lb-empty">Belum ada soal custom.</div>';
+          return;
+        }
+        listEl.innerHTML = entries.map(([id, item])=>{
+          const optsHtml = (item.options||[]).map((o,i)=> `<div style="font-size:12px;${i===item.correctIndex?'font-weight:800;color:var(--green);':''}">${i===item.correctIndex?'✓ ':'• '}${escapeHtml(o)}</div>`).join('');
+          const musicBadge = item.spotifyUrl ? '<span style="font-size:10.5px;background:#1DB954;color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px;">🎵 ada lagu</span>' : '';
+          return `<div class="banned-item" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px;" data-id="${id}">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:flex-start;gap:8px;">
+              <div style="font-weight:800;font-size:13px;flex:1;">${escapeHtml(item.question)}${musicBadge}</div>
+              <button class="small-btn ban" data-action="delete" data-id="${id}" style="flex:0 0 auto;">🗑</button>
+            </div>
+            ${optsHtml}
+          </div>`;
+        }).join('');
+        listEl.querySelectorAll('[data-action="delete"]').forEach(btn=>{
+          btn.onclick = ()=>{
+            if(confirm('Hapus soal custom ini?')){
+              db.ref('ularCustomQuestions/' + btn.dataset.id).remove().catch((err)=> alert('Gagal menghapus: ' + err.message));
+            }
+          };
+        });
+      }
+      searchInput.addEventListener('input', renderUlarList);
+      db.ref('ularCustomQuestions').on('value', (snap)=>{
+        ularBankCache = snap.val() || {};
+        renderUlarList();
+      });
     })();
 
     /* ---------------- DAFTAR LAGU (YOUTUBE, BISA LEBIH DARI 1) ---------------- */
