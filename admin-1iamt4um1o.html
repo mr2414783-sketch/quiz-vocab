@@ -283,6 +283,7 @@
     <button class="nav-menu-item" data-target="exportSection">📤 Export Data</button>
     <button class="nav-menu-item" data-target="vocabBankSection">📚 Bank Soal (Kosakata)</button>
     <button class="nav-menu-item" data-target="participantSection">🚫 Kelola Peserta (Ban)</button>
+    <button class="nav-menu-item" data-target="spotifySection">🎵 Musik (Spotify)</button>
     <button class="nav-menu-item" data-target="dangerZoneSection" style="color:var(--red-dim);">⚠️ Zona Berbahaya</button>
     <button class="nav-menu-item" id="navMenuFeedbackLink">💬 Lihat Masukan Peserta<span id="navFeedbackBadge" class="nav-menu-item-dot"></span></button>
     <button class="nav-menu-item" id="navMenuLogoutBtn" style="color:var(--red-dim);border-bottom:none;">🚪 Keluar</button>
@@ -823,6 +824,17 @@
         <div style="margin-top:16px;" id="participantList"><div class="history-empty">Memuat daftar peserta...</div></div>
       </div>
 
+      <div class="section-card" id="spotifySection" style="border-top:1px dashed var(--line);">
+        <div class="section-title">🎵 Musik (Spotify)</div>
+        <p style="font-size:11.5px;margin:0 0 10px;">Tempel link share Spotify (lagu, playlist, atau album) di sini. Peserta akan lihat pemutar Spotify resmi di menu "Dengarkan Musik". Peserta yang gratisan cuma bisa dengar preview 30 detik; yang Spotify Premium & lagi login di HP-nya bisa dengar full lagu. Ini bukan pemutaran serentak/sinkron — tiap peserta muter sendiri-sendiri di device masing-masing.</p>
+        <input type="text" id="spotifyLinkInput" class="plain-input" placeholder="https://open.spotify.com/track/..." style="margin-bottom:8px;">
+        <input type="text" id="spotifyTitleInput" class="plain-input" placeholder="Judul (opsional, contoh: Lagu Semangat Belajar)" style="margin-bottom:8px;">
+        <button class="save-exam-btn" id="spotifySaveBtn" style="margin-top:0;">💾 Simpan</button>
+        <button class="small-btn" id="spotifyClearBtn" style="background:var(--red-dim);color:#fff;margin-top:8px;">🗑 Hapus (sembunyikan menu musik dari peserta)</button>
+        <div id="spotifyStatusMsg" style="font-size:11.5px;margin-top:8px;"></div>
+        <div id="spotifyPreviewWrap" style="margin-top:10px;"></div>
+      </div>
+
       <div class="section-card" id="dangerZoneSection" style="border-top:1px dashed var(--line);border:1.5px solid var(--red-dim);">
         <div class="section-title" style="color:var(--red-dim);">⚠️ Zona Berbahaya</div>
         <p style="font-size:11.5px;margin:0 0 10px;">Hapus/restart akun <b>SEMUA</b> peserta sekaligus. Peserta yang sedang tidak aktif akan otomatis diminta daftar ulang dari nol pas buka app lagi (profilnya sudah hilang di server). Peserta yang lagi aktif mungkin masih lihat tampilan lama sampai mereka keluar/refresh app. Cocok dipakai kalau mau mulai batch/angkatan baru.</p>
@@ -834,7 +846,7 @@
     `;
 
     /* ---------------- PAGE SWITCHER (menu pojok kiri atas, bukan scroll) ---------------- */
-    const ADMIN_SECTION_IDS = ['examSection','pesertaListSection','classChatSection','groupsSection','peerMonitorSection','leaderboardSection','activityLeaderboardSection','xpManageSection','historySection','modeStatusSection','scheduleSection','accentSection','statsSection','exportSection','vocabBankSection','participantSection','dangerZoneSection'];
+    const ADMIN_SECTION_IDS = ['examSection','pesertaListSection','classChatSection','groupsSection','peerMonitorSection','leaderboardSection','activityLeaderboardSection','xpManageSection','historySection','modeStatusSection','scheduleSection','accentSection','statsSection','exportSection','vocabBankSection','participantSection','dangerZoneSection','spotifySection'];
     window.showAdminSection = function(id){
       ADMIN_SECTION_IDS.forEach(sid=>{
         const el = document.getElementById(sid);
@@ -1114,6 +1126,62 @@
       db.ref('contentBank/vocabOverride').on('value', (snap)=>{ vbOverride = snap.val() || {}; renderList(); });
       db.ref('contentBank/vocabDeleted').on('value', (snap)=>{ vbDeleted = snap.val() || {}; renderList(); });
       db.ref('contentBank/vocabAdded').on('value', (snap)=>{ vbAdded = snap.val() || {}; renderList(); });
+    })();
+
+    /* ---------------- MUSIK (SPOTIFY) ---------------- */
+    function spotifyParseUrl(url){
+      const m = (url||'').match(/open\.spotify\.com\/(track|playlist|album|episode)\/([a-zA-Z0-9]+)/);
+      if(!m) return null;
+      return { type: m[1], id: m[2] };
+    }
+    (function(){
+      const linkInput = document.getElementById('spotifyLinkInput');
+      const titleInput = document.getElementById('spotifyTitleInput');
+      const saveBtn = document.getElementById('spotifySaveBtn');
+      const clearBtn = document.getElementById('spotifyClearBtn');
+      const statusMsg = document.getElementById('spotifyStatusMsg');
+      const previewWrap = document.getElementById('spotifyPreviewWrap');
+      if(!linkInput) return;
+      function renderPreview(cfg){
+        if(!cfg || !cfg.url){ previewWrap.innerHTML = ''; return; }
+        const parsed = spotifyParseUrl(cfg.url);
+        if(!parsed){ previewWrap.innerHTML = ''; return; }
+        previewWrap.innerHTML = `<p style="font-size:10.5px;opacity:0.7;margin-bottom:6px;">Pratinjau (tampilan peserta sama seperti ini):</p><iframe src="https://open.spotify.com/embed/${parsed.type}/${parsed.id}" width="100%" height="152" frameborder="0" allow="encrypted-media" style="border-radius:12px;"></iframe>`;
+      }
+      db.ref('settings/spotifyEmbed').once('value').then((snap)=>{
+        const cfg = snap.val();
+        if(cfg){
+          linkInput.value = cfg.url || '';
+          titleInput.value = cfg.title || '';
+          renderPreview(cfg);
+        }
+      });
+      saveBtn.onclick = ()=>{
+        const url = linkInput.value.trim();
+        const parsed = spotifyParseUrl(url);
+        if(!parsed){
+          statusMsg.style.color = 'var(--red-dim)';
+          statusMsg.textContent = 'Link Spotify gak valid. Pastikan itu link "Share" dari lagu/playlist/album Spotify (open.spotify.com/track/... atau /playlist/... atau /album/...).';
+          return;
+        }
+        const cfg = { url, title: titleInput.value.trim() };
+        db.ref('settings/spotifyEmbed').set(cfg).then(()=>{
+          statusMsg.style.color = 'var(--green)';
+          statusMsg.textContent = '✓ Tersimpan. Menu musik langsung muncul di app peserta.';
+          renderPreview(cfg);
+        }).catch((err)=>{
+          statusMsg.style.color = 'var(--red-dim)';
+          statusMsg.textContent = 'Gagal menyimpan: ' + (err && err.message ? err.message : err);
+        });
+      };
+      clearBtn.onclick = ()=>{
+        if(!confirm('Hapus musik yang lagi ditampilkan? Menu "Dengarkan Musik" bakal hilang dari app peserta.')) return;
+        db.ref('settings/spotifyEmbed').remove().then(()=>{
+          linkInput.value = ''; titleInput.value = ''; previewWrap.innerHTML = '';
+          statusMsg.style.color = 'var(--green)';
+          statusMsg.textContent = '✓ Dihapus. Menu musik disembunyikan dari peserta.';
+        });
+      };
     })();
 
     /* ---------------- ZONA BERBAHAYA: HAPUS/RESTART SEMUA AKUN PESERTA ---------------- */
@@ -2637,7 +2705,11 @@
         db.ref('presence').once('value'),
         db.ref('examScores').once('value'),
         db.ref('scoreHistory').once('value'),
-        db.ref('deviceAccounts').once('value')
+        // Baca 'deviceAccounts' bisa kena permission_denied tergantung aturan keamanan Firebase
+        // (baca borongan seluruh node kadang sengaja dibatasi). Kalau gagal, jangan sampai
+        // menggagalkan SELURUH proses hapus akun — anggap kosong & lanjut, nanti dibersihkan
+        // manual lewat "Bersihkan Sisa Jejak" kalau ternyata ada device yang masih terkunci.
+        db.ref('deviceAccounts').once('value').catch(()=> null)
       ]).then(([histSnap, presSnap, scoreSnap, scoreHistSnap, devAccSnap])=>{
         const updates = {};
         updates['profiles/' + key] = null;
@@ -2660,7 +2732,8 @@
         // jadi gak bisa dipakai buat daftar akun baru sama sekali di device itu.
         // Cek langsung ke data 'deviceAccounts' (bukan asumsi dari loginHistory) biar gak
         // salah hapus device yang sudah di-assign ulang ke akun lain oleh admin.
-        const devAcc = devAccSnap.val() || {};
+        // devAccSnap bisa null kalau baca borongan tadi gagal (permission_denied) — dilewati aja.
+        const devAcc = (devAccSnap && devAccSnap.val()) || {};
         Object.entries(devAcc).forEach(([devId, e])=>{
           if(e && e.name === name) updates['deviceAccounts/' + devId] = null;
         });

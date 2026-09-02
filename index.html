@@ -5920,6 +5920,7 @@ function duelFinish(room, myKey, oppName, onBack){
    kebenaran) supaya gak ada race condition antar device peserta. */
 let kahootSessionRef = null;
 let kahootPin = null;
+let kahootHostChatRef = null;
 let kahootIsHost = false;
 let kahootMyKey = null;
 let kahootMyName = '';
@@ -6226,10 +6227,20 @@ function kahootRenderHostLobby(room){
         <div class="section-tag" style="background:#ffd60a;color:#46178f;">🖥️ ROOM DIBUAT</div>
         <p class="intro-desc" style="font-size:12px;">Bagikan PIN ini ke peserta:</p>
         <div class="kahoot-pinbox">${kahootPin}</div>
+        <button class="btn ghost" id="kahootSendPinToChatBtn" style="margin-top:2px;font-size:12.5px;padding:9px;">📨 Kirim PIN ke Chat Kelas</button>
         <p class="intro-desc" style="font-size:12px;">${room.questions.length} soal · ${room.duration} detik/soal</p>
         <div style="width:100%;">${players.length ? players.map(p=>`<div class="lb-item-light"><span>🙋 ${escapeHtmlIdx(p.name)}</span></div>`).join('') : '<div class="lb-empty-light">Menunggu peserta gabung...</div>'}</div>
         <button class="btn" id="kahootStartBtn" ${players.length===0?'disabled':''} style="margin-top:12px;">Mulai Kuis (${players.length} peserta) →</button>
         <button class="btn ghost" id="kahootHostCancelBtn">✕ Batalkan Room</button>
+
+        <div style="width:100%;margin-top:14px;border-top:1px dashed rgba(255,255,255,0.35);padding-top:10px;">
+          <p class="intro-desc" style="font-size:11px;font-weight:800;opacity:0.85;margin-bottom:6px;">💬 Obrolan Kelas</p>
+          <div id="kahootHostChatList" style="max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,0.12);border-radius:10px;padding:8px;margin-bottom:8px;text-align:left;"></div>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="kahootHostChatInput" placeholder="Tulis pesan ke kelas..." maxlength="300" style="flex:1;min-width:0;border-radius:8px;border:none;padding:9px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
+            <button type="button" id="kahootHostChatSendBtn" style="border:none;border-radius:8px;padding:9px 14px;font-weight:800;background:#46178f;color:#fff;cursor:pointer;">Kirim</button>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -6239,10 +6250,72 @@ function kahootRenderHostLobby(room){
   if(startBtn && players.length > 0){
     startBtn.onclick = ()=>{
       kahootStopMusic();
+      if(kahootHostChatRef){ kahootHostChatRef.off(); kahootHostChatRef = null; }
       kahootSessionRef.update({ status: 'question', currentIndex: 0, questionStartedAt: firebase.database.ServerValue.TIMESTAMP });
     };
   }
   document.getElementById('kahootHostCancelBtn').onclick = ()=> kahootHostEndSession(true);
+
+  // Obrolan Kelas langsung ditampilkan di sini (pakai data 'chat/messages' yang sama persis
+  // dengan menu Obrolan Kelas utama — gak ada perubahan struktur data Firebase), biar host
+  // gak perlu pindah halaman buat kirim PIN/chat, dan room Kahoot-nya gak ke-reset.
+  if(kahootHostChatRef) kahootHostChatRef.off();
+  kahootHostChatRef = db.ref('chat/messages').limitToLast(30);
+  kahootHostChatRef.on('value', (snapshot)=>{
+    const listEl = document.getElementById('kahootHostChatList');
+    if(!listEl) return;
+    const data = snapshot.val() || {};
+    const arr = Object.values(data).sort((a,b)=> (a.timestamp||0) - (b.timestamp||0));
+    if(arr.length === 0){
+      listEl.innerHTML = '<div style="font-size:11px;opacity:0.7;text-align:center;">Belum ada obrolan.</div>';
+    } else {
+      listEl.innerHTML = arr.map(m=>{
+        const isAdmin = m.isAdmin === true;
+        const d = m.timestamp ? new Date(m.timestamp) : null;
+        const timeStr = d ? d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) : '';
+        const textHtml = m.message ? escapeHtmlIdx(m.message) : (m.mediaType ? '[media]' : '');
+        return `<div style="font-size:12px;color:#2b2b2b;"><b>${isAdmin ? '👑 Admin' : escapeHtmlIdx(m.name || 'Anonim')}</b> <span style="opacity:0.55;font-size:10px;">${timeStr}</span><br>${textHtml}</div>`;
+      }).join('');
+    }
+    listEl.scrollTop = listEl.scrollHeight;
+  });
+  const hostChatInput = document.getElementById('kahootHostChatInput');
+  const hostChatSendBtn = document.getElementById('kahootHostChatSendBtn');
+  function sendKahootHostChatMsg(){
+    const val = hostChatInput.value.trim();
+    if(!val) return;
+    db.ref('chat/messages').push({
+      name: getSavedName() || 'Host',
+      message: val.slice(0, 300),
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    hostChatInput.value = '';
+  }
+  hostChatSendBtn.onclick = sendKahootHostChatMsg;
+  hostChatInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); sendKahootHostChatMsg(); } });
+
+  // Kirim PIN langsung ke chat kelas TANPA pindah halaman, biar room/lobby Kahoot-nya gak
+  // ke-reset/keulang gara-gara harus buka menu chat utama dulu buat share PIN-nya.
+  const sendPinBtn = document.getElementById('kahootSendPinToChatBtn');
+  if(sendPinBtn){
+    sendPinBtn.onclick = ()=>{
+      sendPinBtn.disabled = true;
+      const originalText = sendPinBtn.textContent;
+      sendPinBtn.textContent = 'Mengirim...';
+      db.ref('chat/messages').push({
+        name: getSavedName() || 'Host',
+        message: `🎉 Kuis Live dimulai! Gabung pakai PIN: ${kahootPin}`,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      }).then(()=>{
+        sendPinBtn.textContent = '✓ Terkirim ke Chat Kelas';
+        setTimeout(()=>{ sendPinBtn.textContent = originalText; sendPinBtn.disabled = false; }, 2000);
+      }).catch((err)=>{
+        alert('Gagal mengirim ke chat: ' + (err && err.message ? err.message : err));
+        sendPinBtn.textContent = originalText;
+        sendPinBtn.disabled = false;
+      });
+    };
+  }
 }
 
 function kahootRenderHostQuestion(room, idx){
@@ -6451,6 +6524,7 @@ function kahootHostEndSession(remove){
     kahootSessionRef.off();
     if(remove) kahootSessionRef.remove().catch(()=>{});
   }
+  if(kahootHostChatRef){ kahootHostChatRef.off(); kahootHostChatRef = null; }
   kahootSessionRef = null; kahootPin = null; kahootIsHost = false; kahootRenderedKey = null;
   if(onBack) onBack();
 }
@@ -6955,6 +7029,7 @@ function renderOtherModesMenu(onBack){
 
       <button class="btn ghost" id="otherDuelBtn" style="margin-top:2px;border-color:#8b5cf6;color:#8b5cf6;">⚔️ Duel 1v1 (Beta)</button>
       <button class="btn ghost" id="otherKahootBtn" style="border-color:#eab308;color:#b45309;">🎉 Kuis Live (Kahoot-style)</button>
+      <button class="btn ghost" id="otherMusicBtn" style="border-color:#1DB954;color:#1a9c47;">🎵 Dengarkan Musik</button>
 
       <button class="btn ghost" id="backToModeSelectBtn2" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -6972,6 +7047,45 @@ function renderOtherModesMenu(onBack){
     if(!myPresenceRef){ startPresence(savedName); }
     renderKahootEntry(()=> renderOtherModesMenu(onBack));
   };
+  document.getElementById('otherMusicBtn').onclick = ()=> renderMusicPlayer(()=> renderOtherModesMenu(onBack));
+}
+
+function spotifyParseUrlPeserta(url){
+  const m = (url||'').match(/open\.spotify\.com\/(track|playlist|album|episode)\/([a-zA-Z0-9]+)/);
+  if(!m) return null;
+  return { type: m[1], id: m[2] };
+}
+function renderMusicPlayer(onBack){
+  clearTimer();
+  statusVal.textContent = "MUSIK";
+  setPresenceStatus('idle');
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag" style="background:#1DB954;color:#fff;">🎵 MUSIK</div>
+      <h1 class="intro-title">Dengarkan Musik</h1>
+      <div id="musicPlayerWrap" style="width:100%;margin-top:8px;"><div class="lb-empty-light">Memuat...</div></div>
+      <p class="intro-desc" style="font-size:11px;opacity:0.7;margin-top:10px;">Pemutar dari Spotify. Kalau kamu belum login Spotify Premium, cuma bisa dengar preview 30 detik.</p>
+      <button class="btn ghost" id="musicBackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>
+  `;
+  document.getElementById('musicBackBtn').onclick = onBack;
+  db.ref('settings/spotifyEmbed').once('value').then((snap)=>{
+    const cfg = snap.val();
+    const wrap = document.getElementById('musicPlayerWrap');
+    if(!wrap) return;
+    const parsed = cfg && spotifyParseUrlPeserta(cfg.url);
+    if(!parsed){
+      wrap.innerHTML = '<div class="lb-empty-light">Belum ada musik yang diatur admin.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      ${cfg.title ? `<div style="font-weight:800;font-size:14px;margin-bottom:8px;">${escapeHtmlIdx(cfg.title)}</div>` : ''}
+      <iframe src="https://open.spotify.com/embed/${parsed.type}/${parsed.id}" width="100%" height="${parsed.type==='track' ? 152 : 352}" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="border-radius:14px;"></iframe>
+    `;
+  }).catch(()=>{
+    const wrap = document.getElementById('musicPlayerWrap');
+    if(wrap) wrap.innerHTML = '<div class="lb-empty-light">Gagal memuat musik.</div>';
+  });
 }
 
 function renderStandardSubmenu(){
