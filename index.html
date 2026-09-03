@@ -502,6 +502,17 @@
   .kids-tile.active{border-color:var(--green);background:rgba(63,145,66,0.08);}
   .kids-start-btn{background:linear-gradient(135deg, var(--green), #2f7a32);}
   .kids-emoji-big{font-size:56px;line-height:1.1;margin:6px 0;}
+  .kids-match-grid{display:flex;gap:10px;width:100%;margin-top:8px;}
+  .kids-match-col{flex:1;display:flex;flex-direction:column;gap:8px;}
+  .kids-match-card{
+    border:2px solid var(--line);border-radius:12px;padding:14px 8px;font-size:26px;background:#fff;
+    cursor:pointer;transition:transform 0.15s ease;
+  }
+  .kids-match-card.kids-match-word{font-size:14px;font-weight:700;}
+  .kids-match-card.kids-match-picked{border-color:#eab308;background:#FFFBEB;transform:scale(1.05);}
+  .kids-match-card.kids-match-solved{border-color:#16a34a;background:#F0FDF4;opacity:0.6;cursor:default;}
+  .kids-match-card.kids-match-wrong{border-color:#dc2626;background:#FEF2F2;animation:kidsMatchShake 0.4s ease;}
+  @keyframes kidsMatchShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
   .kids-question{font-size:18px;font-weight:800;color:var(--ink);text-align:center;margin-bottom:6px;}
   .kids-options{display:flex;flex-direction:column;gap:12px;width:100%;}
   .kids-opt{
@@ -874,7 +885,8 @@
   }
   .bg-music-bar-emoji{font-size:16px;flex-shrink:0;}
   .bg-music-bar-title{flex:1;min-width:0;font-size:11.5px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .bg-music-bar button{background:none;border:none;font-size:17px;cursor:pointer;color:var(--ink);padding:5px 7px;line-height:1;}
+  .bg-music-bar button{background:none;border:none;font-size:15px;cursor:pointer;color:var(--ink);padding:5px 4px;line-height:1;flex-shrink:0;}
+  .bg-music-bar button.active-repeat{color:var(--red);}
   .bg-music-bar button:active{transform:scale(0.9);}
   .music-song-item{
     display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:12px;
@@ -955,7 +967,10 @@
 <div class="bg-music-bar" id="bgMusicBar">
   <span class="bg-music-bar-emoji">🎵</span>
   <span class="bg-music-bar-title" id="bgMusicBarTitle"></span>
+  <button type="button" id="bgMusicBarPrev" title="Lagu sebelumnya">⏪</button>
   <button type="button" id="bgMusicBarToggle" title="Play/Jeda">▶️</button>
+  <button type="button" id="bgMusicBarNext" title="Lagu berikutnya">⏩</button>
+  <button type="button" id="bgMusicBarRepeat" title="Ulangi lagu ini">🔁</button>
   <button type="button" id="bgMusicBarStop" title="Stop">✕</button>
 </div>
 <div id="bgMusicYtHost" style="position:fixed;left:0;bottom:0;width:2px;height:2px;overflow:hidden;opacity:0.01;pointer-events:none;z-index:1;"></div>
@@ -2621,6 +2636,27 @@ const KIDS_CATEGORIES = {
   "🙋 Bagian Tubuh": [
     ["Kepala","Head","🗣️"], ["Rambut","Hair","💇"], ["Mata","Eyes","👀"], ["Telinga","Ears","👂"],
     ["Hidung","Nose","👃"], ["Mulut","Mouth","👄"], ["Tangan","Hands","✋"], ["Kaki","Legs","🦵"]
+  ],
+  "🍎 Makanan & Minuman": [
+    ["Nasi","Rice","🍚"], ["Roti","Bread","🍞"], ["Telur","Egg","🥚"], ["Susu","Milk","🥛"],
+    ["Air","Water","💧"], ["Apel","Apple","🍎"], ["Pisang","Banana","🍌"], ["Jeruk","Orange","🍊"],
+    ["Es krim","Ice cream","🍦"], ["Ayam goreng","Fried chicken","🍗"], ["Permen","Candy","🍬"], ["Kue","Cake","🍰"]
+  ],
+  "🚗 Kendaraan": [
+    ["Mobil","Car","🚗"], ["Motor","Motorcycle","🏍️"], ["Sepeda","Bicycle","🚲"], ["Bus","Bus","🚌"],
+    ["Kereta","Train","🚆"], ["Pesawat","Airplane","✈️"], ["Kapal","Ship","🚢"], ["Perahu","Boat","⛵"]
+  ],
+  "👕 Pakaian": [
+    ["Baju","Shirt","👕"], ["Celana","Pants","👖"], ["Topi","Hat","🧢"], ["Sepatu","Shoes","👟"],
+    ["Kaos kaki","Socks","🧦"], ["Rok","Skirt","👗"], ["Jaket","Jacket","🧥"], ["Payung","Umbrella","☂️"]
+  ],
+  "🌤️ Cuaca & Alam": [
+    ["Matahari","Sun","☀️"], ["Hujan","Rain","🌧️"], ["Awan","Cloud","☁️"], ["Bintang","Star","⭐"],
+    ["Bulan","Moon","🌙"], ["Angin","Wind","🌬️"], ["Pelangi","Rainbow","🌈"], ["Salju","Snow","❄️"]
+  ],
+  "🏫 Peralatan Sekolah": [
+    ["Buku","Book","📚"], ["Pensil","Pencil","✏️"], ["Penghapus","Eraser","🧽"], ["Tas","Bag","🎒"],
+    ["Penggaris","Ruler","📏"], ["Gunting","Scissors","✂️"], ["Meja","Table","🪑"], ["Papan tulis","Whiteboard","📋"]
   ]
 };
 function buildKidsItems(){
@@ -2668,6 +2704,7 @@ let quizType = 'mc'; // 'mc' | 'match' | 'essay' | 'srs'
 let primaryMode = 'quiz'; // 'quiz' | 'flashcard' | 'kids'
 let modeChosenThisSession = false;
 let selectedKidsCategory = 'all';
+let selectedKidsMode = 'quiz'; // 'quiz' | 'flashcard' | 'match'
 let scope = 'all';    // 'all' (gabungan Bulan 1+2) | 'day' (per hari, pilih bulan dulu)
 let selectedMonth = 1;
 let selectedDay = 1;
@@ -2707,6 +2744,7 @@ let bgMusicQueue = [];      // daftar lagu dari settings/musicPlaylist: [{id, ti
 let bgMusicCurrent = null;  // lagu yang lagi/terakhir diputer
 let bgMusicIsPlaying = false;
 let bgMusicPendingId = null; // youtubeId yang mau diputer begitu player YT siap
+let bgMusicRepeatOne = false; // true = ulangi lagu yang sama terus saat selesai
 
 function loadYoutubeIframeApi(){
   if(window.YT && window.YT.Player){ initBgYtPlayer(); return; }
@@ -2735,6 +2773,15 @@ function initBgYtPlayer(){
       onStateChange: (e)=>{
         bgMusicIsPlaying = (e.data === YT.PlayerState.PLAYING);
         updateBgMusicUI();
+        // Lagu selesai (ENDED = 0): ulangi lagu yang sama kalau mode repeat aktif,
+        // kalau tidak lanjut otomatis ke lagu berikutnya di playlist.
+        if(e.data === YT.PlayerState.ENDED){
+          if(bgMusicRepeatOne && bgMusicCurrent){
+            bgMusicPlaySong(bgMusicCurrent);
+          } else {
+            bgMusicNext();
+          }
+        }
       }
     }
   });
@@ -2760,6 +2807,27 @@ function bgMusicToggle(){
   if(bgMusicIsPlaying){ ytPlayer.pauseVideo(); } else { ytPlayer.playVideo(); }
 }
 
+function bgMusicCurrentIndex(){
+  if(!bgMusicCurrent || bgMusicQueue.length === 0) return -1;
+  return bgMusicQueue.findIndex(s => s.id === bgMusicCurrent.id);
+}
+function bgMusicPrev(){
+  if(bgMusicQueue.length === 0) return;
+  const i = bgMusicCurrentIndex();
+  const nextIdx = i <= 0 ? bgMusicQueue.length - 1 : i - 1; // muter dari awal lagi kalau di lagu pertama
+  bgMusicPlaySong(bgMusicQueue[nextIdx]);
+}
+function bgMusicNext(){
+  if(bgMusicQueue.length === 0) return;
+  const i = bgMusicCurrentIndex();
+  const nextIdx = (i < 0 || i >= bgMusicQueue.length - 1) ? 0 : i + 1; // balik ke lagu pertama kalau udah abis
+  bgMusicPlaySong(bgMusicQueue[nextIdx]);
+}
+function bgMusicToggleRepeat(){
+  bgMusicRepeatOne = !bgMusicRepeatOne;
+  updateBgMusicUI();
+}
+
 function bgMusicStop(){
   if(ytPlayer){ try{ ytPlayer.stopVideo(); }catch(e){} }
   bgMusicCurrent = null;
@@ -2780,8 +2848,10 @@ function hideBgMusicBar(){
 function updateBgMusicUI(){
   const titleEl = document.getElementById('bgMusicBarTitle');
   const toggleBtn = document.getElementById('bgMusicBarToggle');
+  const repeatBtn = document.getElementById('bgMusicBarRepeat');
   if(titleEl) titleEl.textContent = bgMusicCurrent ? bgMusicCurrent.title : '';
   if(toggleBtn) toggleBtn.textContent = bgMusicIsPlaying ? '⏸️' : '▶️';
+  if(repeatBtn) repeatBtn.classList.toggle('active-repeat', bgMusicRepeatOne);
   document.querySelectorAll('.music-song-item').forEach(el=>{
     const isCurrent = !!(bgMusicCurrent && el.dataset.songId === bgMusicCurrent.id);
     el.classList.toggle('playing', isCurrent);
@@ -2793,8 +2863,14 @@ function updateBgMusicUI(){
 (function initBgMusicBarButtons(){
   const toggleBtn = document.getElementById('bgMusicBarToggle');
   const stopBtn = document.getElementById('bgMusicBarStop');
+  const prevBtn = document.getElementById('bgMusicBarPrev');
+  const nextBtn = document.getElementById('bgMusicBarNext');
+  const repeatBtn = document.getElementById('bgMusicBarRepeat');
   if(toggleBtn) toggleBtn.onclick = bgMusicToggle;
   if(stopBtn) stopBtn.onclick = bgMusicStop;
+  if(prevBtn) prevBtn.onclick = bgMusicPrev;
+  if(nextBtn) nextBtn.onclick = bgMusicNext;
+  if(repeatBtn) repeatBtn.onclick = bgMusicToggleRepeat;
 })();
 
 /* ---------------- GATE STATUS (admin buka/tutup akses) ---------------- */
@@ -7024,6 +7100,48 @@ const ULAR_BOARD_MIN = 2;
 const ULAR_BOARD_MAX = 90; // kotak 91-99 dikhususkan buat soal grammar sulit, 100 = finish murni
 
 /* Papan (posisi ular & tangga) DIBUAT ULANG SECARA ACAK tiap game baru, gak fixed. */
+/* ---------------- SUARA ULAR TANGGA (pakai mesin synth Web Audio yang sama kayak Kahoot) ---------------- */
+function ularBeep(freq, start, dur, type, vol){
+  const ctx = kahootGetCtx();
+  if(!ctx) return;
+  try{
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    const t0 = ctx.currentTime + start;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol||0.12, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.05);
+  }catch(e){}
+}
+function ularPlayDiceRoll(){
+  // beberapa "klik" cepat imitasi dadu diguncang, lalu 1 "tuk" pas berhenti
+  for(let i=0;i<5;i++){ ularBeep(300 + Math.random()*220, i*0.07, 0.05, 'square', 0.07); }
+  ularBeep(150, 0.4, 0.12, 'triangle', 0.11);
+}
+function ularPlayStep(){
+  ularBeep(520, 0, 0.06, 'square', 0.08);
+}
+function ularPlayLadder(){
+  [400,500,600,700,800].forEach((f,i)=> ularBeep(f, i*0.06, 0.1, 'triangle', 0.09));
+}
+function ularPlaySnake(){
+  [700,600,500,400,300].forEach((f,i)=> ularBeep(f, i*0.06, 0.1, 'sawtooth', 0.09));
+}
+function ularPlayCorrect(){
+  [523.25,659.25,783.99,1046.5].forEach((f,i)=> ularBeep(f, i*0.09, 0.18, 'triangle', 0.13));
+}
+function ularPlayWrong(){
+  ularBeep(220, 0, 0.25, 'sawtooth', 0.11);
+  ularBeep(174.61, 0.12, 0.32, 'sawtooth', 0.11);
+}
+function ularPlayWin(){
+  [392,523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=> ularBeep(f, i*0.11, 0.24, 'triangle', 0.12));
+}
+
 function ularGenerateBoard(){
   const usedFrom = new Set();
   const usedTo = new Set();
@@ -7383,7 +7501,11 @@ function ularTokensOverlayHtml(room, playerKeys, colorOf){
   const myKey = ularGameMyKey;
   const byTile = {};
   playerKeys.forEach(k=>{
-    let pos = (players[k] && players[k].pos) || 0;
+    const p = players[k] || {};
+    let pos = p.pos || 0;
+    // Selagi lagi ngerjain soal (atau lihat hasil benar/salah), bidak TETAP diam di kotak
+    // soal itu -- jangan balik dulu ke posisi lama sebelum hasil jawabannya diketahui.
+    if((p.phase === 'question' || p.phase === 'reveal') && p.questionTile){ pos = p.questionTile; }
     if(k === myKey && ularAnimatingPos !== null){ pos = ularAnimatingPos; }
     if(pos <= 0) return; // masih di START, gak digambar di papan
     if(!byTile[pos]) byTile[pos] = [];
@@ -7485,6 +7607,7 @@ function ularRollDice(room){
   const me = room.players[myKey];
   if(!me || (me.phase||'idle') !== 'idle') return;
   const dice = 1 + Math.floor(Math.random()*6);
+  ularPlayDiceRoll();
   db.ref('ularGames/' + ularGameRoomId + '/players/' + myKey).update({
     phase: 'rolling', diceValue: dice
   }).catch((err)=> alert('Gagal kocok dadu: ' + (err && err.message ? err.message : err)));
@@ -7526,6 +7649,7 @@ function ularAnimateTokenSteps(room, me, startPos, dice){
     }
     step += 1;
     ularAnimatingPos = step;
+    ularPlayStep();
     ularRenderBoardUI(room);
     ularPhaseTimerHandle = setTimeout(stepNext, stepDelay);
   };
@@ -7538,9 +7662,11 @@ function ularHandleLadderSnakeThenProceed(room, me, rawTarget){
   if(room.ladders && room.ladders[rawTarget] !== undefined){
     finalTarget = room.ladders[rawTarget];
     jumpHtml = `<div class="ular-dice-toast-num">🪜</div><div class="ular-dice-toast-label">Kena tangga! Naik ke kotak ${finalTarget}</div>`;
+    ularPlayLadder();
   } else if(room.snakes && room.snakes[rawTarget] !== undefined){
     finalTarget = room.snakes[rawTarget];
     jumpHtml = `<div class="ular-dice-toast-num">🐍</div><div class="ular-dice-toast-label">Kena ular! Turun ke kotak ${finalTarget}</div>`;
+    ularPlaySnake();
   }
 
   if(!jumpHtml){
@@ -7645,8 +7771,9 @@ function ularShowRevealOverlay(room, me){
     </div>
   `;
   document.body.appendChild(overlayRoot);
+  if(isCorrect) ularPlayCorrect(); else ularPlayWrong();
 
-  let duration = 10000;
+  let duration = 4000;
   if(spotifyParsed){
     duration = 30000;
     const box = document.getElementById('ularSpotifyBox');
@@ -7681,6 +7808,7 @@ function renderUlarResults(room, onBack){
   clearTimer();
   statusVal.textContent = "ULAR TANGGA · SELESAI";
   setPresenceStatus('done');
+  ularPlayWin();
   const players = room.players || {};
   const winnerKey = room.winnerKey;
   const rows = Object.entries(players).map(([k,p])=> Object.assign({key:k}, p)).sort((a,b)=>{
@@ -7871,17 +7999,18 @@ function deleteOwnAccount(){
 }
 
 const MODE_META = {
+  belajar: { icon:'📚', label:'Mode Belajar', sub:'Anak-anak, Soal & Vocab, dan Materi & Grammar' },
+  game: { icon:'🎮', label:'Mode Game', sub:'Duel 1v1, Kuis Live (Kahoot), & Ular Tangga' },
+  lainnya: { icon:'✨', label:'Mode Lainnya', sub:'Kamus Kosakata, Musik, & Tentang Kami' },
   standard: { icon:'📚', label:'Mode Standar', sub:'Latihan dan hafalan Vocab, Verb, dan latihan Grammar' },
   kids: { icon:'🧒', label:'Mode Anak-Anak', sub:'Kosakata dasar, seru & santai' },
-  practice: { icon:'📖', label:'Latihan Soal & Hafalan', sub:'Kuis, penjodohan, esai, & flashcard' },
-  grammar: { icon:'✍️', label:'Latihan Grammar', sub:'Mode Hafalan Rumus' },
-  kamus: { icon:'🔍', label:'Kamus Kosakata', sub:'Cari kata dari seluruh 32 hari' },
-  other: { icon:'✨', label:'Mode Lainnya', sub:'Duel 1v1, Kuis Live (Kahoot), & mode seru lainnya' }
+  practice: { icon:'📖', label:'Soal & Vocab', sub:'Kuis, penjodohan, esai, & flashcard' },
+  grammar: { icon:'✍️', label:'Materi & Soal Grammar', sub:'Mode Hafalan Rumus & Latihan Soal Grammar' }
 };
 
-function modeTileHtml(key){
+function modeTileHtml(key, statusKey){
   const meta = MODE_META[key];
-  const status = modeStatus[key] || { open: true, message: '' };
+  const status = modeStatus[statusKey || key] || { open: true, message: '' };
   const closed = (status.open === false) && !isAdminBypass;
   return `
     <button class="big-mode-btn ${key==='kids' ? 'kids-tile' : ''} ${closed ? 'mode-closed' : ''}" data-mode="${key}" type="button" ${closed ? 'disabled' : ''}>
@@ -7902,11 +8031,11 @@ function renderModeSelect(){
       <p class="intro-desc">Pilih salah satu mode di bawah untuk mulai. Kamu bisa ganti mode lagi nanti dari menu.</p>
 
       <div class="big-mode-row">
-        ${modeTileHtml('standard')}
-        ${modeTileHtml('kids')}
+        ${modeTileHtml('belajar', 'standard')}
+        ${modeTileHtml('game')}
       </div>
       <div class="big-mode-row">
-        ${modeTileHtml('other')}
+        ${modeTileHtml('lainnya')}
       </div>
 
       <div class="credit-box">
@@ -7932,12 +8061,56 @@ function renderModeSelect(){
     if(btn.disabled) return;
     btn.onclick = ()=>{
       const chosen = btn.dataset.mode;
-      if(chosen === 'standard'){
-        renderStandardSubmenu();
-      } else if(chosen === 'other'){
-        renderOtherModesMenu(renderModeSelect);
+      if(chosen === 'belajar'){
+        renderBelajarSubmenu();
+      } else if(chosen === 'game'){
+        renderGameSubmenu(renderModeSelect);
       } else {
+        renderLainnyaSubmenu(renderModeSelect);
+      }
+    };
+  });
+}
+
+/* ---------------- MODE BELAJAR: Anak-anak, Soal & Vocab, Materi & Grammar ---------------- */
+function renderBelajarSubmenu(){
+  clearTimer();
+  statusVal.textContent = "MODE BELAJAR";
+  setPresenceStatus('idle');
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag">📚 MODE BELAJAR</div>
+      <h1 class="intro-title">Mau belajar yang mana?</h1>
+      <p class="intro-desc">Pilih salah satu di bawah.</p>
+
+      <div class="big-mode-row">
+        ${modeTileHtml('kids')}
+        ${modeTileHtml('practice')}
+      </div>
+      <div class="big-mode-row">
+        ${modeTileHtml('grammar')}
+      </div>
+
+      <button class="btn ghost" id="backToModeSelectBtn" style="margin-top:14px;">← Kembali</button>
+    </div>
+  `;
+  document.getElementById('backToModeSelectBtn').onclick = ()=> renderModeSelect();
+  document.querySelectorAll('[data-mode]').forEach(btn=>{
+    if(btn.disabled) return;
+    btn.onclick = ()=>{
+      const chosen = btn.dataset.mode;
+      if(chosen === 'grammar'){
+        modeChosenThisSession = true;
+        const savedName = getSavedName();
+        if(!savedName){ renderNameGate(); return; }
+        if(!myPresenceRef){ startPresence(savedName); }
+        renderGrammarIntro();
+      } else if(chosen === 'kids'){
         primaryMode = 'kids';
+        modeChosenThisSession = true;
+        initApp();
+      } else {
+        primaryMode = (primaryMode === 'flashcard') ? 'flashcard' : 'quiz';
         modeChosenThisSession = true;
         initApp();
       }
@@ -7945,45 +8118,99 @@ function renderModeSelect(){
   });
 }
 
-function renderOtherModesMenu(onBack){
+/* ---------------- MODE GAME: Duel 1v1, Kahoot, Ular Tangga ---------------- */
+function renderGameSubmenu(onBack){
+  clearTimer();
+  statusVal.textContent = "MODE GAME";
+  setPresenceStatus('idle');
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag" style="background:#8b5cf6;color:#fff;">🎮 MODE GAME</div>
+      <h1 class="intro-title">Mau main game yang mana?</h1>
+      <p class="intro-desc">Mode di sini biasanya main bareng peserta lain secara langsung.</p>
+
+      <button class="btn ghost" id="gameDuelBtn" style="margin-top:2px;border-color:#8b5cf6;color:#8b5cf6;">⚔️ Duel 1v1 (Beta)</button>
+      <button class="btn ghost" id="gameKahootBtn" style="border-color:#eab308;color:#b45309;">🎉 Kuis Live (Kahoot-style)</button>
+      <button class="btn ghost" id="gameUlarBtn" style="border-color:#16a34a;color:#15803d;">🐍🪜 Ular Tangga</button>
+
+      <button class="btn ghost" id="backToModeSelectBtnGame" style="margin-top:14px;">← Kembali</button>
+    </div>
+  `;
+  document.getElementById('backToModeSelectBtnGame').onclick = ()=> onBack();
+  document.getElementById('gameDuelBtn').onclick = ()=>{
+    const savedName = getSavedName();
+    if(!savedName){ renderNameGate(); return; }
+    if(!myPresenceRef){ startPresence(savedName); }
+    renderDuelSetup(()=> renderGameSubmenu(onBack));
+  };
+  document.getElementById('gameKahootBtn').onclick = ()=>{
+    const savedName = getSavedName();
+    if(!savedName){ renderNameGate(); return; }
+    if(!myPresenceRef){ startPresence(savedName); }
+    renderKahootEntry(()=> renderGameSubmenu(onBack));
+  };
+  document.getElementById('gameUlarBtn').onclick = ()=>{
+    const savedName = getSavedName();
+    if(!savedName){ renderNameGate(); return; }
+    if(!myPresenceRef){ startPresence(savedName); }
+    renderUlarEntry(()=> renderGameSubmenu(onBack));
+  };
+}
+
+/* ---------------- MODE LAINNYA: Kamus Kosakata, Dengarkan Musik, Tentang Kami ---------------- */
+function renderLainnyaSubmenu(onBack){
   clearTimer();
   statusVal.textContent = "MODE LAINNYA";
   setPresenceStatus('idle');
   card.innerHTML = `
     <div class="center-stack">
-      <div class="section-tag" style="background:#8b5cf6;color:#fff;">✨ MODE LAINNYA</div>
-      <h1 class="intro-title">Mau main mode seru yang mana?</h1>
-      <p class="intro-desc">Mode di sini biasanya main bareng peserta lain secara langsung.</p>
+      <div class="section-tag" style="background:#1DB954;color:#fff;">✨ MODE LAINNYA</div>
+      <h1 class="intro-title">Mau buka apa?</h1>
+      <p class="intro-desc">Beberapa hal seru di luar belajar & game.</p>
 
-      <button class="btn ghost" id="otherDuelBtn" style="margin-top:2px;border-color:#8b5cf6;color:#8b5cf6;">⚔️ Duel 1v1 (Beta)</button>
-      <button class="btn ghost" id="otherKahootBtn" style="border-color:#eab308;color:#b45309;">🎉 Kuis Live (Kahoot-style)</button>
-      <button class="btn ghost" id="otherUlarBtn" style="border-color:#16a34a;color:#15803d;">🐍🪜 Ular Tangga</button>
-      <button class="btn ghost" id="otherMusicBtn" style="border-color:#1DB954;color:#1a9c47;">🎵 Dengarkan Musik</button>
+      <button class="btn ghost" id="lainnyaKamusBtn" style="margin-top:2px;border-color:#0ea5e9;color:#0369a1;">🔍 Kamus Kosakata</button>
+      <button class="btn ghost" id="lainnyaMusicBtn" style="border-color:#1DB954;color:#1a9c47;">🎵 Dengarkan Musik</button>
+      <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Kami</button>
 
-      <button class="btn ghost" id="backToModeSelectBtn2" style="margin-top:14px;">← Kembali</button>
+      <button class="btn ghost" id="backToModeSelectBtnLainnya" style="margin-top:14px;">← Kembali</button>
     </div>
   `;
-  document.getElementById('backToModeSelectBtn2').onclick = ()=> onBack();
-  document.getElementById('otherDuelBtn').onclick = ()=>{
+  document.getElementById('backToModeSelectBtnLainnya').onclick = ()=> onBack();
+  document.getElementById('lainnyaKamusBtn').onclick = ()=>{
     const savedName = getSavedName();
     if(!savedName){ renderNameGate(); return; }
     if(!myPresenceRef){ startPresence(savedName); }
-    renderDuelSetup(()=> renderOtherModesMenu(onBack));
+    renderDictionarySearch(()=> renderLainnyaSubmenu(onBack));
   };
-  document.getElementById('otherKahootBtn').onclick = ()=>{
-    const savedName = getSavedName();
-    if(!savedName){ renderNameGate(); return; }
-    if(!myPresenceRef){ startPresence(savedName); }
-    renderKahootEntry(()=> renderOtherModesMenu(onBack));
-  };
-  document.getElementById('otherUlarBtn').onclick = ()=>{
-    const savedName = getSavedName();
-    if(!savedName){ renderNameGate(); return; }
-    if(!myPresenceRef){ startPresence(savedName); }
-    renderUlarEntry(()=> renderOtherModesMenu(onBack));
-  };
-  document.getElementById('otherMusicBtn').onclick = ()=> renderMusicPlayer(()=> renderOtherModesMenu(onBack));
+  document.getElementById('lainnyaMusicBtn').onclick = ()=> renderMusicPlayer(()=> renderLainnyaSubmenu(onBack));
+  document.getElementById('lainnyaAboutBtn').onclick = ()=> renderTentangKami(()=> renderLainnyaSubmenu(onBack));
 }
+
+/* ---------------- TENTANG KAMI (placeholder — cerita di balik aplikasi ini, menyusul) ---------------- */
+function renderTentangKami(onBack){
+  clearTimer();
+  statusVal.textContent = "TENTANG KAMI";
+  setPresenceStatus('idle');
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag" style="background:#ec4899;color:#fff;">💌 TENTANG KAMI</div>
+      <img class="credit-avatar" style="width:88px;height:88px;border-radius:50%;margin:8px 0;" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
+      <h1 class="intro-title">Cerita di Balik Aplikasi Ini</h1>
+      <p class="intro-desc">Halaman ini masih dalam penyusunan — ceritanya bakal ditambahkan menyusul oleh pembuatnya. 🙏</p>
+      <div class="credit-box">
+        <img class="credit-avatar" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
+        <div class="credit-text">
+          <div class="credit-name">Dibuat oleh Muhamad Rifki Maulana Ruhimat</div>
+          <a class="credit-ig" href="https://instagram.com/rifkimaulana701" target="_blank" rel="noopener">📷 @rifkimaulana701</a>
+          <div class="credit-source">Sumber materi: KILC</div>
+        </div>
+      </div>
+      <button class="btn ghost" id="backFromAboutBtn" style="margin-top:14px;">← Kembali</button>
+    </div>
+  `;
+  document.getElementById('backFromAboutBtn').onclick = ()=> onBack();
+}
+
 
 function spotifyParseUrlPeserta(url){
   const m = (url||'').match(/open\.spotify\.com\/(track|playlist|album|episode)\/([a-zA-Z0-9]+)/);
@@ -8114,52 +8341,6 @@ function renderMusicPlayer(onBack){
   }).catch(()=>{
     const wrap = document.getElementById('musicPlayerWrap');
     if(wrap) wrap.innerHTML = '<div class="lb-empty-light">Gagal memuat musik.</div>';
-  });
-}
-
-function renderStandardSubmenu(){
-  clearTimer();
-  statusVal.textContent = "MODE STANDAR";
-  setPresenceStatus('idle');
-  card.innerHTML = `
-    <div class="center-stack">
-      <div class="section-tag">MODE STANDAR</div>
-      <h1 class="intro-title">Mau latihan yang mana?</h1>
-      <p class="intro-desc">Pilih salah satu di bawah.</p>
-
-      <div class="big-mode-row">
-        ${modeTileHtml('practice')}
-        ${modeTileHtml('grammar')}
-      </div>
-      <div class="big-mode-row">
-        ${modeTileHtml('kamus')}
-      </div>
-
-      <button class="btn ghost" id="backToModeSelectBtn" style="margin-top:14px;">← Kembali</button>
-    </div>
-  `;
-  document.getElementById('backToModeSelectBtn').onclick = ()=> renderModeSelect();
-  document.querySelectorAll('[data-mode]').forEach(btn=>{
-    if(btn.disabled) return;
-    btn.onclick = ()=>{
-      const chosen = btn.dataset.mode;
-      if(chosen === 'grammar'){
-        modeChosenThisSession = true;
-        const savedName = getSavedName();
-        if(!savedName){ renderNameGate(); return; }
-        if(!myPresenceRef){ startPresence(savedName); }
-        renderGrammarIntro();
-      } else if(chosen === 'kamus'){
-        const savedName = getSavedName();
-        if(!savedName){ renderNameGate(); return; }
-        if(!myPresenceRef){ startPresence(savedName); }
-        renderDictionarySearch(renderStandardSubmenu);
-      } else {
-        primaryMode = (primaryMode === 'flashcard') ? 'flashcard' : 'quiz';
-        modeChosenThisSession = true;
-        initApp();
-      }
-    };
   });
 }
 
@@ -13612,6 +13793,12 @@ function renderIntro(){
           <button class="mode-btn kids-cat-btn ${selectedKidsCategory==='all' ? 'active' : ''}" data-cat="all" type="button">🎉 Semua</button>
           ${Object.keys(KIDS_CATEGORIES).map(cat=>`<button class="mode-btn kids-cat-btn ${selectedKidsCategory===cat ? 'active' : ''}" data-cat="${cat}" type="button">${cat}</button>`).join('')}
         </div>
+        <p class="intro-desc" style="font-size:11px;opacity:0.75;margin:8px 0 2px;">Mau main dengan cara apa?</p>
+        <div class="mode-row">
+          <button class="mode-btn ${selectedKidsMode==='quiz' ? 'active' : ''}" data-kidsmode="quiz" type="button">🎯 Kuis Tebak</button>
+          <button class="mode-btn ${selectedKidsMode==='flashcard' ? 'active' : ''}" data-kidsmode="flashcard" type="button">🃏 Flashcard Seru</button>
+          <button class="mode-btn ${selectedKidsMode==='match' ? 'active' : ''}" data-kidsmode="match" type="button">🧩 Cocokkan Gambar</button>
+        </div>
         <button class="btn kids-start-btn" id="startBtn">Mulai Main →</button>
       ` : `
         <div class="mode-row" style="margin-top:6px;">
@@ -13652,7 +13839,14 @@ function renderIntro(){
           <button class="btn" id="startBtn">Mulai Latihan →</button>
         ` : `
           <p class="intro-desc" style="font-size:12px;">Kartu tampil dalam <b>Bahasa Indonesia</b> — tap kartunya untuk lihat jawaban <b>Bahasa Inggris</b>. Gak ada nilai, santai aja buat hafalan.</p>
-          <button class="btn" id="startBtn">Mulai Menghafal →</button>
+          ${(function(){
+            if(scope !== 'all') return '';
+            const saved = loadFlashProgress();
+            if(!saved) return '';
+            return `<p class="intro-desc" style="font-size:11.5px;color:var(--green,#16a34a);font-weight:700;">📌 Kamu berhenti di kartu ke-${saved.idx+1} dari ${saved.order.length} waktu itu.</p>
+            <button class="btn" id="resumeFlashBtn" style="background:var(--green,#16a34a);">▶️ Lanjutkan Soal</button>`;
+          })()}
+          <button class="btn ${scope==='all' && loadFlashProgress() ? 'ghost' : ''}" id="startBtn">${scope==='all' && loadFlashProgress() ? '🔄 Mulai dari Awal (soal diacak ulang)' : 'Mulai Menghafal →'}</button>
         `}
       `}
 
@@ -13716,9 +13910,14 @@ function renderIntro(){
     document.querySelectorAll('.kids-cat-btn').forEach(btn=>{
       btn.onclick = ()=>{ selectedKidsCategory = btn.dataset.cat; renderIntro(); };
     });
+    document.querySelectorAll('[data-kidsmode]').forEach(btn=>{
+      btn.onclick = ()=>{ selectedKidsMode = btn.dataset.kidsmode; renderIntro(); };
+    });
     document.getElementById('startBtn').onclick = ()=>{
       const pool = selectedKidsCategory === 'all' ? KIDS_ITEMS : KIDS_ITEMS.filter(it=>it.tag === selectedKidsCategory);
-      startKidsQuiz(pool);
+      if(selectedKidsMode === 'flashcard') startKidsFlashcards(pool);
+      else if(selectedKidsMode === 'match') startKidsMatch(pool);
+      else startKidsQuiz(pool);
     };
     return;
   }
@@ -13802,8 +14001,13 @@ function renderIntro(){
   } else {
     document.getElementById('startBtn').onclick = ()=>{
       if(scope === 'day' && selectedDays.length === 0){ alert('Pilih minimal 1 hari dulu ya sebelum mulai.'); return; }
+      if(scope === 'all') clearFlashProgress();
       startFlashcards(currentPool());
     };
+    const resumeBtn = document.getElementById('resumeFlashBtn');
+    if(resumeBtn){
+      resumeBtn.onclick = ()=>{ resumeFlashcards(currentPool()); };
+    }
   }
 }
 
@@ -13812,6 +14016,43 @@ let flashQueue = [];
 let flashIdx = 0;
 let flashFlipped = false;
 let flashCountedKeys = new Set(); // biar 1 kartu cuma dihitung 1x ke leaderboard walau dibolak-balik
+const FLASH_PROGRESS_KEY = 'flashProgress_gabungan_v1'; // cuma dipakai buat scope 'all' (Gabungan Bulan 1+2)
+
+function saveFlashProgress(){
+  if(scope !== 'all') return; // fitur lanjutkan cuma buat mode Gabungan yg soalnya banyak
+  try{
+    const order = flashQueue.map(it => itemStatKey(it));
+    localStorage.setItem(FLASH_PROGRESS_KEY, JSON.stringify({ idx: flashIdx, order, savedAt: Date.now() }));
+  }catch(e){}
+}
+function loadFlashProgress(){
+  try{
+    const raw = localStorage.getItem(FLASH_PROGRESS_KEY);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    if(!data || typeof data.idx !== 'number' || data.idx <= 0 || !Array.isArray(data.order)) return null;
+    return data;
+  }catch(e){ return null; }
+}
+function clearFlashProgress(){
+  try{ localStorage.removeItem(FLASH_PROGRESS_KEY); }catch(e){}
+}
+function resumeFlashcards(pool){
+  const saved = loadFlashProgress();
+  if(!saved){ startFlashcards(pool); return; }
+  const byKey = {};
+  pool.forEach(it => { byKey[itemStatKey(it)] = it; });
+  const restoredQueue = saved.order.map(k => byKey[k]).filter(Boolean);
+  if(restoredQueue.length === 0){ startFlashcards(pool); return; }
+  flashQueue = restoredQueue;
+  flashIdx = Math.min(saved.idx, flashQueue.length - 1);
+  flashFlipped = false;
+  flashCountedKeys = new Set();
+  setPresenceStatus('in_progress');
+  setPresenceMode('Mode Hafalan (Flashcard)');
+  statusVal.textContent = "HAFALAN";
+  renderFlashcard();
+}
 
 // Sound cara baca yang benar (pakai suara bawaan browser/HP, gratis & tanpa file audio)
 function speakFlashWord(text, btnEl){
@@ -13888,16 +14129,16 @@ function renderFlashcard(){
     soundBtn.onclick = (e)=>{ e.stopPropagation(); speakFlashWord(item.en, soundBtn); };
   }
   document.getElementById('flashPrevBtn').onclick = ()=>{
-    if(flashIdx > 0){ flashIdx -= 1; flashFlipped = false; renderFlashcard(); }
+    if(flashIdx > 0){ flashIdx -= 1; flashFlipped = false; saveFlashProgress(); renderFlashcard(); }
   };
   document.getElementById('flashNextBtn').onclick = ()=>{
-    if(!isLast){ flashIdx += 1; flashFlipped = false; renderFlashcard(); }
-    else { setPresenceStatus('done'); renderIntro(); }
+    if(!isLast){ flashIdx += 1; flashFlipped = false; saveFlashProgress(); renderFlashcard(); }
+    else { clearFlashProgress(); setPresenceStatus('done'); renderIntro(); }
   };
   document.getElementById('flashShuffleBtn').onclick = ()=>{
-    flashQueue = shuffle(flashQueue); flashIdx = 0; flashFlipped = false; renderFlashcard();
+    flashQueue = shuffle(flashQueue); flashIdx = 0; flashFlipped = false; saveFlashProgress(); renderFlashcard();
   };
-  document.getElementById('flashExitBtn').onclick = ()=>{ setPresenceStatus('idle'); renderIntro(); };
+  document.getElementById('flashExitBtn').onclick = ()=>{ saveFlashProgress(); setPresenceStatus('idle'); renderIntro(); };
 }
 
 /* ---------------- MODE ANAK-ANAK: 2 opsi, tanpa waktu, feedback selalu positif ---------------- */
@@ -13986,6 +14227,139 @@ function renderKidsFinish(){
     startKidsQuiz(pool);
   };
   document.getElementById('kidsBackBtn').onclick = renderIntro;
+}
+
+/* ---------------- MODE ANAK-ANAK: Flashcard Seru (jenis soal baru — tanpa nilai, cuma buat hafalan santai) ---------------- */
+let kidsFlashQueue = [];
+let kidsFlashIdx = 0;
+let kidsFlashFlipped = false;
+
+function startKidsFlashcards(pool){
+  if(pool.length === 0){ renderIntro(); return; }
+  kidsFlashQueue = shuffle(pool);
+  kidsFlashIdx = 0;
+  kidsFlashFlipped = false;
+  setPresenceStatus('in_progress');
+  setPresenceMode('Mode Anak-Anak (Flashcard)');
+  statusVal.textContent = "HAFALAN SERU";
+  renderKidsFlashcard();
+}
+
+function renderKidsFlashcard(){
+  const item = kidsFlashQueue[kidsFlashIdx];
+  const isLast = kidsFlashIdx === kidsFlashQueue.length - 1;
+  card.innerHTML = `
+    <div class="reset-row"><button class="reset-btn" id="kidsFlashExitBtn">✕ Selesai</button></div>
+    <div class="progress-row"><span>KARTU ${kidsFlashIdx+1} / ${kidsFlashQueue.length}</span></div>
+    <div class="kids-emoji-big">${item.emoji}</div>
+    <div class="flash-card ${kidsFlashFlipped ? 'flipped' : ''}" id="kidsFlashCardEl">
+      <div class="flash-lang-tag">${kidsFlashFlipped ? 'BAHASA INGGRIS' : 'BAHASA INDONESIA'}</div>
+      <div class="flash-word">${kidsFlashFlipped ? item.en : item.id}</div>
+      ${!kidsFlashFlipped ? '<div class="flash-hint">👆 Tap buat lihat jawabannya</div>' : ''}
+    </div>
+    <div class="flash-nav-row">
+      <button class="flash-nav-btn" id="kidsFlashPrevBtn" ${kidsFlashIdx===0?'disabled':''}>← Sebelumnya</button>
+      <button class="flash-nav-btn" id="kidsFlashShuffleBtn">🔀 Acak</button>
+      <button class="flash-nav-btn primary" id="kidsFlashNextBtn">${isLast ? 'Selesai ✓' : 'Berikutnya →'}</button>
+    </div>
+  `;
+  document.getElementById('kidsFlashCardEl').onclick = ()=>{ kidsFlashFlipped = !kidsFlashFlipped; renderKidsFlashcard(); };
+  document.getElementById('kidsFlashPrevBtn').onclick = ()=>{
+    if(kidsFlashIdx > 0){ kidsFlashIdx -= 1; kidsFlashFlipped = false; renderKidsFlashcard(); }
+  };
+  document.getElementById('kidsFlashNextBtn').onclick = ()=>{
+    if(!isLast){ kidsFlashIdx += 1; kidsFlashFlipped = false; renderKidsFlashcard(); }
+    else { setPresenceStatus('done'); renderIntro(); }
+  };
+  document.getElementById('kidsFlashShuffleBtn').onclick = ()=>{
+    kidsFlashQueue = shuffle(kidsFlashQueue); kidsFlashIdx = 0; kidsFlashFlipped = false; renderKidsFlashcard();
+  };
+  document.getElementById('kidsFlashExitBtn').onclick = ()=>{ setPresenceStatus('idle'); renderIntro(); };
+}
+
+/* ---------------- MODE ANAK-ANAK: Cocokkan Gambar (jenis soal baru — tap emoji lalu tap kata Inggrisnya) ---------------- */
+let kidsMatchPairs = [];
+let kidsMatchLeftOrder = [];
+let kidsMatchRightOrder = [];
+let kidsMatchPickedLeft = null;
+let kidsMatchSolved = new Set();
+let kidsMatchWrongCount = 0;
+
+function startKidsMatch(pool){
+  if(pool.length === 0){ renderIntro(); return; }
+  kidsMatchPairs = shuffle(pool).slice(0, Math.min(6, pool.length));
+  kidsMatchLeftOrder = shuffle(kidsMatchPairs.map((it,i)=> i));
+  kidsMatchRightOrder = shuffle(kidsMatchPairs.map((it,i)=> i));
+  kidsMatchPickedLeft = null;
+  kidsMatchSolved = new Set();
+  kidsMatchWrongCount = 0;
+  setPresenceStatus('in_progress');
+  setPresenceMode('Mode Anak-Anak (Cocokkan Gambar)');
+  statusVal.textContent = "COCOKKAN";
+  renderKidsMatch();
+}
+
+function renderKidsMatch(){
+  const allSolved = kidsMatchSolved.size === kidsMatchPairs.length;
+  if(allSolved){
+    card.innerHTML = `
+      <div class="center-stack">
+        <div class="kids-emoji-big">🎊🎊🎊</div>
+        <h1 class="intro-title">Semua Cocok! 🎉</h1>
+        <p class="intro-desc">Kamu berhasil mencocokkan ${kidsMatchPairs.length} pasangan${kidsMatchWrongCount===0 ? ' tanpa salah sama sekali, keren banget!' : '.'}</p>
+        <button class="btn kids-start-btn" id="kidsMatchAgainBtn">Main Lagi →</button>
+        <button class="btn ghost" id="kidsMatchBackBtn">Kembali ke Menu</button>
+      </div>
+    `;
+    document.getElementById('kidsMatchAgainBtn').onclick = ()=>{
+      const pool = selectedKidsCategory === 'all' ? KIDS_ITEMS : KIDS_ITEMS.filter(it=>it.tag === selectedKidsCategory);
+      startKidsMatch(pool);
+    };
+    document.getElementById('kidsMatchBackBtn').onclick = ()=>{ setPresenceStatus('done'); renderIntro(); };
+    return;
+  }
+  card.innerHTML = `
+    <div class="reset-row"><button class="reset-btn" id="kidsMatchExitBtn">✕ Selesai</button></div>
+    <div class="progress-row"><span>COCOK ${kidsMatchSolved.size} / ${kidsMatchPairs.length}</span></div>
+    <p class="intro-desc" style="font-size:12px;">Tap gambarnya dulu, terus tap kata Bahasa Inggris yang cocok! 🧩</p>
+    <div class="kids-match-grid">
+      <div class="kids-match-col">
+        ${kidsMatchLeftOrder.map(i=>{
+          const solved = kidsMatchSolved.has(i);
+          const picked = kidsMatchPickedLeft === i;
+          return `<button class="kids-match-card ${solved?'kids-match-solved':''} ${picked?'kids-match-picked':''}" data-i="${i}" data-side="left" type="button" ${solved?'disabled':''}>${kidsMatchPairs[i].emoji}</button>`;
+        }).join('')}
+      </div>
+      <div class="kids-match-col">
+        ${kidsMatchRightOrder.map(i=>{
+          const solved = kidsMatchSolved.has(i);
+          return `<button class="kids-match-card kids-match-word ${solved?'kids-match-solved':''}" data-i="${i}" data-side="right" type="button" ${solved?'disabled':''}>${kidsMatchPairs[i].en}</button>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+  document.querySelectorAll('.kids-match-card[data-side="left"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      kidsMatchPickedLeft = parseInt(btn.dataset.i, 10);
+      renderKidsMatch();
+    };
+  });
+  document.querySelectorAll('.kids-match-card[data-side="right"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(kidsMatchPickedLeft === null) return;
+      const rightI = parseInt(btn.dataset.i, 10);
+      if(rightI === kidsMatchPickedLeft){
+        kidsMatchSolved.add(rightI);
+        kidsMatchPickedLeft = null;
+        renderKidsMatch();
+      } else {
+        kidsMatchWrongCount += 1;
+        btn.classList.add('kids-match-wrong');
+        setTimeout(()=>{ kidsMatchPickedLeft = null; renderKidsMatch(); }, 500);
+      }
+    };
+  });
+  document.getElementById('kidsMatchExitBtn').onclick = ()=>{ setPresenceStatus('idle'); renderIntro(); };
 }
 
 function clearTimer(){ if(timerInterval){ clearInterval(timerInterval); timerInterval = null; } }
