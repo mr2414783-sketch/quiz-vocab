@@ -178,6 +178,39 @@
   .kahoot-opt.k-picked{outline:3px solid #fff;outline-offset:-6px;}
   .kahoot-shape{font-size:18px;line-height:1;}
 
+  /* ---- Ular Tangga ---- */
+  .ular-board-grid{display:grid;grid-template-columns:repeat(10, 1fr);gap:2px;width:100%;background:#0f5132;padding:4px;border-radius:10px;}
+  .ular-cell{
+    position:relative;aspect-ratio:1/1;background:#f1f8f1;border-radius:4px;
+    display:flex;align-items:flex-start;justify-content:flex-start;padding:2px;
+    font-size:8.5px;font-weight:800;color:rgba(15,81,50,0.55);overflow:visible;
+  }
+  .ular-cell.hard-zone{background:#fde68a;color:#92400e;}
+  .ular-cell.finish-zone{background:#16a34a;color:#fff;}
+  .ular-cell .ular-badge{position:absolute;top:1px;right:2px;font-size:9px;}
+  .ular-tokens{position:absolute;bottom:1px;left:1px;right:1px;display:flex;flex-wrap:wrap;gap:1px;}
+  .ular-token{width:11px;height:11px;border-radius:50%;color:#fff;font-size:6.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid #fff;}
+  .ular-players-row{display:flex;gap:6px;width:100%;overflow-x:auto;margin-top:10px;padding-bottom:4px;}
+  .ular-player-chip{flex:0 0 auto;background:var(--panel-2);border-radius:10px;padding:6px 10px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:5px;border:2px solid transparent;}
+  .ular-player-chip.me{border-color:var(--blue);}
+  .ular-player-chip .dot{width:9px;height:9px;border-radius:50%;}
+  .ular-dice-btn{
+    width:78px;height:78px;border-radius:50%;border:none;background:linear-gradient(145deg,#fff,#e2e8f0);
+    font-size:30px;box-shadow:0 4px 10px rgba(0,0,0,0.2);cursor:pointer;margin:14px auto 0;display:block;
+  }
+  .ular-dice-btn:disabled{opacity:0.4;cursor:default;}
+  .ular-dice-btn.rolling{animation:ularDiceShake .5s ease-in-out infinite;}
+  @keyframes ularDiceShake{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-12deg);}75%{transform:rotate(12deg);}}
+  .ular-mcq-overlay{
+    position:fixed;inset:0;background:rgba(20,20,20,0.85);z-index:9500;
+    display:flex;flex-direction:column;justify-content:center;padding:22px;
+  }
+  .ular-mcq-timerbar{height:6px;border-radius:3px;background:rgba(255,255,255,0.25);overflow:hidden;margin-bottom:14px;}
+  .ular-mcq-timerbar-fill{height:100%;background:#facc15;border-radius:3px;transition:width 0.3s linear;}
+  .ular-mcq-prompt{color:#fff;font-size:17px;font-weight:800;text-align:center;margin-bottom:16px;line-height:1.4;}
+  .ular-result-row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:var(--panel-2);margin-bottom:6px;}
+  .ular-result-row.winner{background:#fef3c7;border:2px solid #f59e0b;}
+
   /* ---- Kahoot-style tema visual (purple stage ala Kahoot asli) ---- */
   .kahoot-theme{
     margin:-24px -22px -22px;padding:26px 20px 28px;
@@ -6973,6 +7006,557 @@ function kahootLeaveSession(){
   if(onBack) onBack();
 }
 
+/* ==================== ULAR TANGGA (papan 100 kotak, giliran async, antrean otomatis) ====================
+   Data:
+   - ularQueue/waiting/{key}: {name, joinedAt} — antrean nunggu digabungin jadi room isi 4
+   - ularQueue/assignments/{key}: roomId — dikasih tau pas udah kebagian room
+   - ularQuestionPool/used/{uid}: true — pelacak soal yang udah kepake, biar gak berulang sampai bank abis
+   - ularGames/{roomId}: {status, players:{key:{name,pos}}, tiles:[100 soal], ladders, snakes, winnerKey}
+   Papan & soal SAMA buat 1 room (dibagikan pas room dibuat); posisi tiap pemain independen (gak gantian nunggu). */
+
+const ULAR_BOARD_MIN = 2;
+const ULAR_BOARD_MAX = 90; // kotak 91-99 dikhususkan buat soal grammar sulit, 100 = finish murni
+
+/* Papan (posisi ular & tangga) DIBUAT ULANG SECARA ACAK tiap game baru, gak fixed. */
+function ularGenerateBoard(){
+  const usedFrom = new Set();
+  const usedTo = new Set();
+  const ladders = {};
+  const snakes = {};
+
+  function freeFrom(){
+    for(let tries=0; tries<200; tries++){
+      const from = ULAR_BOARD_MIN + Math.floor(Math.random()*(ULAR_BOARD_MAX-ULAR_BOARD_MIN+1));
+      if(!usedFrom.has(from) && !usedTo.has(from)) return from;
+    }
+    return null;
+  }
+
+  let count = 0;
+  while(count < 8){
+    const from = freeFrom();
+    if(from === null) break;
+    const to = Math.min(ULAR_BOARD_MAX, from + 10 + Math.floor(Math.random()*25));
+    if(to <= from || usedFrom.has(to) || usedTo.has(to)){ continue; }
+    ladders[from] = to;
+    usedFrom.add(from); usedTo.add(to);
+    count++;
+  }
+
+  count = 0;
+  while(count < 8){
+    const from = freeFrom();
+    if(from === null) break;
+    const to = Math.max(ULAR_BOARD_MIN, from - (10 + Math.floor(Math.random()*25)));
+    if(to >= from || usedFrom.has(to) || usedTo.has(to)){ continue; }
+    snakes[from] = to;
+    usedFrom.add(from); usedTo.add(to);
+    count++;
+  }
+
+  return { ladders, snakes };
+}
+
+function ularFullQuestionPool(customCache){
+  const pool = [];
+  ALL.forEach((it, idx)=>{
+    pool.push({ uid: 'v'+idx, prompt: it.id, correct: it.en, options: buildOptions(it, ALL) });
+  });
+  GRAMMAR_QUIZ_QUESTIONS.forEach((g, idx)=>{
+    if(g.level === 'hard') return; // direservasi khusus buat kotak 91-99
+    pool.push({ uid: 'g'+idx, prompt: g.q, correct: g.opts[g.a], options: shuffle(g.opts.slice()) });
+  });
+  Object.entries(customCache || {}).forEach(([key, item])=>{
+    if(!item || !item.options || item.options.length < 2) return;
+    pool.push({ uid: 'c'+key, prompt: item.question, correct: item.options[item.correctIndex], options: shuffle(item.options.slice()), spotifyUrl: item.spotifyUrl || null });
+  });
+  return pool;
+}
+
+/* Soal grammar level "hard" — khusus dijatah buat kotak 91-99 (tantangan terakhir sebelum finish). */
+function ularHardGrammarPool(){
+  const pool = [];
+  GRAMMAR_QUIZ_QUESTIONS.forEach((g, idx)=>{
+    if(g.level !== 'hard') return;
+    pool.push({ uid: 'gh'+idx, prompt: g.q, correct: g.opts[g.a], options: shuffle(g.opts.slice()) });
+  });
+  return pool;
+}
+
+let ularLastChosenUids = {};
+function ularPickRotated(pool, count, usedPath){
+  const poolMap = {};
+  pool.forEach(p=> poolMap[p.uid] = p);
+  const allUids = pool.map(p=> p.uid);
+  return new Promise((resolve, reject)=>{
+    if(allUids.length === 0){ resolve([]); return; }
+    db.ref(usedPath).transaction((current)=>{
+      current = current || {};
+      let availableUids = allUids.filter(u=> !current[u]);
+      if(availableUids.length < count){
+        // bank kepake abis -> reset siklus, mulai dari fresh lagi
+        current = {};
+        availableUids = allUids.slice();
+      }
+      const need = Math.min(count, availableUids.length);
+      let chosen = shuffle(availableUids.slice()).slice(0, need);
+      while(chosen.length < count && allUids.length > 0){
+        chosen.push(allUids[Math.floor(Math.random()*allUids.length)]);
+      }
+      chosen.forEach(u=>{ current[u] = true; });
+      ularLastChosenUids[usedPath] = chosen;
+      return current;
+    }, (error, committed)=>{
+      if(error){ reject(error); return; }
+      if(!committed){ reject(new Error('Gagal alokasi soal baru, coba lagi.')); return; }
+      const chosen = ularLastChosenUids[usedPath] || [];
+      resolve(shuffle(chosen.map(u=> poolMap[u]).filter(Boolean)));
+    });
+  });
+}
+
+function ularBuildGameQuestions(customCache){
+  const generalPool = ularFullQuestionPool(customCache);
+  const hardPool = ularHardGrammarPool();
+  return Promise.all([
+    ularPickRotated(generalPool, 90, 'ularQuestionPool/used'),      // kotak 1-90
+    ularPickRotated(hardPool, 9, 'ularQuestionPool/usedHard')       // kotak 91-99
+  ]).then(([generalQs, hardQs])=>{
+    const tiles = generalQs.slice(0,90).concat(hardQs.slice(0,9));
+    tiles.push(null); // kotak 100 = FINISH, tidak ada soal
+    return tiles;
+  });
+}
+
+/* ---- antrean otomatis (siapa pun yang bikin hitungan genap 4, dialah yang bikin room) ---- */
+let ularQueueRef = null;
+let ularQueueMyKey = null;
+let ularQueueGroupSize = 4;
+let ularAssignmentRef = null;
+let ularCustomCache = {};
+
+function renderUlarEntry(onBack){
+  clearTimer();
+  statusVal.textContent = "ULAR TANGGA";
+  setPresenceStatus('idle');
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag" style="background:#16a34a;color:#fff;">🐍🪜 ULAR TANGGA</div>
+      <h1 class="intro-title">Ular Tangga Berhadiah</h1>
+      <p class="intro-desc" style="font-size:12px;">Papan 100 kotak, tiap kotak ada soal beda-beda. Pilih mau main sendiri atau rame-rame — yang duluan sampai/lewatin kotak 100, MENANG!</p>
+      <p style="font-size:11px;font-weight:800;opacity:0.65;margin:8px 0 4px;">MAU MAIN BERAPA ORANG?</p>
+      <div style="display:flex;gap:8px;width:100%;flex-wrap:wrap;justify-content:center;">
+        <button class="mode-btn" data-size="1" type="button" style="flex:1;min-width:70px;">🧍 1</button>
+        <button class="mode-btn" data-size="2" type="button" style="flex:1;min-width:70px;">👥 2</button>
+        <button class="mode-btn" data-size="3" type="button" style="flex:1;min-width:70px;">👥 3</button>
+        <button class="mode-btn" data-size="4" type="button" style="flex:1;min-width:70px;">👥 4</button>
+      </div>
+      <div id="ularQueueStatus"></div>
+      <button class="btn ghost" id="ularBackBtn" style="margin-top:10px;">← Kembali</button>
+    </div>
+  `;
+  document.getElementById('ularBackBtn').onclick = ()=>{ ularLeaveQueue(); onBack(); };
+  document.querySelectorAll('[data-size]').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('[data-size]').forEach(b=> b.classList.remove('active'));
+      btn.classList.add('active');
+      ularJoinQueue(onBack, parseInt(btn.dataset.size, 10));
+    };
+  });
+}
+
+function ularJoinQueue(onBack, groupSize){
+  const myName = getSavedName();
+  if(!myName){ renderNameGate(); return; }
+  const myKey = sanitizeNameForKey(myName);
+  ularQueueMyKey = myKey;
+  ularQueueGroupSize = groupSize;
+  document.querySelectorAll('[data-size]').forEach(b=> b.disabled = true);
+  const statusEl = document.getElementById('ularQueueStatus');
+
+  const cacheFetch = db.ref('ularCustomQuestions').once('value').then((snap)=>{ ularCustomCache = snap.val() || {}; }).catch(()=>{ ularCustomCache = {}; });
+
+  if(groupSize === 1){
+    if(statusEl) statusEl.innerHTML = '<p class="intro-desc" style="font-size:12px;">⏳ Nyiapin papan buat kamu main sendiri...</p>';
+    cacheFetch.then(()=> ularCreateRoomForGroup([[myKey, { name: myName }]], onBack)).catch((err)=>{
+      if(statusEl) statusEl.innerHTML = `<p class="intro-desc" style="font-size:12px;color:var(--red-dim);">Gagal bikin room: ${escapeHtmlIdx(err && err.message ? err.message : String(err))}</p>`;
+    });
+    return;
+  }
+
+  cacheFetch.then(()=>{
+    const queuePath = 'ularQueue/waiting_' + groupSize;
+    return db.ref(queuePath + '/' + myKey).set({ name: myName, joinedAt: firebase.database.ServerValue.TIMESTAMP }).then(()=>{
+      ularTryFormGroup(groupSize);
+    });
+  }).catch((err)=>{
+    if(statusEl) statusEl.innerHTML = `<p class="intro-desc" style="font-size:12px;color:var(--red-dim);">Gagal gabung antrean: ${escapeHtmlIdx(err && err.message ? err.message : String(err))}</p>`;
+    document.querySelectorAll('[data-size]').forEach(b=> b.disabled = false);
+  });
+
+  const queuePath = 'ularQueue/waiting_' + groupSize;
+  if(ularQueueRef) ularQueueRef.off();
+  ularQueueRef = db.ref(queuePath);
+  ularQueueRef.on('value', (snap)=>{
+    const data = snap.val() || {};
+    const count = Object.keys(data).length;
+    if(statusEl) statusEl.innerHTML = `<p class="intro-desc" style="font-size:12px;">⏳ ${count}/${groupSize} pemain di antrean mode ${groupSize} orang... (room otomatis kebentuk begitu penuh)</p>`;
+  });
+
+  if(ularAssignmentRef) ularAssignmentRef.off();
+  ularAssignmentRef = db.ref('ularQueue/assignments/' + myKey);
+  ularAssignmentRef.on('value', (snap)=>{
+    const roomId = snap.val();
+    if(roomId){
+      ularAssignmentRef.off(); ularAssignmentRef = null;
+      db.ref('ularQueue/assignments/' + myKey).remove().catch(()=>{});
+      if(ularQueueRef){ ularQueueRef.off(); ularQueueRef = null; }
+      renderUlarGame(roomId, onBack);
+    }
+  });
+}
+
+function ularTryFormGroup(groupSize){
+  let claimedGroup = null;
+  const queuePath = 'ularQueue/waiting_' + groupSize;
+  db.ref(queuePath).transaction((current)=>{
+    claimedGroup = null;
+    if(!current) return current;
+    const entries = Object.entries(current).sort((a,b)=> (a[1].joinedAt||0) - (b[1].joinedAt||0));
+    if(entries.length < groupSize) return current;
+    const group = entries.slice(0, groupSize);
+    group.forEach(([k])=>{ delete current[k]; });
+    claimedGroup = group;
+    return current;
+  }, (error, committed)=>{
+    if(error || !committed || !claimedGroup) return;
+    ularCreateRoomForGroup(claimedGroup);
+  });
+}
+
+function ularCreateRoomForGroup(group, onBackForSolo){
+  ularBuildGameQuestions(ularCustomCache).then((questions)=>{
+    const playersObj = {};
+    group.forEach(([key, val])=>{ playersObj[key] = { name: val.name, pos: 0, answered: 0, correct: 0, wrong: 0 }; });
+    const board = ularGenerateBoard();
+    const roomRef = db.ref('ularGames').push();
+    return roomRef.set({
+      createdAt: firebase.database.ServerValue.TIMESTAMP,
+      status: 'lobby',
+      players: playersObj,
+      tiles: questions,
+      ladders: board.ladders,
+      snakes: board.snakes,
+      winnerKey: null
+    }).then(()=> roomRef.key);
+  }).then((roomId)=>{
+    if(group.length === 1){
+      if(onBackForSolo) renderUlarGame(roomId, onBackForSolo);
+      return;
+    }
+    const updates = {};
+    group.forEach(([key])=>{ updates['ularQueue/assignments/' + key] = roomId; });
+    return db.ref().update(updates);
+  }).catch((err)=>{
+    console.error('ularCreateRoomForGroup gagal', err);
+  });
+}
+
+function ularLeaveQueue(){
+  if(ularQueueRef){ ularQueueRef.off(); ularQueueRef = null; }
+  if(ularAssignmentRef){ ularAssignmentRef.off(); ularAssignmentRef = null; }
+  if(ularQueueMyKey && ularQueueGroupSize > 1){
+    db.ref('ularQueue/waiting_' + ularQueueGroupSize + '/' + ularQueueMyKey).remove().catch(()=>{});
+    db.ref('ularQueue/assignments/' + ularQueueMyKey).remove().catch(()=>{});
+  }
+}
+
+/* ---- state mesin game (per klien, cuma ngatur giliran milik sendiri) ---- */
+let ularGameRoomId = null;
+let ularGameMyKey = null;
+let ularGameOnBack = null;
+let ularGameRoomRef = null;
+let ularTrackedPhase = null;
+let ularPhaseTimerHandle = null;
+let ularCountdownInterval = null;
+
+function ularClearTimers(){
+  if(ularPhaseTimerHandle){ clearTimeout(ularPhaseTimerHandle); ularPhaseTimerHandle = null; }
+  if(ularCountdownInterval){ clearInterval(ularCountdownInterval); ularCountdownInterval = null; }
+  const mcq = document.getElementById('ularMcqOverlay'); if(mcq) mcq.remove();
+  const rv = document.getElementById('ularRevealOverlay'); if(rv) rv.remove();
+}
+
+function renderUlarGame(roomId, onBack){
+  clearTimer();
+  statusVal.textContent = "ULAR TANGGA";
+  setPresenceStatus('in_progress');
+  ularGameRoomId = roomId;
+  ularGameOnBack = onBack;
+  ularGameMyKey = ularQueueMyKey || sanitizeNameForKey(getSavedName());
+  ularTrackedPhase = null;
+  ularClearTimers();
+
+  if(ularGameRoomRef) ularGameRoomRef.off();
+  ularGameRoomRef = db.ref('ularGames/' + roomId);
+  ularGameRoomRef.on('value', (snap)=>{
+    const room = snap.val();
+    if(!room) return;
+    if(room.winnerKey){
+      ularGameRoomRef.off(); ularGameRoomRef = null;
+      ularClearTimers();
+      renderUlarResults(room, onBack);
+      return;
+    }
+    ularRenderBoardUI(room);
+    ularHandleMyPhase(room);
+  });
+}
+
+function ularRenderBoardUI(room){
+  const myKey = ularGameMyKey;
+  const players = room.players || {};
+  const playerKeys = Object.keys(players);
+  const colorOf = (k)=> KAHOOT_COLORS[playerKeys.indexOf(k) % KAHOOT_COLORS.length];
+
+  let cellsHtml = '';
+  for(let n=1; n<=100; n++){
+    const isHard = n>=91 && n<=99;
+    const isFinish = n===100;
+    const isLadder = room.ladders && room.ladders[n] !== undefined;
+    const isSnake = room.snakes && room.snakes[n] !== undefined;
+    const tokensHere = playerKeys.filter(k=> (players[k].pos||0) === n);
+    const tokensHtml = tokensHere.map(k=> `<div class="ular-token" style="background:${colorOf(k)};" title="${escapeHtmlIdx(players[k].name)}">${escapeHtmlIdx((players[k].name||'?').charAt(0).toUpperCase())}</div>`).join('');
+    let badge = '';
+    if(isFinish) badge = '<span class="ular-badge">🏁</span>';
+    else if(isLadder) badge = '<span class="ular-badge">🪜</span>';
+    else if(isSnake) badge = '<span class="ular-badge">🐍</span>';
+    cellsHtml += `<div class="ular-cell ${isHard?'hard-zone':''} ${isFinish?'finish-zone':''}">${n}${badge}<div class="ular-tokens">${tokensHtml}</div></div>`;
+  }
+
+  const me = players[myKey];
+  const myPhase = (me && me.phase) || 'idle';
+  const myPos = (me && me.pos) || 0;
+  const canRoll = myPhase === 'idle' && !room.winnerKey;
+
+  card.innerHTML = `
+    <div class="reset-row"><button class="reset-btn" id="ularExitBtn">✕ Keluar</button></div>
+    <div class="center-stack">
+      <div class="section-tag" style="background:#16a34a;color:#fff;">🐍🪜 ULAR TANGGA</div>
+      <p class="intro-desc" style="font-size:11.5px;margin:0;">Posisi kamu: ${myPos===0?'START':'kotak '+myPos}. Yang duluan sampai 100, MENANG!</p>
+      <div class="ular-board-grid">${cellsHtml}</div>
+      <div class="ular-players-row">
+        ${playerKeys.map(k=>{
+          const p = players[k];
+          const isMe = k===myKey;
+          const stateLabel = p.phase==='rolling' ? 'ngocok...' : p.phase==='question' ? 'jawab soal...' : p.phase==='reveal' ? 'lihat hasil...' : '';
+          return `<div class="ular-player-chip ${isMe?'me':''}"><span class="dot" style="background:${colorOf(k)};"></span>${escapeHtmlIdx(p.name)}${isMe?' (kamu)':''} · #${p.pos||0}${stateLabel?' · '+stateLabel:''}</div>`;
+        }).join('')}
+      </div>
+      <button class="ular-dice-btn ${myPhase==='rolling'?'rolling':''}" id="ularDiceBtn" ${canRoll?'':'disabled'}>🎲</button>
+      <p class="intro-desc" style="font-size:11px;margin-top:2px;">${canRoll ? 'Giliranmu — tap dadu!' : (myPhase==='idle' ? 'Nunggu game...' : 'Tunggu prosesmu selesai...')}</p>
+    </div>
+  `;
+  document.getElementById('ularExitBtn').onclick = ()=>{
+    ularClearTimers();
+    if(ularGameRoomRef){ ularGameRoomRef.off(); ularGameRoomRef = null; }
+    ularGameOnBack && ularGameOnBack();
+  };
+  const diceBtn = document.getElementById('ularDiceBtn');
+  if(diceBtn && canRoll){
+    diceBtn.onclick = ()=> ularRollDice(room);
+  }
+}
+
+function ularHandleMyPhase(room){
+  const me = room.players && room.players[ularGameMyKey];
+  if(!me) return;
+  const phase = me.phase || 'idle';
+  if(phase === ularTrackedPhase) return; // hindari timer dobel tiap re-render
+  ularTrackedPhase = phase;
+  ularClearTimers();
+
+  if(phase === 'rolling'){
+    ularPhaseTimerHandle = setTimeout(()=> ularResolveRoll(room), 900);
+  } else if(phase === 'question'){
+    ularShowQuestionOverlay(room, me);
+  } else if(phase === 'reveal'){
+    ularShowRevealOverlay(room, me);
+  }
+}
+
+function ularRollDice(room){
+  const myKey = ularGameMyKey;
+  const me = room.players[myKey];
+  if(!me || (me.phase||'idle') !== 'idle') return;
+  const dice = 1 + Math.floor(Math.random()*6);
+  db.ref('ularGames/' + ularGameRoomId + '/players/' + myKey).update({
+    phase: 'rolling', diceValue: dice
+  }).catch((err)=> alert('Gagal kocok dadu: ' + (err && err.message ? err.message : err)));
+}
+
+function ularResolveRoll(room){
+  const myKey = ularGameMyKey;
+  const me = room.players[myKey];
+  if(!me) return;
+  const dice = me.diceValue || 1;
+  const rawTarget = Math.min(100, (me.pos||0) + dice);
+  let finalTarget = rawTarget;
+  if(room.ladders && room.ladders[rawTarget] !== undefined) finalTarget = room.ladders[rawTarget];
+  else if(room.snakes && room.snakes[rawTarget] !== undefined) finalTarget = room.snakes[rawTarget];
+
+  if(finalTarget >= 100){
+    db.ref('ularGames/' + ularGameRoomId + '/players/' + myKey).update({ pos:100, phase:'idle' }).then(()=>{
+      return db.ref('ularGames/' + ularGameRoomId + '/winnerKey').transaction((cur)=> (cur===null || cur===undefined) ? myKey : cur);
+    }).catch((err)=> console.error('ularResolveRoll(finish)', err));
+    return;
+  }
+  db.ref('ularGames/' + ularGameRoomId + '/players/' + myKey).update({
+    phase: 'question',
+    questionTile: finalTarget,
+    questionStartedAt: Date.now()
+  }).catch((err)=> console.error('ularResolveRoll', err));
+}
+
+function ularShowQuestionOverlay(room, me){
+  const tileIdx = (me.questionTile || 1) - 1;
+  const tile = (room.tiles || [])[tileIdx];
+  if(!tile){
+    ularSubmitAnswer(true);
+    return;
+  }
+  const overlayRoot = document.createElement('div');
+  overlayRoot.className = 'ular-mcq-overlay';
+  overlayRoot.id = 'ularMcqOverlay';
+  overlayRoot.innerHTML = `
+    <div style="font-size:11px;color:#facc15;font-weight:800;text-align:center;margin-bottom:6px;">KOTAK ${me.questionTile}${me.questionTile>=91?' · SOAL SULIT 🔥':''}</div>
+    <div class="ular-mcq-timerbar"><div class="ular-mcq-timerbar-fill" id="ularMcqTimerFill" style="width:100%;"></div></div>
+    <div class="ular-mcq-prompt">${escapeHtmlIdx(tile.prompt)}</div>
+    <div class="kahoot-grid">
+      ${tile.options.map((opt,i)=> `<button class="kahoot-opt" data-idx="${i}" style="background:${KAHOOT_COLORS[i % KAHOOT_COLORS.length]};">${escapeHtmlIdx(opt)}</button>`).join('')}
+    </div>
+  `;
+  document.body.appendChild(overlayRoot);
+
+  const duration = 20000;
+  const startedAt = me.questionStartedAt || Date.now();
+  const fillEl = document.getElementById('ularMcqTimerFill');
+  let answered = false;
+
+  function finalizeAnswer(choiceIdx){
+    if(answered) return;
+    answered = true;
+    if(ularCountdownInterval){ clearInterval(ularCountdownInterval); ularCountdownInterval = null; }
+    overlayRoot.querySelectorAll('.kahoot-opt').forEach(b=> b.disabled = true);
+    const isCorrect = choiceIdx >= 0 && tile.options[choiceIdx] === tile.correct;
+    overlayRoot.remove();
+    ularSubmitAnswer(isCorrect);
+  }
+
+  ularCountdownInterval = setInterval(()=>{
+    const elapsed = Date.now() - startedAt;
+    const pct = Math.max(0, 100 - (elapsed/duration)*100);
+    if(fillEl) fillEl.style.width = pct + '%';
+    if(elapsed >= duration) finalizeAnswer(-1);
+  }, 150);
+
+  overlayRoot.querySelectorAll('.kahoot-opt').forEach(btn=>{
+    btn.onclick = ()=> finalizeAnswer(parseInt(btn.dataset.idx,10));
+  });
+}
+
+function ularSubmitAnswer(isCorrect){
+  const myKey = ularGameMyKey;
+  db.ref('ularGames/' + ularGameRoomId + '/players/' + myKey).update({
+    phase: 'reveal', lastCorrect: !!isCorrect, revealStartedAt: Date.now()
+  }).catch((err)=> console.error('ularSubmitAnswer', err));
+}
+
+function ularShowRevealOverlay(room, me){
+  const tileIdx = (me.questionTile || 1) - 1;
+  const tile = (room.tiles || [])[tileIdx];
+  const isCorrect = !!me.lastCorrect;
+  const spotifyParsed = (tile && tile.spotifyUrl) ? spotifyParseUrlPeserta(tile.spotifyUrl) : null;
+
+  const overlayRoot = document.createElement('div');
+  overlayRoot.className = 'ular-mcq-overlay';
+  overlayRoot.id = 'ularRevealOverlay';
+  overlayRoot.innerHTML = `
+    <div style="text-align:center;">
+      <div style="font-size:44px;">${isCorrect ? '✅' : '❌'}</div>
+      <div style="color:#fff;font-weight:800;font-size:16px;margin:8px 0;">${isCorrect ? 'Benar! Lanjut ke kotak ' + me.questionTile : 'Salah! Balik ke START 😵'}</div>
+      ${tile ? `<div style="color:rgba(255,255,255,0.85);font-size:13px;margin-bottom:12px;">Jawaban benar: <b>${escapeHtmlIdx(tile.correct)}</b></div>` : ''}
+      ${spotifyParsed ? `<div id="ularSpotifyBox" style="border-radius:12px;overflow:hidden;"></div><p style="color:rgba(255,255,255,0.6);font-size:10.5px;margin-top:6px;">🎵 preview 30 detik</p>` : ''}
+    </div>
+  `;
+  document.body.appendChild(overlayRoot);
+
+  let duration = 10000;
+  if(spotifyParsed){
+    duration = 30000;
+    const box = document.getElementById('ularSpotifyBox');
+    if(box){
+      box.innerHTML = `<iframe src="https://open.spotify.com/embed/${spotifyParsed.type}/${spotifyParsed.id}?utm_source=generator&autoplay=1" width="100%" height="152" frameborder="0" allow="autoplay; encrypted-media; clipboard-write" loading="lazy"></iframe>`;
+    }
+  }
+
+  const startedAt = me.revealStartedAt || Date.now();
+  ularCountdownInterval = setInterval(()=>{
+    if(Date.now() - startedAt >= duration){
+      clearInterval(ularCountdownInterval); ularCountdownInterval = null;
+      overlayRoot.remove();
+      ularFinishReveal(me, isCorrect);
+    }
+  }, 200);
+}
+
+function ularFinishReveal(me, isCorrect){
+  const myKey = ularGameMyKey;
+  const newPos = isCorrect ? (me.questionTile || me.pos || 0) : 0;
+  db.ref('ularGames/' + ularGameRoomId + '/players/' + myKey).update({
+    pos: newPos,
+    phase: 'idle',
+    answered: (me.answered||0) + 1,
+    correct: (me.correct||0) + (isCorrect?1:0),
+    wrong: (me.wrong||0) + (isCorrect?0:1)
+  }).catch((err)=> console.error('ularFinishReveal', err));
+}
+
+function renderUlarResults(room, onBack){
+  clearTimer();
+  statusVal.textContent = "ULAR TANGGA · SELESAI";
+  setPresenceStatus('done');
+  const players = room.players || {};
+  const winnerKey = room.winnerKey;
+  const rows = Object.entries(players).map(([k,p])=> Object.assign({key:k}, p)).sort((a,b)=>{
+    if(a.key===winnerKey) return -1;
+    if(b.key===winnerKey) return 1;
+    return (b.pos||0)-(a.pos||0);
+  });
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag" style="background:#f59e0b;color:#fff;">🏆 GAME SELESAI</div>
+      <h1 class="intro-title" style="font-size:20px;">${escapeHtmlIdx((players[winnerKey]||{}).name || 'Seseorang')} Menang!</h1>
+      <div style="width:100%;margin-top:10px;">
+        ${rows.map(p=>`
+          <div class="ular-result-row ${p.key===winnerKey?'winner':''}">
+            <div style="font-size:20px;">${p.key===winnerKey?'👑':'🎮'}</div>
+            <div style="flex:1;">
+              <div style="font-weight:800;font-size:13.5px;">${escapeHtmlIdx(p.name)}${p.key===winnerKey?' (Menang)':' (Kalah)'}</div>
+              <div style="font-size:11px;opacity:0.75;">Posisi akhir: ${p.pos||0} · ${p.answered||0} soal dikerjakan (✓ ${p.correct||0} benar / ✗ ${p.wrong||0} salah)</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn" id="ularResultBackBtn" style="margin-top:14px;">Selesai</button>
+    </div>
+  `;
+  document.getElementById('ularResultBackBtn').onclick = ()=>{
+    if(ularGameRoomRef){ ularGameRoomRef.off(); ularGameRoomRef = null; }
+    onBack();
+  };
+}
+
 /* ---------------- NOTIFIKASI PUSH (lokal, lewat Service Worker) ----------------
    Catatan: karena app ini situs statis tanpa server pengirim (tanpa Firebase Cloud
    Messaging + backend), notifikasi ini bekerja selama app/tab masih berjalan di
@@ -7218,6 +7802,7 @@ function renderOtherModesMenu(onBack){
 
       <button class="btn ghost" id="otherDuelBtn" style="margin-top:2px;border-color:#8b5cf6;color:#8b5cf6;">⚔️ Duel 1v1 (Beta)</button>
       <button class="btn ghost" id="otherKahootBtn" style="border-color:#eab308;color:#b45309;">🎉 Kuis Live (Kahoot-style)</button>
+      <button class="btn ghost" id="otherUlarBtn" style="border-color:#16a34a;color:#15803d;">🐍🪜 Ular Tangga</button>
       <button class="btn ghost" id="otherMusicBtn" style="border-color:#1DB954;color:#1a9c47;">🎵 Dengarkan Musik</button>
 
       <button class="btn ghost" id="backToModeSelectBtn2" style="margin-top:14px;">← Kembali</button>
@@ -7235,6 +7820,12 @@ function renderOtherModesMenu(onBack){
     if(!savedName){ renderNameGate(); return; }
     if(!myPresenceRef){ startPresence(savedName); }
     renderKahootEntry(()=> renderOtherModesMenu(onBack));
+  };
+  document.getElementById('otherUlarBtn').onclick = ()=>{
+    const savedName = getSavedName();
+    if(!savedName){ renderNameGate(); return; }
+    if(!myPresenceRef){ startPresence(savedName); }
+    renderUlarEntry(()=> renderOtherModesMenu(onBack));
   };
   document.getElementById('otherMusicBtn').onclick = ()=> renderMusicPlayer(()=> renderOtherModesMenu(onBack));
 }
