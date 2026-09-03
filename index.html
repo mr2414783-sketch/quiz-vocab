@@ -13663,6 +13663,46 @@ function currentPool(){
   return ALL; // gabungan bulan 1 + 2
 }
 
+const QUIZ_PROGRESS_KEY = 'quizProgress_gabungan_v1'; // cuma dipakai buat scope 'all' (Gabungan Bulan 1+2), Pilihan Ganda ronde pertama
+
+function saveQuizProgress(){
+  if(scope !== 'all' || roundNumber !== 0) return; // fitur lanjutkan cuma buat ronde pertama mode Gabungan
+  try{
+    const order = queue.map(it => itemStatKey(it));
+    const missedOrder = roundMissed.map(it => itemStatKey(it));
+    localStorage.setItem(QUIZ_PROGRESS_KEY, JSON.stringify({ idx, order, missedOrder, savedAt: Date.now() }));
+  }catch(e){}
+}
+function loadQuizProgress(){
+  try{
+    const raw = localStorage.getItem(QUIZ_PROGRESS_KEY);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    if(!data || typeof data.idx !== 'number' || data.idx <= 0 || !Array.isArray(data.order)) return null;
+    return data;
+  }catch(e){ return null; }
+}
+function clearQuizProgress(){
+  try{ localStorage.removeItem(QUIZ_PROGRESS_KEY); }catch(e){}
+}
+function resumeMainQuiz(pool){
+  const saved = loadQuizProgress();
+  if(!saved){ startMainQuiz(pool); return; }
+  const byKey = {};
+  pool.forEach(it => { byKey[itemStatKey(it)] = it; });
+  const restoredQueue = saved.order.map(k => byKey[k]).filter(Boolean);
+  if(restoredQueue.length === 0){ startMainQuiz(pool); return; }
+  activePool = pool;
+  queue = restoredQueue;
+  idx = Math.min(saved.idx, queue.length - 1);
+  roundMissed = (saved.missedOrder || []).map(k => byKey[k]).filter(Boolean);
+  roundNumber = 0;
+  statusVal.textContent = "OPEN BOOK";
+  setPresenceStatus('in_progress');
+  setPresenceMode('Mengerjakan Kuis (Pilihan Ganda)');
+  renderQuestion();
+}
+
 function startMainQuiz(pool){
   activePool = pool;
   queue = shuffle(pool);
@@ -13836,7 +13876,14 @@ function renderIntro(){
             <button class="mode-btn ${timedMode ? '' : 'active'}" id="modeFreeBtn" type="button">♾ Tanpa Waktu</button>
           </div>
           <p class="intro-desc" style="font-size:11px;opacity:0.75;">*Mode waktu berlaku untuk Pilihan Ganda &amp; Esai</p>
-          <button class="btn" id="startBtn">Mulai Latihan →</button>
+          ${(function(){
+            if(scope !== 'all' || quizType !== 'mc') return '';
+            const saved = loadQuizProgress();
+            if(!saved) return '';
+            return `<p class="intro-desc" style="font-size:11.5px;color:var(--green,#16a34a);font-weight:700;">📌 Kamu berhenti di soal ke-${saved.idx+1} dari ${saved.order.length} waktu itu.</p>
+            <button class="btn" id="resumeQuizBtn" style="background:var(--green,#16a34a);">▶️ Lanjutkan Soal</button>`;
+          })()}
+          <button class="btn ${scope==='all' && quizType==='mc' && loadQuizProgress() ? 'ghost' : ''}" id="startBtn">${scope==='all' && quizType==='mc' && loadQuizProgress() ? '🔄 Mulai dari Awal (soal diacak ulang)' : 'Mulai Latihan →'}</button>
         ` : `
           <p class="intro-desc" style="font-size:12px;">Kartu tampil dalam <b>Bahasa Indonesia</b> — tap kartunya untuk lihat jawaban <b>Bahasa Inggris</b>. Gak ada nilai, santai aja buat hafalan.</p>
           ${(function(){
@@ -13993,11 +14040,15 @@ function renderIntro(){
     document.getElementById('startBtn').onclick = ()=>{
       if(scope === 'day' && selectedDays.length === 0){ alert('Pilih minimal 1 hari dulu ya sebelum mulai.'); return; }
       const pool = currentPool();
-      if(quizType === 'mc'){ startMainQuiz(pool); }
+      if(quizType === 'mc'){ if(scope === 'all') clearQuizProgress(); startMainQuiz(pool); }
       else if(quizType === 'match'){ startMatchQuiz(pool); }
       else if(quizType === 'srs'){ startSrsQuiz(pool); }
       else { startEssayQuiz(pool); }
     };
+    const resumeQuizBtn = document.getElementById('resumeQuizBtn');
+    if(resumeQuizBtn){
+      resumeQuizBtn.onclick = ()=>{ resumeMainQuiz(currentPool()); };
+    }
   } else {
     document.getElementById('startBtn').onclick = ()=>{
       if(scope === 'day' && selectedDays.length === 0){ alert('Pilih minimal 1 hari dulu ya sebelum mulai.'); return; }
@@ -14454,13 +14505,14 @@ function handleAnswer(selected, item){
 
   setTimeout(()=>{
     idx += 1;
+    saveQuizProgress();
     renderQuestion();
   }, 900);
 }
 
 function finishRound(retryFn){
   clearTimer();
-  if(roundNumber === 0){ totalMissedFirstPass = roundMissed.length; }
+  if(roundNumber === 0){ totalMissedFirstPass = roundMissed.length; clearQuizProgress(); }
 
   if(roundMissed.length === 0){ renderAllCorrect(); return; }
 
