@@ -179,7 +179,10 @@
   .kahoot-shape{font-size:18px;line-height:1;}
 
   /* ---- Ular Tangga ---- */
-  .ular-board-grid{display:grid;grid-template-columns:repeat(10, 1fr);gap:2px;width:100%;background:#0f5132;padding:4px;border-radius:10px;}
+  .ular-board-wrap{position:relative;width:100%;}
+  .ular-board-svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;}
+  .ular-board-tokens{position:absolute;inset:0;z-index:2;pointer-events:none;}
+  .ular-board-grid{position:relative;z-index:0;display:grid;grid-template-columns:repeat(10, 1fr);gap:2px;width:100%;background:#0f5132;padding:4px;border-radius:10px;}
   .ular-cell{
     position:relative;aspect-ratio:1/1;background:#f1f8f1;border-radius:4px;
     display:flex;align-items:flex-start;justify-content:flex-start;padding:2px;
@@ -188,8 +191,7 @@
   .ular-cell.hard-zone{background:#fde68a;color:#92400e;}
   .ular-cell.finish-zone{background:#16a34a;color:#fff;}
   .ular-cell .ular-badge{position:absolute;top:1px;right:2px;font-size:9px;}
-  .ular-tokens{position:absolute;bottom:1px;left:1px;right:1px;display:flex;flex-wrap:wrap;gap:1px;}
-  .ular-token{width:11px;height:11px;border-radius:50%;color:#fff;font-size:6.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid #fff;}
+  .ular-token{position:absolute;width:15px;height:15px;border-radius:50%;color:#fff;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.4);transform:translate(-50%,-50%);}
   .ular-players-row{display:flex;gap:6px;width:100%;overflow-x:auto;margin-top:10px;padding-bottom:4px;}
   .ular-player-chip{flex:0 0 auto;background:var(--panel-2);border-radius:10px;padding:6px 10px;font-size:11px;font-weight:800;display:flex;align-items:center;gap:5px;border:2px solid transparent;}
   .ular-player-chip.me{border-color:var(--blue);}
@@ -201,6 +203,10 @@
   .ular-dice-btn:disabled{opacity:0.4;cursor:default;}
   .ular-dice-btn.rolling{animation:ularDiceShake .5s ease-in-out infinite;}
   @keyframes ularDiceShake{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-12deg);}75%{transform:rotate(12deg);}}
+  .ular-dice-toast{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);z-index:9600;background:rgba(15,15,15,0.92);color:#fff;border-radius:16px;padding:18px 28px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:ularToastPop .3s ease;}
+  .ular-dice-toast-num{font-size:42px;font-weight:900;line-height:1;}
+  .ular-dice-toast-label{font-size:13px;font-weight:700;margin-top:6px;white-space:nowrap;}
+  @keyframes ularToastPop{0%{transform:translate(-50%,-50%) scale(0.6);opacity:0;}100%{transform:translate(-50%,-50%) scale(1);opacity:1;}}
   .ular-mcq-overlay{
     position:fixed;inset:0;background:rgba(20,20,20,0.85);z-index:9500;
     display:flex;flex-direction:column;justify-content:center;padding:22px;
@@ -7279,12 +7285,15 @@ let ularGameRoomRef = null;
 let ularTrackedPhase = null;
 let ularPhaseTimerHandle = null;
 let ularCountdownInterval = null;
+let ularAnimatingPos = null;
 
 function ularClearTimers(){
   if(ularPhaseTimerHandle){ clearTimeout(ularPhaseTimerHandle); ularPhaseTimerHandle = null; }
   if(ularCountdownInterval){ clearInterval(ularCountdownInterval); ularCountdownInterval = null; }
   const mcq = document.getElementById('ularMcqOverlay'); if(mcq) mcq.remove();
   const rv = document.getElementById('ularRevealOverlay'); if(rv) rv.remove();
+  const dt = document.getElementById('ularDiceToast'); if(dt) dt.remove();
+  ularAnimatingPos = null;
 }
 
 function renderUlarGame(roomId, onBack){
@@ -7313,25 +7322,107 @@ function renderUlarGame(roomId, onBack){
   });
 }
 
+/* Posisi kotak ular-tangga ASLI itu zigzag (ular berbelit naik), bukan baca biasa kiri-kanan atas-bawah.
+   Baris paling bawah = 1-10 (kiri→kanan), baris di atasnya = 20-11 (kanan→kiri), dst berselang-seling. */
+function ularTileRowCol(n){
+  const rowFromBottom = Math.floor((n-1)/10);
+  const idxInRow = (n-1) % 10;
+  const leftToRight = (rowFromBottom % 2 === 0);
+  const col = leftToRight ? idxInRow : (9 - idxInRow);
+  const gridRow = 9 - rowFromBottom; // 0 = baris paling atas (91-100), 9 = baris paling bawah (1-10)
+  return { row: gridRow, col };
+}
+function ularBuildBoardGrid(){
+  const grid = Array.from({length:10}, ()=> new Array(10).fill(0));
+  for(let n=1; n<=100; n++){
+    const { row, col } = ularTileRowCol(n);
+    grid[row][col] = n;
+  }
+  return grid;
+}
+function ularTileCenterPct(n){
+  const { row, col } = ularTileRowCol(n);
+  return { x: col*10+5, y: row*10+5 };
+}
+function ularLadderSvg(fromN, toN){
+  const a = ularTileCenterPct(fromN), b = ularTileCenterPct(toN);
+  const dx=b.x-a.x, dy=b.y-a.y, len=Math.sqrt(dx*dx+dy*dy)||1;
+  const nx=-dy/len, ny=dx/len, off=1.6;
+  const a1={x:a.x+nx*off,y:a.y+ny*off}, a2={x:a.x-nx*off,y:a.y-ny*off};
+  const b1={x:b.x+nx*off,y:b.y+ny*off}, b2={x:b.x-nx*off,y:b.y-ny*off};
+  let rungs='';
+  for(let i=1;i<5;i++){
+    const t=i/5;
+    const p1={x:a1.x+(b1.x-a1.x)*t,y:a1.y+(b1.y-a1.y)*t};
+    const p2={x:a2.x+(b2.x-a2.x)*t,y:a2.y+(b2.y-a2.y)*t};
+    rungs += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#a16207" stroke-width="0.7"/>`;
+  }
+  return `<line x1="${a1.x}" y1="${a1.y}" x2="${b1.x}" y2="${b1.y}" stroke="#a16207" stroke-width="0.9"/>
+          <line x1="${a2.x}" y1="${a2.y}" x2="${b2.x}" y2="${b2.y}" stroke="#a16207" stroke-width="0.9"/>${rungs}`;
+}
+function ularSnakeSvg(fromN, toN){
+  const a = ularTileCenterPct(fromN), b = ularTileCenterPct(toN);
+  const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+  const dx=b.x-a.x, dy=b.y-a.y, len=Math.sqrt(dx*dx+dy*dy)||1;
+  const nx=-dy/len, ny=dx/len, bulge=7;
+  const cx=mx+nx*bulge, cy=my+ny*bulge;
+  return `<path d="M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}" stroke="#16a34a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <circle cx="${a.x}" cy="${a.y}" r="2.1" fill="#15803d"/>
+          <circle cx="${a.x-0.6}" cy="${a.y-0.6}" r="0.4" fill="#fff"/>
+          <circle cx="${a.x+0.6}" cy="${a.y-0.6}" r="0.4" fill="#fff"/>`;
+}
+function ularBoardOverlaySvg(room){
+  let inner = '';
+  Object.entries(room.ladders||{}).forEach(([from,to])=>{ inner += ularLadderSvg(parseInt(from,10), to); });
+  Object.entries(room.snakes||{}).forEach(([from,to])=>{ inner += ularSnakeSvg(parseInt(from,10), to); });
+  return `<svg class="ular-board-svg" viewBox="0 0 100 100" preserveAspectRatio="none">${inner}</svg>`;
+}
+
+function ularTokensOverlayHtml(room, playerKeys, colorOf){
+  const players = room.players || {};
+  const myKey = ularGameMyKey;
+  const byTile = {};
+  playerKeys.forEach(k=>{
+    let pos = (players[k] && players[k].pos) || 0;
+    if(k === myKey && ularAnimatingPos !== null){ pos = ularAnimatingPos; }
+    if(pos <= 0) return; // masih di START, gak digambar di papan
+    if(!byTile[pos]) byTile[pos] = [];
+    byTile[pos].push(k);
+  });
+  const offsets = [{x:0,y:0},{x:-2.4,y:-2.4},{x:2.4,y:-2.4},{x:-2.4,y:2.4},{x:2.4,y:2.4}];
+  let html = '';
+  Object.entries(byTile).forEach(([tileStr, keys])=>{
+    const center = ularTileCenterPct(parseInt(tileStr,10));
+    keys.forEach((k, i)=>{
+      const off = offsets[i % offsets.length];
+      const x = center.x + off.x, y = center.y + off.y;
+      html += `<div class="ular-token" style="left:${x}%;top:${y}%;background:${colorOf(k)};" title="${escapeHtmlIdx(players[k].name)}">${escapeHtmlIdx((players[k].name||'?').charAt(0).toUpperCase())}</div>`;
+    });
+  });
+  return html;
+}
+
 function ularRenderBoardUI(room){
   const myKey = ularGameMyKey;
   const players = room.players || {};
   const playerKeys = Object.keys(players);
   const colorOf = (k)=> KAHOOT_COLORS[playerKeys.indexOf(k) % KAHOOT_COLORS.length];
 
+  const grid = ularBuildBoardGrid();
   let cellsHtml = '';
-  for(let n=1; n<=100; n++){
-    const isHard = n>=91 && n<=99;
-    const isFinish = n===100;
-    const isLadder = room.ladders && room.ladders[n] !== undefined;
-    const isSnake = room.snakes && room.snakes[n] !== undefined;
-    const tokensHere = playerKeys.filter(k=> (players[k].pos||0) === n);
-    const tokensHtml = tokensHere.map(k=> `<div class="ular-token" style="background:${colorOf(k)};" title="${escapeHtmlIdx(players[k].name)}">${escapeHtmlIdx((players[k].name||'?').charAt(0).toUpperCase())}</div>`).join('');
-    let badge = '';
-    if(isFinish) badge = '<span class="ular-badge">🏁</span>';
-    else if(isLadder) badge = '<span class="ular-badge">🪜</span>';
-    else if(isSnake) badge = '<span class="ular-badge">🐍</span>';
-    cellsHtml += `<div class="ular-cell ${isHard?'hard-zone':''} ${isFinish?'finish-zone':''}">${n}${badge}<div class="ular-tokens">${tokensHtml}</div></div>`;
+  for(let r=0; r<10; r++){
+    for(let c=0; c<10; c++){
+      const n = grid[r][c];
+      const isHard = n>=91 && n<=99;
+      const isFinish = n===100;
+      const isLadder = room.ladders && room.ladders[n] !== undefined;
+      const isSnake = room.snakes && room.snakes[n] !== undefined;
+      let badge = '';
+      if(isFinish) badge = '<span class="ular-badge">🏁</span>';
+      else if(isLadder) badge = '<span class="ular-badge">🪜</span>';
+      else if(isSnake) badge = '<span class="ular-badge">🐍</span>';
+      cellsHtml += `<div class="ular-cell ${isHard?'hard-zone':''} ${isFinish?'finish-zone':''}">${n}${badge}</div>`;
+    }
   }
 
   const me = players[myKey];
@@ -7344,7 +7435,11 @@ function ularRenderBoardUI(room){
     <div class="center-stack">
       <div class="section-tag" style="background:#16a34a;color:#fff;">🐍🪜 ULAR TANGGA</div>
       <p class="intro-desc" style="font-size:11.5px;margin:0;">Posisi kamu: ${myPos===0?'START':'kotak '+myPos}. Yang duluan sampai 100, MENANG!</p>
-      <div class="ular-board-grid">${cellsHtml}</div>
+      <div class="ular-board-wrap">
+        <div class="ular-board-grid">${cellsHtml}</div>
+        ${ularBoardOverlaySvg(room)}
+        <div class="ular-board-tokens">${ularTokensOverlayHtml(room, playerKeys, colorOf)}</div>
+      </div>
       <div class="ular-players-row">
         ${playerKeys.map(k=>{
           const p = players[k];
@@ -7377,7 +7472,7 @@ function ularHandleMyPhase(room){
   ularClearTimers();
 
   if(phase === 'rolling'){
-    ularPhaseTimerHandle = setTimeout(()=> ularResolveRoll(room), 900);
+    ularPhaseTimerHandle = setTimeout(()=> ularAnimateRollThenResolve(room, me), 900);
   } else if(phase === 'question'){
     ularShowQuestionOverlay(room, me);
   } else if(phase === 'reveal'){
@@ -7395,27 +7490,87 @@ function ularRollDice(room){
   }).catch((err)=> alert('Gagal kocok dadu: ' + (err && err.message ? err.message : err)));
 }
 
-function ularResolveRoll(room){
-  const myKey = ularGameMyKey;
-  const me = room.players[myKey];
-  if(!me) return;
-  const dice = me.diceValue || 1;
-  const rawTarget = Math.min(100, (me.pos||0) + dice);
-  let finalTarget = rawTarget;
-  if(room.ladders && room.ladders[rawTarget] !== undefined) finalTarget = room.ladders[rawTarget];
-  else if(room.snakes && room.snakes[rawTarget] !== undefined) finalTarget = room.snakes[rawTarget];
+function ularShowDiceToast(html){
+  ularHideDiceToast();
+  const el = document.createElement('div');
+  el.id = 'ularDiceToast';
+  el.className = 'ular-dice-toast';
+  el.innerHTML = html;
+  document.body.appendChild(el);
+}
+function ularHideDiceToast(){
+  const el = document.getElementById('ularDiceToast'); if(el) el.remove();
+}
 
+/* 1) tampilin angka dadu dulu -> 2) animasi bidak jalan langkah demi langkah -> 3) kalau kena ular/tangga tampilin itu -> 4) baru lanjut ke soal/menang */
+function ularAnimateRollThenResolve(room, me){
+  const dice = me.diceValue || 1;
+  const startPos = me.pos || 0;
+  ularShowDiceToast(`<div class="ular-dice-toast-num">🎲 ${dice}</div><div class="ular-dice-toast-label">Langkahmu: ${dice} kotak</div>`);
+  ularPhaseTimerHandle = setTimeout(()=>{
+    ularHideDiceToast();
+    ularAnimateTokenSteps(room, me, startPos, dice);
+  }, 1100);
+}
+
+function ularAnimateTokenSteps(room, me, startPos, dice){
+  const rawTarget = Math.min(100, startPos + dice);
+  let step = startPos;
+  ularAnimatingPos = step;
+  ularRenderBoardUI(room);
+  const stepDelay = 260;
+  const stepNext = ()=>{
+    if(step >= rawTarget){
+      ularHandleLadderSnakeThenProceed(room, me, rawTarget);
+      return;
+    }
+    step += 1;
+    ularAnimatingPos = step;
+    ularRenderBoardUI(room);
+    ularPhaseTimerHandle = setTimeout(stepNext, stepDelay);
+  };
+  ularPhaseTimerHandle = setTimeout(stepNext, stepDelay);
+}
+
+function ularHandleLadderSnakeThenProceed(room, me, rawTarget){
+  let finalTarget = rawTarget;
+  let jumpHtml = null;
+  if(room.ladders && room.ladders[rawTarget] !== undefined){
+    finalTarget = room.ladders[rawTarget];
+    jumpHtml = `<div class="ular-dice-toast-num">🪜</div><div class="ular-dice-toast-label">Kena tangga! Naik ke kotak ${finalTarget}</div>`;
+  } else if(room.snakes && room.snakes[rawTarget] !== undefined){
+    finalTarget = room.snakes[rawTarget];
+    jumpHtml = `<div class="ular-dice-toast-num">🐍</div><div class="ular-dice-toast-label">Kena ular! Turun ke kotak ${finalTarget}</div>`;
+  }
+
+  if(!jumpHtml){
+    ularAnimatingPos = null;
+    ularProceedAfterMove(finalTarget);
+    return;
+  }
+  ularShowDiceToast(jumpHtml);
+  ularAnimatingPos = finalTarget;
+  ularRenderBoardUI(room);
+  ularPhaseTimerHandle = setTimeout(()=>{
+    ularHideDiceToast();
+    ularAnimatingPos = null;
+    ularProceedAfterMove(finalTarget);
+  }, 1100);
+}
+
+function ularProceedAfterMove(finalTarget){
+  const myKey = ularGameMyKey;
   if(finalTarget >= 100){
     db.ref('ularGames/' + ularGameRoomId + '/players/' + myKey).update({ pos:100, phase:'idle' }).then(()=>{
       return db.ref('ularGames/' + ularGameRoomId + '/winnerKey').transaction((cur)=> (cur===null || cur===undefined) ? myKey : cur);
-    }).catch((err)=> console.error('ularResolveRoll(finish)', err));
+    }).catch((err)=> console.error('ularProceedAfterMove(finish)', err));
     return;
   }
   db.ref('ularGames/' + ularGameRoomId + '/players/' + myKey).update({
     phase: 'question',
     questionTile: finalTarget,
     questionStartedAt: Date.now()
-  }).catch((err)=> console.error('ularResolveRoll', err));
+  }).catch((err)=> console.error('ularProceedAfterMove', err));
 }
 
 function ularShowQuestionOverlay(room, me){
