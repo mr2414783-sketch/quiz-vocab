@@ -415,6 +415,33 @@
   .flash-sound-btn:active{transform:scale(0.96);background:rgba(63,145,66,0.2);}
   .flash-sound-btn.playing{opacity:0.6;}
 
+  /* Pronunciation (materi American vs British) */
+  .pron-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .pron-chip{
+    display:inline-flex;align-items:center;gap:5px;background:rgba(0,149,246,0.08);
+    border:1.3px solid var(--red);border-radius:8px;padding:4px 9px;
+    font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:var(--ink);
+    cursor:pointer;transition:transform .1s, background .15s;
+  }
+  .pron-chip:active{transform:scale(0.95);background:rgba(0,149,246,0.2);}
+  .pron-chip.playing{opacity:0.55;}
+  .pron-chip .pron-ipa{color:var(--red-dim);font-style:italic;font-weight:700;}
+  .pron-chip .pron-icon{font-size:10px;}
+  .pron-accent-row{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;}
+  .pron-accent-tile{
+    flex:1;background:#FFFFFF;border:1.6px solid var(--line);border-radius:16px;padding:20px 8px;
+    display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
+    font-family:'Nunito',sans-serif;transition:border-color .15s, transform .1s;
+  }
+  .pron-accent-tile:active{transform:scale(0.97);}
+  .pron-accent-tile .pa-flag{font-size:30px;}
+  .pron-accent-tile .pa-label{font-size:14px;font-weight:800;color:var(--ink);}
+  .pron-accent-tile .pa-sub{font-size:10.5px;color:rgba(38,38,38,0.55);font-weight:600;}
+  .pron-accent-tile.american{border-color:#0095F6;}
+  .pron-accent-tile.british{border-color:#ED4956;}
+  .pron-vs{font-weight:900;font-size:14px;color:rgba(38,38,38,0.4);flex-shrink:0;}
+  .pron-story mark{background:rgba(237,73,86,0.18);color:var(--ink);border-radius:3px;padding:0 2px;font-weight:800;}
+
   /* 16 Tenses (hafalan lagu) */
   .tenses-wrap{width:100%;text-align:left;}
   .tenses-group{background:#FFFFFF;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
@@ -8005,7 +8032,8 @@ const MODE_META = {
   standard: { icon:'📚', label:'Mode Standar', sub:'Latihan dan hafalan Vocab, Verb, dan latihan Grammar' },
   kids: { icon:'🧒', label:'Mode Anak-Anak', sub:'Kosakata dasar, seru & santai' },
   practice: { icon:'📖', label:'Soal & Vocab', sub:'Kuis, penjodohan, esai, & flashcard' },
-  grammar: { icon:'✍️', label:'Materi & Soal Grammar', sub:'Mode Hafalan Rumus & Latihan Soal Grammar' }
+  grammar: { icon:'✍️', label:'Materi & Soal Grammar', sub:'Mode Hafalan Rumus & Latihan Soal Grammar' },
+  pronunciation: { icon:'🗣️', label:'Pronunciation', sub:'Materi American vs British, kata bisa didengarkan' }
 };
 
 function modeTileHtml(key, statusKey){
@@ -8090,6 +8118,9 @@ function renderBelajarSubmenu(){
       <div class="big-mode-row">
         ${modeTileHtml('grammar')}
       </div>
+      <div class="big-mode-row">
+        ${modeTileHtml('pronunciation')}
+      </div>
 
       <button class="btn ghost" id="backToModeSelectBtn" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -8105,6 +8136,12 @@ function renderBelajarSubmenu(){
         if(!savedName){ renderNameGate(); return; }
         if(!myPresenceRef){ startPresence(savedName); }
         renderGrammarIntro();
+      } else if(chosen === 'pronunciation'){
+        modeChosenThisSession = true;
+        const savedName = getSavedName();
+        if(!savedName){ renderNameGate(); return; }
+        if(!myPresenceRef){ startPresence(savedName); }
+        renderPronunciationIntro();
       } else if(chosen === 'kids'){
         primaryMode = 'kids';
         modeChosenThisSession = true;
@@ -15344,6 +15381,785 @@ document.getElementById('igTabProfile').onclick = ()=>{
   igTabGo(()=> renderProfileEdit(goHomeOrClosed));
 };
 updateTabbarLockVisual();
+
+/* ============================================================
+   MODE BELAJAR — PRONUNCIATION (American vs British)
+   Materi diambil dari modul "Could You Spell It?" (dasar fonetik
+   American) & "Pronunciation Perfection" (Bahasa Inggris Amerika
+   & Inggris British, minggu 1-4). Hanya materinya saja, tanpa soal.
+   ============================================================ */
+
+let pronAccent = 'american'; // 'american' | 'british'
+
+function pronChip(word, ipa){
+  return `<button type="button" class="pron-chip" data-word="${escapeHtmlIdx(word)}">${escapeHtmlIdx(word)}<span class="pron-ipa">/${escapeHtmlIdx(ipa)}/</span><span class="pron-icon">🔊</span></button>`;
+}
+function pronChips(pairs){
+  return `<div class="pron-chip-wrap">${pairs.map(p=> pronChip(p[0], p[1])).join('')}</div>`;
+}
+function pronSec(title, body){ return { title, body }; }
+
+function speakPronunWord(word, accent, btnEl){
+  try{
+    if(typeof speechSynthesis === 'undefined' || !word) return;
+    speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(word);
+    utter.lang = accent === 'british' ? 'en-GB' : 'en-US';
+    utter.rate = 0.85;
+    if(btnEl){
+      btnEl.classList.add('playing');
+      utter.onend = ()=> btnEl.classList.remove('playing');
+      utter.onerror = ()=> btnEl.classList.remove('playing');
+    }
+    speechSynthesis.speak(utter);
+  }catch(e){ /* diam aja kalau device gak support TTS */ }
+}
+
+/* ============================================================
+   DATA — AMERICAN
+   ============================================================ */
+const PRONUN_AMERICAN = [
+{
+  id:'us-alphabet',
+  title:'1. Alfabet & Simbol Fonetik',
+  sections:[
+    pronSec('Kenalan Sama Alfabet Inggris', `Alfabet Inggris punya 26 huruf. 5 huruf vokal: <b>A E I O U</b>, sisanya 21 huruf konsonan. Yang bikin unik, English itu beda sama Bahasa Indonesia — ejaan hurufnya gak selalu sama dengan bunyinya. Contoh: <i>through, though, tough, enough</i> — semua berakhiran "-ough" tapi bunyinya beda-beda semua!`),
+    pronSec('Kenapa Perlu Simbol Fonetik (IPA)?', `Karena ejaan gak selalu mewakili bunyi, kita butuh <b>simbol fonetik</b> (International Phonetic Alphabet / IPA) buat tahu cara baca yang benar. Faktanya, ada sekitar <b>40 bunyi</b> dalam American English, padahal alfabetnya cuma 26 huruf. Makanya banyak kata yang ejaannya mirip tapi bunyinya beda jauh, atau ejaannya beda tapi bunyinya sama.`),
+    pronSec('Cara Baca Nama Huruf A–Z (American)', pronChips([
+      ['A','eɪ'],['B','bi'],['C','si'],['D','di'],['E','i'],['F','ɛf'],['G','dʒi'],['H','eɪtʃ'],
+      ['I','aɪ'],['J','dʒeɪ'],['K','keɪ'],['L','ɛl'],['M','ɛm'],['N','ɛn'],['O','oʊ'],['P','pi'],
+      ['Q','kyu'],['R','ɑr'],['S','ɛs'],['T','ti'],['U','yu'],['V','vi'],['W','dʌbl yu'],['X','ɪks'],['Y','waɪ'],['Z','zi']
+    ])),
+    pronSec('Konsonan Bersuara (Voiced) vs Tak Bersuara (Voiceless)', `Konsonan dalam English dibagi 2: <b>voiced</b> (ada getaran di tenggorokan) dan <b>voiceless</b> (gak ada getaran). <br><b>Voiced:</b> /d/ /dʒ/ /l/ /n/ /y/ /z/ /ð/ /b/ /m/ /w/ /r/ /g/ /ŋ/ /v/ /ʒ/ <br><b>Voiceless:</b> /k/ /p/ /s/ /h/ /t/ /tʃ/ /ʃ/ /θ/ /f/ <br>Coba pegang tenggorokanmu waktu ngucapin /z/ (bergetar) vs /s/ (gak bergetar) — itu bedanya.`)
+  ]
+},
+{
+  id:'us-vowel-i',
+  title:'2. Vokal /i/ dan /ɪ/',
+  sections:[
+    pronSec('Cara Bikin Bunyi /i/', `/i/ adalah <b>tense sound</b> (bunyi tegang). Cara bikinnya: buka mulut lebar kayak lagi senyum, pastikan lidah nyentuh sisi gigi. Fun fact, 8 huruf alfabet punya bunyi /i/ (gaya American): <b>B C D E G P T V Z</b>.`),
+    pronSec('Contoh Kata /i/', pronChips([
+      ['eve','iv'],['each','itʃ'],['eel','il'],['ease','iz'],['eat','it'],['east','ist'],
+      ['bean','bin'],['fear','fir'],['steel','stil'],['seat','sit'],['machine','məˈʃin'],
+      ['museum','myuˈziəm'],['repeat','rɪˈpit'],['scene','sin'],['clingy','ˈkliŋi'],
+      ['coffee','ˈkɑfi'],['flea','fli'],['key','ki'],['knee','ni'],['money','ˈmʌni'],['referee','rɛfəˈri']
+    ])),
+    pronSec('Cara Bikin Bunyi /ɪ/', `/ɪ/ adalah <b>lax sound</b> (bunyi kendur/lebih santai). Cara bikinnya: mulut sedikit kurang lebar dibanding /i/, lidah sedikit lebih ke belakang. Huruf alfabet <b>X</b> punya bunyi /ɪ/. Fun fact, akhiran <i>-ing</i> pada present participle biasanya punya bunyi /ɪ/, contoh <i>seeing</i> /siːɪŋ/.`),
+    pronSec('Contoh Kata /ɪ/', pronChips([
+      ['English','ˈɪŋglɪʃ'],['example','ɪgˈzæmpəl'],['exhibit','ɪgˈzɪbɪt'],['exist','ɪgˈzɪst'],
+      ['ill','ɪl'],['illegal','ɪˈligəl'],['immortal','ɪˈmɔrtəl'],['in','ɪn'],['indecisive','ɪndɪˈsaɪsɪv'],
+      ['is','ɪz'],['bargain','ˈbɑrgɪn'],['biscuit','ˈbɪskɪt'],['delete','dɪˈlit'],['did','dɪd'],
+      ['little','ˈlɪtəl'],['live','lɪv'],['opposite','ˈɑpəzɪt'],['orange','ˈɔrɪndʒ'],['sin','sɪn'],['still','stɪl'],['will','wɪl']
+    ])),
+    pronSec('📖 Bacaan: Billy the Buffalo', `In the vast, sun-drenched plains of the American West, there <mark>lived</mark> a charming buffalo named <mark>Billy</mark>. <mark>Billy</mark> was a young and <mark>curious</mark> calf with a <mark>gleaming</mark> coat of chocolate-brown fur. He loved to frolic in the tall grasses, played with his fellow calf friends, and gazed at the endless sky. <mark>Billy's</mark> favorite pastime was <mark>listening</mark> to the tales of the elder buffaloes, who shared stories of their adventures and the importance of working together as a herd.<br><br>
+    One bright morning, as the sun painted the horizon with shades of gold and pink, <mark>Billy</mark> noticed a rare sight: a rainbow arching across the sky. It was the most magnificent rainbow he had ever <mark>seen</mark>, with <mark>vibrant</mark> colors that <mark>seemed</mark> to touch the very earth. <mark>Billy</mark> couldn't <mark>resist</mark> the urge to explore this magical phenomenon. He set off on a <mark>little</mark> adventure, following the rainbow's path, and along the way, he met friendly prairie dogs and <mark>chirping</mark> birds. As he <mark>reached</mark> the end of the rainbow, he <mark>realized</mark> that the real treasure wasn't a pot of gold but the beauty of the journey itself and the friendships he had made along the way. With a heart full of wonder, <mark>Billy</mark> returned to the herd to share his colorful adventure and inspire his friends to cherish the <mark>simple</mark> joys and the importance of togetherness in their buffalo family.<br><br><i>Kata yang ditandai adalah kata-kata yang mengandung bunyi /i/ atau /ɪ/.</i>`)
+  ]
+},
+{
+  id:'us-vowel-e-ae',
+  title:'3. Vokal /ɛ/ dan /æ/',
+  sections:[
+    pronSec('Cara Bikin Bunyi /ɛ/', `/ɛ/ adalah bunyi pendek (short sound). Buka mulut agak lebar dan turunkan rahang sedikit. Huruf alfabet yang punya bunyi ini: <b>F L M N S</b> dan <b>Z</b> (gaya British).`),
+    pronSec('Contoh Kata /ɛ/', pronChips([
+      ['any','ˈɛni'],['edge','ɛdʒ'],['edit','ˈɛdɪt'],['end','ɛnd'],['energy','ˈɛnərdʒi'],
+      ['entry','ˈɛntri'],['epic','ˈɛpɪk'],['epidemic','ɛpəˈdɛmɪk'],['bear','bɛr'],['bread','brɛd'],
+      ['dreamt','drɛmt'],['leopard','ˈlɛpərd'],['letter','ˈlɛtər'],['meant','mɛnt'],['pepper','ˈpɛpər'],
+      ['read','rɛd'],['said','sɛd'],['wear','wɛr'],['Wednesday','ˈwɛnzdeɪ']
+    ])),
+    pronSec('Cara Bikin Bunyi /æ/', `/æ/ adalah bunyi kendur (lax). Buka mulut lebar-lebar, turunkan rahang, dan bibir gak dibulatkan.`),
+    pronSec('Contoh Kata /æ/', pronChips([
+      ['act','ækt'],['action','ˈækʃən'],['Adam','ˈædəm'],['after','ˈæftər'],['animal','ˈænɪməl'],
+      ['ant','ænt'],['apple','ˈæpəl'],['ask','æsk'],['at','æt'],['attic','ˈætɪk'],['axe','æks'],
+      ['can\'t','kænt'],['family','ˈfæmɪli'],['glass','glæs'],['half','hæf'],['January','ˈdʒænyu.ɛri'],
+      ['land','lænd'],['laugh','læf'],['man','mæn'],['mask','mæsk'],['Saturday','ˈsætərdeɪ']
+    ]))
+  ]
+},
+{
+  id:'us-vowel-a-o',
+  title:'4. Vokal /ʌ/, /ɑ/, dan /ɔ/',
+  sections:[
+    pronSec('Cara Bikin Bunyi /ʌ/', `/ʌ/ adalah bunyi kendur. Buka mulut lebar, posisi lidah turun, rahang turun, bibir gak dibulatkan. Huruf alfabet <b>W</b> punya bunyi /ʌ/ (dari "double-u" /ˈdʌbl yu/).`),
+    pronSec('Contoh Kata /ʌ/', pronChips([
+      ['other','ˈʌðər'],['otherwise','ˈʌðərwaɪz'],['ultimate','ˈʌltəmɪt'],['umbrella','ʌmˈbrɛlə'],
+      ['unable','ʌˈneɪbəl'],['uncle','ˈʌŋkəl'],['undo','ʌnˈdu'],['upload','ˈʌploʊd'],['upper','ˈʌpər'],
+      ['us','ʌs'],['another','əˈnʌðər'],['blood','blʌd'],['brother','ˈbrʌðər'],['color','ˈkʌlər'],
+      ['enough','ɪˈnʌf'],['mother','ˈmʌðər'],['rough','rʌf'],['tough','tʌf'],['wonder','ˈwʌndər'],['young','yʌŋ']
+    ])),
+    pronSec('Cara Bikin Bunyi /ɑ/', `/ɑ/ adalah bunyi tegang. Buka mulut lebar, turunkan bagian belakang lidah. Mirip cara ngucapin /ʌ/, bedanya bibir jadi dibulatkan. Huruf alfabet <b>R</b> punya bunyi ini.`),
+    pronSec('Contoh Kata /ɑ/', pronChips([
+      ['are','ɑr'],['arm','ɑrm'],['art','ɑrt'],['aunt','ɑnt'],['bar','bɑr'],['car','kɑr'],
+      ['far','fɑr'],['lot','lɑt'],['on','ɑn'],['odd','ɑd'],['star','stɑr'],['stop','stɑp']
+    ])),
+    pronSec('Cara Bikin Bunyi /ɔ/', `/ɔ/ adalah bunyi tegang, sering diikuti tanda triangular colon /ː/. Bulatkan bibir lebih dari /ɑ/, turunkan rahang sedikit, bibir maju ke depan.`),
+    pronSec('Contoh Kata /ɔ/', pronChips([
+      ['always','ˈɔlweɪz'],['audio','ˈɔdioʊ'],['audience','ˈɔdiəns'],['August','ˈɔgəst'],
+      ['author','ˈɔθər'],['Autumn','ˈɔtəm'],['bored','bɔrd'],['caught','kɔt'],['store','stɔr'],
+      ['claw','klɔ'],['law','lɔ'],['paw','pɔ'],['raw','rɔ'],['saw','sɔ'],['straw','strɔ'],
+      ['taught','tɔt'],['thought','θɔt'],['warm','wɔrm']
+    ]))
+  ]
+},
+{
+  id:'us-vowel-u-schwa',
+  title:'5. Vokal /u/, /ʊ/, /ə/, dan /ɚ/',
+  sections:[
+    pronSec('Cara Bikin Bunyi /u/', `/u/ adalah bunyi kendur. Bikin bibir jadi bentuk terowongan, membulat dan maju ke depan, lidah jauh ke belakang mulut. Huruf alfabet <b>U, Q, W</b> punya bunyi ini. Fun fact, hampir gak ada kata English yang <b>diawali</b> bunyi /u/, kecuali "ooze" /uz/.`),
+    pronSec('Contoh Kata /u/', pronChips([
+      ['food','fud'],['fool','ful'],['fruit','frut'],['Luke','luk'],['pool','pul'],['school','skul'],
+      ['suit','sut'],['tomb','tum'],['blue','blu'],['curfew','ˈkɜrfyu'],['clue','klu'],['chew','tʃu'],
+      ['ewe','yu'],['few','fyu'],['new','nu'],['stew','stu'],['two','tu'],['who','hu']
+    ])),
+    pronSec('Cara Bikin Bunyi /ʊ/', `/ʊ/ bunyi kendur. Bibir dibulatkan sedikit, maju ke depan sedikit, lidah dekat ke bagian belakang atas mulut (gak sejauh /u/).`),
+    pronSec('Contoh Kata /ʊ/', pronChips([
+      ['book','bʊk'],['bull','bʊl'],['cook','kʊk'],['could','kʊd'],['foot','fʊt'],['full','fʊl'],
+      ['good','gʊd'],['look','lʊk'],['pull','pʊl'],['put','pʊt'],['should','ʃʊd'],['stood','stʊd'],
+      ['sugar','ˈʃʊgər'],['sure','ʃʊr'],['took','tʊk'],['woman','ˈwʊmən'],['wolf','wʊlf']
+    ])),
+    pronSec('Cara Bikin Bunyi /ə/ (Schwa)', `/ə/ adalah bunyi pendek. Mulut dan lidah rileks aja, gak usah tegang. Fun fact, modal verb "can" kadang diucapkan /kən/ dalam bentuk gak tertekan. Ini bunyi <b>paling sering muncul</b> dalam English karena ada di hampir semua suku kata gak bertekanan.`),
+    pronSec('Contoh Kata /ə/', pronChips([
+      ['about','əˈbaʊt'],['addition','əˈdɪʃən'],['ago','əˈgoʊ'],['allow','əˈlaʊ'],['appear','əˈpɪr'],
+      ['aware','əˈwɛr'],['listen','ˈlɪsən'],['method','ˈmɛθəd'],['foreign','ˈfɔrən'],['metal','ˈmɛtəl'],
+      ['island','ˈaɪlənd'],['mental','ˈmɛntəl'],['legal','ˈligəl'],['aroma','əˈroʊmə'],['cinema','ˈsɪnəmə'],
+      ['comma','ˈkɑmə'],['idea','aɪˈdiə'],['pizza','ˈpitsə'],['umbrella','ʌmˈbrɛlə']
+    ])),
+    pronSec('Cara Bikin Bunyi /ɚ/', `/ɚ/ mirip banget sama /ə/, bedanya ada tambahan bunyi /r/ di akhir. Ini simbol fonetik khas American English (kalau versi British, diajarkan terpisah di bulan berikutnya, karena British cenderung menghilangkan bunyi /r/).`),
+    pronSec('Contoh Kata /ɚ/', pronChips([
+      ['earl','ɚl'],['early','ˈɚli'],['earn','ɚn'],['bird','bɚd'],['burn','bɚn'],['term','tɚm'],
+      ['birth','bɚθ'],['circle','ˈsɚkəl'],['heard','hɚd'],['actor','ˈæktɚ'],['bender','ˈbɛndɚ'],
+      ['butter','ˈbʌtɚ'],['fire','faɪɚ'],['future','ˈfyutʃɚ'],['nature','ˈneɪtʃɚ'],['roller','ˈroʊlɚ'],
+      ['urban','ˈɚbən'],['word','wɚd'],['worst','wɚst'],['were','wɚ']
+    ])),
+    pronSec('📖 Bacaan: Rachel and Jansen\'s Tale', `Rachel the Elephant was a friendly and gentle <mark>elephant</mark> who <mark>lived</mark> in the heart of the jungle. She loved to explore the lush forest and make new friends. One sunny <mark>morning</mark>, while strolling near the <mark>river</mark>, Rachel spotted a <mark>peculiar</mark> creature with big, round eyes and a long tail. It was a hedgehog named Jansen. With an honorable smile, Rachel <mark>approached</mark> Jansen and said, "Hello, little friend! My name is Rachel. What's yours?"<br><br>
+    Jansen was initially shy but soon <mark>warmed</mark> up to Rachel's kind <mark>nature</mark>. He replied, "I'm Jansen. It's nice to meet you, Rachel!" The two became fast friends and spent the day playing games, telling stories, and exploring the jungle together. In the end, Rachel and Jansen's friendship showed that even when you meet someone with a different appearance or sound in their voice, kindness and a friendly attitude can bridge any differences and create <mark>wonderful</mark> bonds.<br><br><i>Kata yang ditandai mengandung bunyi /ə/ atau /ɚ/.</i>`)
+  ]
+},
+{
+  id:'us-diph-ou-au',
+  title:'6. Diftong /oʊ/ dan /aʊ/',
+  sections:[
+    pronSec('Apa itu Diftong?', `Diftong adalah gabungan dua bunyi vokal yang berdekatan dalam satu suku kata, di mana bunyinya dimulai dari satu vokal lalu bergerak ke vokal lain.`),
+    pronSec('Cara Bikin Bunyi /oʊ/', `/oʊ/ adalah glide sound, bergerak dari /o/ ke /u/. Bulatkan bibir dulu kayak ngucapin /o/, lalu tutup bibir sedikit sambil tetap dibulatkan kayak ngucapin /u/. Huruf alfabet <b>O</b> punya bunyi ini.`),
+    pronSec('Contoh Kata /oʊ/', pronChips([
+      ['oat','oʊt'],['oath','oʊθ'],['okay','oʊˈkeɪ'],['old','oʊld'],['coincide','koʊɪnˈsaɪd'],
+      ['bowl','boʊl'],['goes','goʊz'],['hole','hoʊl'],['know','noʊ'],['bow(n)','boʊ'],['cocoa','ˈkoʊkoʊ'],
+      ['dough','doʊ'],['only','ˈoʊnli'],['open','ˈoʊpən'],['over','ˈoʊvɚ'],['own','oʊn'],
+      ['ghost','goʊst'],['most','moʊst'],['phone','foʊn'],['post','poʊst'],['show','ʃoʊ'],['note','noʊt']
+    ])),
+    pronSec('Cara Bikin Bunyi /aʊ/', `/aʊ/ juga glide sound, bergerak dari /a/ ke /u/. Buka mulut lebar-lebar kayak ngucapin /a/, lalu tutup bibir sambil tetap dibulatkan kayak /u/. Gak ada huruf alfabet yang punya bunyi ini.`),
+    pronSec('Contoh Kata /aʊ/', pronChips([
+      ['hour','aʊɚ'],['hourglass','ˈaʊɚglæs'],['ounce','aʊns'],['our','aʊɚ'],['oust','aʊst'],
+      ['out','aʊt'],['outbreak','ˈaʊtbreɪk'],['outside','ˈaʊtsaɪd'],['bowel','ˈbaʊəl'],['couch','kaʊtʃ'],
+      ['doubt','daʊt'],['bow(v)','baʊ'],['down','daʊn'],['found','faʊnd'],['house','haʊs'],
+      ['mouth','maʊθ'],['now','naʊ'],['plow','plaʊ'],['pronounce','prəˈnaʊns'],['owl','aʊl']
+    ]))
+  ]
+},
+{
+  id:'us-diph-ai-ei-oi',
+  title:'7. Diftong /aɪ/, /eɪ/, dan /ɔɪ/',
+  sections:[
+    pronSec('Cara Bikin Bunyi /aɪ/', `/aɪ/ bergerak dari /a/ ke /ɪ/. Buka mulut lebar untuk /a/, lalu tutup sedikit sambil lidah bagian depan naik ke arah atas mulut untuk /ɪ/. Huruf alfabet <b>I</b> dan <b>Y</b> punya bunyi ini.`),
+    pronSec('Contoh Kata /aɪ/', pronChips([
+      ['aisle','aɪl'],['eye','aɪ'],['ice','aɪs'],['idea','aɪˈdiə'],['iron','ˈaɪɚn'],['Irish','ˈaɪrɪʃ'],
+      ['Isaac','ˈaɪzək'],['isolate','ˈaɪsəleɪt'],['choir','kwaɪɚ'],['dialog','ˈdaɪəlɔg'],['direct','daɪˈrɛkt'],
+      ['diverse','daɪˈvɚs'],['Friday','ˈfraɪdeɪ'],['giant','ˈdʒaɪənt'],['library','ˈlaɪbrɛri'],['live(adj)','laɪv'],
+      ['bye','baɪ'],['cry','kraɪ'],['dry','draɪ'],['high','haɪ'],['why','waɪ']
+    ])),
+    pronSec('Cara Bikin Bunyi /eɪ/', `/eɪ/ bergerak dari /e/ ke /ɪ/. Buka mulut dan bentangkan horizontal kayak /ɛ/, lalu naikkan lidah bagian depan ke arah atas kayak /ɪ/. Huruf alfabet <b>A, H, J, K</b> punya bunyi ini.`),
+    pronSec('Contoh Kata /eɪ/', pronChips([
+      ['able','ˈeɪbəl'],['ace','eɪs'],['acer','ˈeɪsɚ'],['ache','eɪk'],['age','eɪdʒ'],['aid','eɪd'],
+      ['aim','eɪm'],['bade','beɪd'],['blade','bleɪd'],['break','breɪk'],['crater','ˈkreɪtɚ'],['date','deɪt'],
+      ['day','deɪ'],['gauge','geɪdʒ'],['great','greɪt'],['name','neɪm'],['radio','ˈreɪdioʊ'],
+      ['sauté','soʊˈteɪ'],['stay','steɪ'],['today','təˈdeɪ'],['way','weɪ'],['weigh','weɪ'],['eight','eɪt']
+    ])),
+    pronSec('Cara Bikin Bunyi /ɔɪ/', `/ɔɪ/ bergerak dari /ɔ/ ke /ɪ/. Bulatkan bibir maju ke depan (kayak /ɔ/), lalu gerakkan lidah depan naik ke atas (kayak /ɪ/). Gak ada huruf alfabet yang punya bunyi ini.`),
+    pronSec('Contoh Kata /ɔɪ/', pronChips([
+      ['oyster','ˈɔɪstɚ'],['ointment','ˈɔɪntmənt'],['moisture','ˈmɔɪstʃɚ'],['coin','kɔɪn'],['oily','ˈɔɪli'],
+      ['oil','ɔɪl'],['point','pɔɪnt'],['loyal','ˈlɔɪəl'],['royal','ˈrɔɪəl'],['toy','tɔɪ'],['boy','bɔɪ'],
+      ['enjoy','ɛnˈdʒɔɪ'],['destroy','dɪˈstrɔɪ']
+    ])),
+    pronSec('📖 Bacaan: Resep Strawberry Smoothie', `<b>How to Make a Simple Recipe of Strawberry Smoothie</b><br>Ingredients: 1 cup of <mark>frozen</mark> strawberries, 1 <mark>banana</mark>, 1/2 cup of <mark>plain</mark> yogurt, 1/2 cup of orange juice, 1 tablespoon of honey.<br>Instructions: In a blender, add 1 <mark>banana</mark> and 1 cup of frozen strawberries. Pour in 1/2 cup of orange juice. Add 1/2 cup of <mark>plain</mark> yogurt. Drizzle 1 tablespoon of honey on top. Blend on high until it is smooth. Pour into a glass and enjoy it!<br><br><i>Kata yang ditandai mengandung diftong /aɪ/ atau /eɪ/.</i>`)
+  ]
+},
+{
+  id:'us-consonant-unik',
+  title:'8. Konsonan Unik: /θ/ /ð/ /ʃ/ /ʒ/ /tʃ/ /dʒ/ /ŋ/',
+  sections:[
+    pronSec('Apa itu "Konsonan Unik"?', `Konsonan unik/strange consonants adalah konsonan yang simbolnya <b>gak ditemukan</b> di alfabet biasa: /θ/ /ð/ /ʃ/ /ʒ/ /tʃ/ /dʒ/ dan /ŋ/.`),
+    pronSec('/θ/ — Voiceless (thank, three, through)', `Gak ada getaran tenggorokan. Lidah nempel longgar ke belakang gigi (bahkan bisa sedikit nongol), dorong udara lewat celahnya. Ordinal number pakai akhiran "-th" punya bunyi ini. Perhatikan beda <i>four</i> dan <i>fourth</i>.` + pronChips([
+      ['thank','θæŋk'],['thirty','ˈθɚti'],['thought','θɔt'],['three','θri'],['through','θru'],
+      ['throw','θroʊ'],['birthday','ˈbɚθdeɪ'],['ethic','ˈɛθɪk'],['healthy','ˈhɛlθi'],['method','ˈmɛθəd'],
+      ['bath','bæθ'],['cloth','klɔθ'],['month','mʌnθ'],['worth','wɚθ'],['teeth','tiθ']
+    ])),
+    pronSec('/ð/ — Voiced (they, brother, breathe)', `Ada getaran di tenggorokan. Cara bikinnya sama kayak /θ/ tapi dengan suara.` + pronChips([
+      ['they','ðeɪ'],['this','ðɪs'],['them','ðɛm'],['there','ðɛr'],['those','ðoʊz'],
+      ['brother','ˈbrʌðɚ'],['either','ˈiðɚ'],['neither','ˈniðɚ'],['other','ˈʌðɚ'],['weather','ˈwɛðɚ'],
+      ['bathe','beɪð'],['clothe','kloʊð'],['loathe','loʊð'],['sunbathe','ˈsʌnbeɪð'],['writhe','raɪð']
+    ])),
+    pronSec('/ʃ/ — Voiceless (shape, ocean, wash)', `Gak ada getaran tenggorokan. Lidah menunjuk ke atap mulut, dorong udara di antara atap mulut dan ujung lidah.` + pronChips([
+      ['shape','ʃeɪp'],['sharp','ʃɑrp'],['shoes','ʃuz'],['sure','ʃʊr'],['mission','ˈmɪʃən'],
+      ['nation','ˈneɪʃən'],['ocean','ˈoʊʃən'],['passion','ˈpæʃən'],['ash','æʃ'],['bush','bʊʃ'],
+      ['dish','dɪʃ'],['English','ˈɪŋglɪʃ'],['wash','wɑʃ']
+    ])),
+    pronSec('/ʒ/ — Voiced (measure, vision, beige)', `Ada getaran di tenggorokan, sisanya sama kayak /ʃ/. Bunyi ini biasanya cuma muncul di kata-kata serapan dari bahasa lain.` + pronChips([
+      ['seizure','ˈsiʒɚ'],['measure','ˈmɛʒɚ'],['leisure','ˈliʒɚ'],['massage','məˈsɑʒ'],['collision','kəˈlɪʒən'],
+      ['conclusion','kənˈkluʒən'],['rouge','ruʒ'],['prestige','prɛˈstiʒ'],['mirage','məˈrɑʒ'],['beige','beɪʒ'],['corsage','kɔrˈsɑʒ']
+    ])),
+    pronSec('/tʃ/ — Voiceless (choose, watching, beach)', `Gabungan /t/ + /ʃ/, gak ada getaran tenggorokan. Biasanya dari ejaan "ch" atau "tch".` + pronChips([
+      ['Czech','tʃɛk'],['choose','tʃuz'],['church','tʃɚtʃ'],['mature','məˈtʃʊr'],['teacher','ˈtitʃɚ'],
+      ['nature','ˈneɪtʃɚ'],['touch','tʌtʃ'],['much','mʌtʃ'],['fetch','fɛtʃ']
+    ])),
+    pronSec('/dʒ/ — Voiced (judge, jewelry, gym)', `Gabungan /d/ + /ʒ/, ada getaran tenggorokan. Huruf "J" biasanya bunyi ini, "G" sebelum E/I/Y kadang juga.` + pronChips([
+      ['judge','dʒʌdʒ'],['jam','dʒæm'],['gym','dʒɪm'],['George','ˈdʒɔrdʒ'],['gene','dʒin'],
+      ['jewelry','ˈdʒuəlri'],['logical','ˈlɑdʒɪkəl'],['injure','ˈɪndʒɚ'],['budget','ˈbʌdʒɪt'],
+      ['siege','sidʒ'],['rage','reɪdʒ'],['change','tʃeɪndʒ'],['cage','keɪdʒ']
+    ])),
+    pronSec('/ŋ/ — Voiced (bang, tongue, sing)', `Bunyi lewat hidung. Lidah nempel ke atap mulut bagian belakang (rongga velar). Gak ada huruf alfabet tunggal yang punya bunyi ini.` + pronChips([
+      ['bang','bæŋ'],['tongue','tʌŋ'],['king','kɪŋ'],['youngest','ˈyʌŋgɪst'],['monkey','ˈmʌŋki'],
+      ['tank','tæŋk'],['thank','θæŋk'],['bank','bæŋk'],['sing','sɪŋ']
+    ])),
+    pronSec('📖 Bacaan: Rachel and the Seashore', `Ten years ago, there was a young girl whose name was Rachel. She lived in a <mark>quaint</mark> seaside community. She was the happiest days at the beach, where the unmeasurable golden sand extended beneath the warm sun. She would get up early and the days often gathered family varying sizes and shapes, observe crabs scuttling along the shore, and watch starfish lazing in the warm sun. Rachel regarded the beach as a location that offered unending opportunities for excitement and beauty, and she treasured every time she was able to spend there.<br><br>Rachel look a seat on the sand and began beauty of the ocean. The sky was a vibrant mix of pinks and oranges, creating a warm glow that illuminated the beach below. As she listened to the rhythmic sound of the waves lapping against the shore, she experienced a wave of calm and serenity come over her. She knew that no matter where else she went in the world, the seashore will always hold a special place in her heart because of its breathtaking scenery. As the sun began to set and the night sky began to light up with stars, Rachel made a wish. Her wish was that she would be able to visit the beach again and again.<br><br><i>Bacaan ini bercerita tentang <mark>Rachel</mark> yang tinggal di pinggir pantai — perhatikan bunyi /ʃ/ pada kata "shore", "wish", dan "shape".</i>`)
+  ]
+},
+{
+  id:'us-svfv',
+  title:'9. Konsonan /s/ /z/ /f/ /v/',
+  sections:[
+    pronSec('/s/ — Voiceless', `Gak ada getaran tenggorokan. Ada kontak antara lidah dan gigi di sisi mulut. Huruf alfabet <b>C, S, X</b> punya bunyi ini.` + pronChips([
+      ['center','ˈsɛntɚ'],['son','sʌn'],['psychic','ˈsaɪkɪk'],['set','sɛt'],['science','ˈsaɪəns'],
+      ['answer','ˈænsɚ'],['ask','æsk'],['fasten','ˈfæsən'],['listen','ˈlɪsən'],['messy','ˈmɛsi'],
+      ['box','bɑks'],['bus','bʌs'],['face','feɪs'],['house','haʊs'],['niece','nis']
+    ])),
+    pronSec('/z/ — Voiced', `Ada getaran tenggorokan; bedanya dari /s/ cuma soal getaran suara. Huruf alfabet <b>Z</b> punya bunyi ini.` + pronChips([
+      ['Zack','zæk'],['zeal','zil'],['zebra','ˈzibrə'],['zero','ˈzɪroʊ'],['zone','zoʊn'],
+      ['busy','ˈbɪzi'],['crazy','ˈkreɪzi'],['easy','ˈizi'],['example','ɪgˈzæmpəl'],['lazy','ˈleɪzi'],
+      ['as','æz'],['buzz','bʌz'],['ease','iz'],['has','hæz'],['is','ɪz']
+    ])),
+    pronSec('/f/ — Voiceless', `Gigi atas nempel ke bibir bawah, udara didorong keluar. Ejaan "ph" biasanya bunyi ini, begitu juga "gh" di akhir kata (laugh, rough).` + pronChips([
+      ['fan','fæn'],['ferry','ˈfɛri'],['few','fyu'],['fill','fɪl'],['fowl','faʊl'],['fruit','frut'],
+      ['phone','foʊn'],['afraid','əˈfreɪd'],['after','ˈæftɚ'],['café','kæˈfeɪ'],['coffee','ˈkɑfi'],
+      ['cough','kɔf'],['enough','ɪˈnʌf'],['laugh','læf'],['knife','naɪf'],['rough','rʌf'],['tough','tʌf']
+    ])),
+    pronSec('/v/ — Voiced', `Sama posisi mulutnya kayak /f/, tapi bersuara. Huruf alfabet <b>V</b> punya bunyi ini.` + pronChips([
+      ['vulture','ˈvʌltʃɚ'],['vow','vaʊ'],['view','vyu'],['vet','vɛt'],['vehicle','ˈviɪkəl'],['van','væn'],
+      ['vaccine','vækˈsin'],['travel','ˈtrævəl'],['over','ˈoʊvɚ'],['heavy','ˈhɛvi'],['every','ˈɛvri'],
+      ['alive','əˈlaɪv'],['grave','greɪv'],['solve','sɑlv'],['knives','naɪvz'],['live(verb)','lɪv'],['of','ʌv']
+    ]))
+  ]
+},
+{
+  id:'us-mnlr',
+  title:'10. Konsonan /m/ /n/ /l/ /r/ /h/ /w/ /y/',
+  sections:[
+    pronSec('/m/ — Voiced', `Bibir dirapatkan, udara keluar lewat hidung sambil bergetar di tenggorokan.` + pronChips([
+      ['must','mʌst'],['mouth','maʊθ'],['month','mʌnθ'],['mind','maɪnd'],['mild','maɪld'],
+      ['me','mi'],['matter','ˈmætɚ'],['machine','məˈʃin'],['summer','ˈsʌmɚ'],['remove','rɪˈmuv'],
+      ['lemon','ˈlɛmən'],['plumber','ˈplʌmɚ'],['famous','ˈfeɪməs'],['climbing','ˈklaɪmɪŋ'],
+      ['comb','koʊm'],['storm','stɔrm'],['steam','stim'],['slim','slɪm'],['alarm','əˈlɑrm']
+    ])),
+    pronSec('/n/ — Voiced', `Ujung lidah nempel ke belakang gigi atas, udara keluar lewat hidung.` + pronChips([
+      ['nun','nʌn'],['now','naʊ'],['noon','nun'],['nose(v)','noʊz'],['no','noʊ'],['new','nu'],
+      ['nephew','ˈnɛfyu'],['tennis','ˈtɛnɪs'],['money','ˈmʌni'],['many','ˈmɛni'],['handle','ˈhændəl'],
+      ['dinner','ˈdɪnɚ'],['knife','naɪf'],['knight','naɪt'],['knit','nɪt'],['turn','tɚn'],['teen','tin'],['son','sʌn'],['sign','saɪn'],['again','əˈgɛn']
+    ])),
+    pronSec('/l/ — Voiced', `Ujung lidah nempel ke atap mulut belakang gigi depan, udara keluar lewat sisi lidah.` + pronChips([
+      ['let','lɛt'],['late','leɪt'],['language','ˈlæŋgwɪdʒ'],['lack','læk'],['lively','ˈlaɪvli'],
+      ['help','hɛlp'],['flow','floʊ'],['along','əˈlɔŋ'],['hustle','ˈhʌsəl'],['fill','fɪl'],
+      ['feel','fil'],['call','kɔl'],['battle','ˈbætəl']
+    ])),
+    pronSec('/r/ — Voiced', `Ujung lidah nunjuk ke belakang tapi gak nyentuh apapun, ada celah kecil di belakang mulut, udara lewat celah itu sambil bergetar.` + pronChips([
+      ['warrior','ˈwɔriɚ'],['write','raɪt'],['wreck','rɛk'],['rude','rud'],['roller','ˈroʊlɚ'],
+      ['rock','rɑk'],['right','raɪt'],['rhyme','raɪm'],['orchid','ˈɔrkɪd'],['leopard','ˈlɛpɚd'],
+      ['hurry','ˈhɚi'],['ferry','ˈfɛri'],['crime','kraɪm'],['fear','fɪr'],['hair','hɛr'],['boar','bɔr'],['bear','bɛr'],['store','stɔr'],['or','ɔr']
+    ])),
+    pronSec('/h/ — Voiceless', `Gak ada getaran tenggorokan, mulut sedikit dibuka, ada celah kecil di belakang tenggorokan agar udara mengalir lancar.` + pronChips([
+      ['huge','hyudʒ'],['hunt','hʌnt'],['house','haʊs'],['hard','hɑrd'],['hand','hænd'],
+      ['hair','hɛr'],['half','hæf'],['rehearsal','rɪˈhɚsəl'],['perhaps','pɚˈhæps'],['enhance','ɛnˈhæns'],
+      ['childhood','ˈtʃaɪldhʊd'],['behind','bɪˈhaɪnd'],['behave','bɪˈheɪv'],['alcohol','ˈælkəhɔl'],['ahead','əˈhɛd']
+    ])),
+    pronSec('/w/ — Voiced (Silent H di WH-word)', `Bibir dibulatkan maju ke depan, tahan lingkaran bibir sambil menyuarakan bunyi. Catatan: kata dengan "wh" di awal kalau diikuti huruf lain selain O, huruf H-nya diam/silent — misalnya <i>white, wheat, wheel</i> dibaca tanpa /h/, tapi <i>who, whose, whole</i> tetap ada /h/.` + pronChips([
+      ['wind','wɪnd'],['widow','ˈwɪdoʊ'],['toward','tɔrd'],['twice','twaɪs'],['why','waɪ'],
+      ['white','waɪt'],['while','waɪl'],['when','wɛn'],['wheat','wit'],['where','wɛr'],
+      ['anyway','ˈɛniweɪ'],['always','ˈɔlweɪz'],['quick','kwɪk'],['quake','kweɪk']
+    ])),
+    pronSec('/j/ (huruf Y) — Voiced', `Ada celah kecil di antara lidah dan bagian atap mulut, dorong udara lewat celah itu sambil menyuarakan bunyi dari tenggorokan. Huruf <b>Q, U, Y</b> punya bunyi ini, dan huruf Y gak pernah ada di akhir kata dengan bunyi /j/ ini — kalau di akhir kata biasanya jadi /i/ atau /aɪ/.` + pronChips([
+      ['view','vyu'],['Tuesday(UK)','ˈtyuzdeɪ'],['pure','pyʊr'],['popular','ˈpɑpyələr'],['nephew','ˈnɛfyu'],
+      ['few','fyu'],['continue','kənˈtɪnyu'],['beauty','ˈbyuti'],['young','yʌŋ'],['yellow','ˈyɛloʊ'],['view','vyu']
+    ])),
+    pronSec('📖 Bacaan: My Bat is in the Bad Van', `It all began when I chose to swing off my sick serve to a valuable bat, he just smiled and started up "Definitely Not Suspicious Transport." As I begged Vinny, a sketchy-looking person who was driving a van that said "DEFINITELY NOT SUSPICIOUS TRANSPORT" on the back, the crowd in town talked full of unexpected turns and funny accidents. So, for weeks on end, I acted quickly because I chose not to let the bad Vinny as a tiger, I ran jumping over things and avoiding confused bystanders. I heard got my beloved bat get into the hands of Vinny, a sketchy-looking person who was driving a van that said "Definitely Not Suspicious Transport." As I begged Vinny to give me my bat like a bear, she just smiled and said, "Looks like your bat's in the bad van, buddy!"<br><br><i>Bacaan ini fokus ke bunyi /v/ dan /b/ — perhatikan kata <mark>van</mark>, <mark>Vinny</mark>, <mark>valuable</mark> (bunyi /v/) vs <mark>bat</mark>, <mark>bad</mark>, <mark>begged</mark>, <mark>beloved</mark> (bunyi /b/).</i>`)
+  ]
+},
+{
+  id:'us-plosive',
+  title:'11. Bunyi Plosif /p/ /b/ /t/ /d/',
+  sections:[
+    pronSec('Apa itu Bunyi Plosif?', `Plosif (termasuk /tʃ/ dan /dʒ/) adalah bunyi konsonan yang diawali dengan hentakan udara mendadak. Fokus bab ini terutama di posisi <b>akhir kata</b> — meski begitu, gak perlu dilebih-lebihkan cara ngucapinnya. Catatan: bunyi plosif gak muncul di kata-kata dengan huruf bisu, contoh: <i>climb, ballet, thumb, sign, knife, castle</i>.`),
+    pronSec('/p/ — Voiceless', `Tutup bibir, tahan udara di belakangnya, lalu buka bibir buat lepasin udaranya. Huruf alfabet <b>P</b> punya bunyi ini. Catatan: awalan "psy-" (psychology, psychic) TIDAK punya bunyi /p/; ejaan "ph" biasanya bunyi /f/ (autograph, photo).` + pronChips([
+      ['paper','ˈpeɪpɚ'],['people','ˈpipəl'],['pepper','ˈpɛpɚ'],['pop','pɑp'],['port','pɔrt'],
+      ['pull','pʊl'],['punch','pʌntʃ'],['push','pʊʃ'],['apple','ˈæpəl'],['camping','ˈkæmpɪŋ'],
+      ['couple','ˈkʌpəl'],['dipper','ˈdɪpɚ'],['clap','klæp'],['hope','hoʊp'],['jump','dʒʌmp'],
+      ['lip','lɪp'],['soap','soʊp'],['stop','stɑp']
+    ])),
+    pronSec('/b/ — Voiced', `Sama posisinya kayak /p/, tapi ada getaran di tenggorokan. Huruf alfabet <b>B</b> punya bunyi ini.` + pronChips([
+      ['back','bæk'],['bear','bɛr'],['beige','beɪʒ'],['blob','blɑb'],['bought','bɔt'],['brought','brɔt'],
+      ['bubble','ˈbʌbəl'],['debris','dəˈbri'],['debut','ˈdeɪbyu'],['jumbo','ˈdʒʌmboʊ'],['robber','ˈrɑbɚ'],
+      ['robot','ˈroʊbɑt'],['trouble','ˈtrʌbəl'],['umbrella','ʌmˈbrɛlə'],['crab','kræb'],['cub','kʌb'],['grab','græb'],['globe','gloʊb'],['lab','læb']
+    ])),
+    pronSec('/t/ — Voiceless', `Lidah nempel di belakang gigi buat nahan udara, lalu turunkan lidah buat lepasin udaranya. Huruf alfabet <b>T</b> punya bunyi ini. Catatan: beberapa kata dengan T diucapkan /tʃ/, misalnya <i>nature, future, mature</i>.` + pronChips([
+      ['talk','tɔk'],['teeth','tiθ'],['alter','ˈɔltɚ'],['cacti','ˈkæktaɪ'],['Tuesday','ˈtuzdeɪ'],
+      ['two','tu'],['tango','ˈtæŋgoʊ'],['tyrant','ˈtaɪrənt'],['bait','beɪt'],['caught','kɔt'],
+      ['eight','eɪt'],['elephant','ˈɛləfənt'],['mat','mæt'],['meant','mɛnt'],['next','nɛkst'],['oat','oʊt']
+    ])),
+    pronSec('/d/ — Voiced', `Sama posisinya kayak /t/, tapi bersuara. Huruf alfabet <b>D</b> dan <b>W</b> punya bunyi ini.` + pronChips([
+      ['day','deɪ'],['do','du'],['cedar','ˈsidɚ'],['edify','ˈɛdəfaɪ'],['bade','beɪd'],['board','bɔrd']
+    ]))
+  ]
+},
+{
+  id:'us-word-stress',
+  title:'12. Pengantar Tekanan Kata (Word Stress)',
+  sections:[
+    pronSec('Apa itu Word Stress?', `Word stress = suku kata mana dalam satu kata yang diucapkan lebih kuat/menonjol. Setiap kata yang punya lebih dari 1 suku kata pasti punya 1 suku kata yang ditekankan.`),
+    pronSec('Cara Menentukan Suku Kata yang Ditekan', `Sayangnya gak ada rumus 100% pasti — tapi umumnya: <b>kata kerja (verb)</b> cenderung tekanan di suku kata <b>kedua</b>, sedangkan <b>kata benda (noun)</b> cenderung tekanan di suku kata <b>pertama</b>. Contoh kata yang ejaannya sama tapi beda tekanan tergantung fungsinya: <i>record</i> (v. /rɪˈkɔrd/ = merekam, n. /ˈrɛkɔrd/ = rekaman), <i>present</i> (v. /prɪˈzɛnt/ = mempersembahkan, n. /ˈprɛzənt/ = hadiah), <i>object</i> (v. /əbˈdʒɛkt/ = menolak, n. /ˈɑbdʒɪkt/ = benda).`),
+    pronSec('Contoh Perbedaan Verb vs Noun', pronChips([
+      ['polish (v)','ˈpɑlɪʃ'],['polish (n)','ˈpoʊlɪʃ'],
+      ['object (v)','əbˈdʒɛkt'],['object (n)','ˈɑbdʒɪkt'],
+      ['upload (v)','ʌpˈloʊd'],['upload (n)','ˈʌploʊd'],
+      ['attribute (v)','əˈtrɪbyut'],['attribute (n)','ˈætrəbyut']
+    ])),
+    pronSec('📖 Bacaan: Hidup di Jepang', `Living in Japan as a foreigner can be a unique experience shaped by the country's rich culture and traditions. With a population of over <mark>120 million</mark> people, Japan is a <mark>diverse</mark> nation where each individual possesses a distinctive and unique <mark>existence</mark>. The Japanese people exhibit a wide range of traits, from being nice, tough, gentle, grumpy, gloomy, energetic, to introverted, making it a challenging for those who have struggled with the language despite present higher expectancies in education and the entire population.<br><br>The country's emphasis on individual language spending years in the country can also be highlighted by individuals who have mastered it, especially for those who have recently arrived in Japan. This underscores the complexity of the Japanese language system, which comprises three scripts, makes it really difficult, and the language's unique writing system reveals through the language's <mark>magnificent</mark> art, and profound and intricate meanings of nouns, articles, gender forms, chemical compounds, personal names and titles, institutions or parks, place names and parks, personal pronouns and possessives, hyphenated nationalities, and descriptive nationalities, as their own struggled culturally enriching despite the problems.<br><br><i>Kata yang ditandai adalah contoh kata yang tekanannya di suku kata kedua atau lebih (bukan yang pertama), jadi harus hati-hati bacanya.</i>`)
+  ]
+},
+{
+  id:'us-plural-s',
+  title:'13. Akhiran "-S" Tambahan',
+  sections:[
+    pronSec('Kapan Muncul Akhiran "-S"?', `Akhiran -s/-es muncul di 4 keadaan: (a) kata benda jamak (plural nouns), (b) kata kerja orang ketiga tunggal simple present (dia/she/he/it), (c) kata benda kepemilikan ('s), (d) singkatan is/was/has (contoh: <i>she's, dad's</i>).`),
+    pronSec('Diucapkan /s/ (setelah bunyi tak bersuara)', pronChips([
+      ['month','mʌnθs'],['moth','mɔθs'],['laugh','læfs'],['graph','græfs'],['mate','meɪts'],
+      ['keep','kips'],['type','taɪps'],['hike','haɪks'],['stick','stɪks']
+    ])),
+    pronSec('Diucapkan /z/ (setelah bunyi bersuara & vokal)', pronChips([
+      ['bathe','beɪðz'],['leave','livz'],['love','lʌvz'],['lead','lidz'],['bed','bɛdz'],
+      ['cab','kæbz'],['grab','græbz'],['dog','dɔgz'],['bag','bægz']
+    ])),
+    pronSec('Diucapkan /ɪz/ (setelah bunyi sibilan/mendesis)', `Muncul kalau kata aslinya berakhiran bunyi /s/ /z/ /ʃ/ /ʒ/ /tʃ/ /dʒ/.` + pronChips([
+      ['miss','ˈmɪsɪz'],['buzz','ˈbʌzɪz'],['base','ˈbeɪsɪz'],['box','ˈbɑksɪz'],
+      ['orange','ˈɔrɪndʒɪz'],['massage','məˈsɑʒɪz'],['unleash','ʌnˈliʃɪz'],['nose','ˈnoʊzɪz'],['brush','ˈbrʌʃɪz'],['language','ˈlæŋgwɪdʒɪz']
+    ])),
+    pronSec('📖 Bacaan: Chameleons and Green Iguanas', `<b>Chameleons</b><br><mark>Chameleons</mark> are lizards. Some chameleons are very small, only 3 centimeters long. Some chameleons are big, about 70 centimeters long. They have got big <mark>eyes</mark> and a very long tongue. They can change color, so it is not easy to see them. They <mark>live</mark> in hot places. They <mark>like</mark> sitting in trees. Chameleons <mark>eat</mark> insects. They <mark>use</mark> their tongues to catch insects.<br><br><b>Green Iguanas</b><br>Green <mark>iguanas</mark> are big lizards. They are about 2 meters long. They are green and brown. They <mark>change</mark> color when they are scared or the temperature <mark>changes</mark>. They have got very good <mark>eyes</mark>. They <mark>live</mark> in hot places. They <mark>like</mark> sitting in the sun at the top of tall trees. They can swim and they <mark>like</mark> living near water. They <mark>eat</mark> small insects and <mark>plants</mark>. Their favorite food is juicy fruit.<br><br><i>Kata yang ditandai adalah kata benda jamak atau kata kerja orang ketiga dengan akhiran -s.</i>`)
+  ]
+},
+{
+  id:'us-ed-ending',
+  title:'14. Akhiran "-ED"',
+  sections:[
+    pronSec('Kapan Muncul Akhiran "-ED"?', `Akhiran -ed muncul pada regular verbs (past tense/past participle) dan beberapa adjective. Ada 3 cara mengucapkannya, tergantung bunyi terakhir kata aslinya.`),
+    pronSec('Diucapkan /ɪd/ (setelah bunyi /t/ atau /d/)', pronChips([
+      ['want','ˈwɑntɪd'],['create','kriˈeɪtɪd'],['support','səˈpɔrtɪd'],['need','ˈnidɪd'],
+      ['include','ɪnˈkludɪd'],['decide','dɪˈsaɪdɪd']
+    ])),
+    pronSec('Diucapkan /t/ (setelah bunyi tak bersuara, kecuali /t/)', pronChips([
+      ['look','lʊkt'],['ask','æskt'],['hope','hoʊpt'],['jump','dʒʌmpt'],['miss','mɪst'],['fix','fɪkst'],
+      ['watch','wɑtʃt'],['match','mætʃt'],['brush','brʌʃt'],['laugh','læft'],['unearth','ʌnˈɚθt']
+    ])),
+    pronSec('Diucapkan /d/ (setelah bunyi vokal & bersuara, kecuali /d/)', pronChips([
+      ['hug','hʌgd'],['drag','drægd'],['absorb','æbˈzɔrbd'],['scrub','skrʌbd'],['buzz','bʌzd'],
+      ['enclose','ɛnˈkloʊzd'],['love','lʌvd'],['achieve','əˈtʃivd'],['bathe','beɪðd'],['massage','məˈsɑʒd'],
+      ['judge','dʒʌdʒd'],['call','kɔld'],['drill','drɪld'],['fine','faɪnd'],['ban','bænd']
+    ])),
+    pronSec('Catatan Pengecualian', `Ada beberapa kata yang pengucapannya gak ikut pola umum, contoh <i>wicked</i> /ˈwɪkɪd/ walau berakhiran /k/ (bukan /t/ atau /d/) — biasanya karena kata itu jadi adjective, bukan verb biasa.`)
+  ]
+},
+{
+  id:'us-homograph',
+  title:'15. Homograf & Homofon',
+  sections:[
+    pronSec('Homofon (Homophone)', `Kata yang <b>bunyinya sama</b>, tapi artinya beda. Ada 2 jenis: <b>heteronym</b> (ejaan sama, bunyi & arti beda — sebenarnya ini masuk homograf juga) dan <b>heterograph</b> (ejaan beda, bunyi sama, arti beda).`),
+    pronSec('Contoh Heterograph (ejaan beda, bunyi sama)', pronChips([
+      ['read(past)','rɛd'],['red','rɛd'],['eight','eɪt'],['ate','eɪt'],['two','tu'],['too','tu'],['to','tu'],
+      ['buy','baɪ'],['bye','baɪ'],['by','baɪ'],['raise','reɪz'],['rays','reɪz'],['eye','aɪ'],['I','aɪ'],
+      ['knight','naɪt'],['night','naɪt'],['write','raɪt'],['right','raɪt']
+    ])),
+    pronSec('Homograf (Homograph)', `Kata yang <b>ejaannya sama</b>, tapi bunyi dan/atau artinya beda. Contoh <b>heteronym</b> (ejaan sama, bunyi & tekanan beda): <i>record</i> (v. /rɪˈkɔrd/ merekam vs n. /ˈrɛkɔrd/ rekaman), <i>tear</i> (v. /tɛr/ merobek vs n. /tɪr/ air mata), <i>bow</i> (v. /baʊ/ membungkuk vs n. /boʊ/ busur/pita), <i>lead</i> (v. /lid/ memimpin vs n. /lɛd/ logam timbal), <i>wind</i> (v. /waɪnd/ memutar vs n. /wɪnd/ angin), <i>object</i> (v. /əbˈdʒɛkt/ menolak vs n. /ˈɑbdʒɪkt/ benda), <i>wound</i> (v. /waʊnd/ bentuk lampau "wind" vs n. /wund/ luka), <i>row</i> (garis/mendayung /roʊ/ vs pertengkaran /raʊ/).`),
+    pronSec('Homonym (ejaan sama & bunyi sama, arti beda)', `Contoh: <i>bear</i> (hewan beruang / menanggung), <i>can</i> (modal verb bisa / kaleng), <i>date</i> (kurma / tanggal), <i>duck</i> (bebek / menunduk), <i>kind</i> (jenis / baik hati), <i>lie</i> (berbaring / berbohong), <i>rose</i> (bentuk lampau "rise" / bunga mawar), <i>tire</i> (lelah / ban mobil), <i>well</i> (dengan baik / sumur).`),
+    pronSec('📖 Bacaan: The Stranger', `In the middle of the desert, there is a small village where people <mark>live</mark>. The village is tranquil and there are no <mark>rows</mark>. Every day, they wake up early to <mark>read</mark> the newspaper. Once they have <mark>read</mark> it, they will start their day. One day, a strange traveler came to the village and brought a <mark>present</mark> wrapped in silk for the people. It was a pretty <mark>bow</mark> made of the finest wood. The villagers were so happy and grateful that they started to cry. They thanked the traveler by <mark>bowing</mark> down and asked him to stay for a while. The traveler agreed and decided to help the villagers with their daily tasks. He taught them how to <mark>row</mark> the boats and catch fish in the nearby river. He also helped them fix their <mark>wounds</mark> and taught them how to protect themselves from the strong wind that blows in the desert. It had <mark>wounded</mark> the people's daily life. The traveler taught them many things and learned many things from them. He also learned to not <mark>desert</mark> the loved ones when they had problems. When it was time for him to leave, the villagers gave him a sword made from <mark>lead</mark> as a <mark>present</mark> to remember him by. The traveler was so touched that he burst into <mark>tears</mark>. He thanked the villagers and promised to come back and visit them again. As he left the village, he knew that he had made new friends and that he would always be <mark>present</mark> in their hearts.<br><br><i>Kata yang ditandai adalah homograf — coba perhatikan gimana bunyi/artinya bisa beda tergantung konteks kalimatnya.</i>`)
+  ]
+},
+{
+  id:'us-silent-letter',
+  title:'16. Huruf Bisu (Silent Letters)',
+  sections:[
+    pronSec('Kenapa Ada Huruf Bisu?', `English itu unik — beda dari Bahasa Indonesia, gak semua huruf yang ditulis harus diucapkan. Makanya kita harus rajin cek kamus & simbol fonetik buat kata-kata dengan huruf bisu.`),
+    pronSec('Silent B, C, D, G, H', pronChips([
+      ['bomb','bɑm'],['climb','klaɪm'],['comb','koʊm'],['debt','dɛt'],['doubt','daʊt'],['thumb','θʌm'],
+      ['scene','sin'],['scissors','ˈsɪzɚz'],['muscle','ˈmʌsəl'],['edge','ɛdʒ'],['bridge','brɪdʒ'],
+      ['ghost','goʊst'],['honest','ˈɑnɪst'],['hour','aʊɚ'],['rhyme','raɪm'],['school','skul'],
+      ['where','wɛr'],['why','waɪ'],['whether','ˈwɛðɚ']
+    ])),
+    pronSec('Silent K, L, N, P, S, T, U, W', pronChips([
+      ['knee','ni'],['knife','naɪf'],['knight','naɪt'],['calm','kɑm'],['half','hæf'],['should','ʃʊd'],
+      ['walk','wɔk'],['autumn','ˈɔtəm'],['column','ˈkɑləm'],['solemn','ˈsɑləm'],['cupboard','ˈkʌbɚd'],
+      ['psychology','saɪˈkɑlədʒi'],['receipt','rɪˈsit'],['island','ˈaɪlənd'],['isle','aɪl'],
+      ['ballet','bæˈleɪ'],['listen','ˈlɪsən'],['whistle','ˈwɪsəl'],['guess','gɛs'],['guitar','gɪˈtɑr'],['answer','ˈænsɚ'],['sword','sɔrd'],['two','tu'],['wrong','rɔŋ'],['write','raɪt']
+    ])),
+    pronSec('📖 Puisi: Debt and Doubt Both Leave the "B" Out', `<i>In silent words, a mystery hides<br>Like the "b" in debt, it silently hides<br>Debt and doubt both leave the "b" out<br>In subtle ways, they move about</i><br><br><i>The "k" in knee, the "w" in write<br>They're silent too, try as you might<br>And in the word "gnome", the "g" is mute<br>It's there in "sign" and "foreign" to boot</i><br><br><i>The "h" in hour, the "p" in pneumonia<br>They're silent as can be, don't you know-ya?<br>And in "psychology" and "psychiatry"<br>The "p" is silent, it's plain to see</i><br><br><i>So, when you read, don't be in doubt<br>Remember the silent letters, don't leave them out<br>For they add a touch of mystery<br>To the words we use in history</i><br><br>Kata bertanda tebal dalam puisi ini (<mark>debt</mark>, <mark>doubt</mark>, <mark>knee</mark>, <mark>write</mark>, <mark>gnome</mark>, <mark>sign</mark>, <mark>foreign</mark>, <mark>hour</mark>, <mark>pneumonia</mark>, <mark>psychology</mark>, <mark>psychiatry</mark>) semuanya punya huruf bisu.`)
+  ]
+},
+{
+  id:'us-contraction',
+  title:'17. Kontraksi Kata (Word Contractions)',
+  sections:[
+    pronSec('Apa itu Word Contraction?', `Word contraction = versi singkat dari dua kata atau lebih yang digabung, dengan menghilangkan beberapa huruf lalu diganti tanda apostrof ('). Contoh: <i>do not → don't</i>, <i>does not → doesn't</i>.`),
+    pronSec('Kenapa Penting Belajar Kontraksi?', `1) Bikin ngomong gak kedengeran terlalu formal/kaku. 2) Lebih efisien & jelas — beberapa kata jadi satu unit. 3) Membantu memahami native speaker karena mereka sering pakai kontraksi. 4) Penting buat integrasi budaya di lingkungan berbahasa Inggris.`),
+    pronSec('Kontraksi Subjek + Auxiliary', `<b>'m</b> = am (<i>I'm safe</i>) &nbsp;•&nbsp; <b>'s</b> = is/has (<i>Bob's here / She's been living here</i>) &nbsp;•&nbsp; <b>'re</b> = are/were (<i>You're right</i>) &nbsp;•&nbsp; <b>'d</b> = would/had (<i>We'd like to meet the manager</i>) &nbsp;•&nbsp; <b>'ve</b> = have (<i>I've never seen this</i>).`),
+    pronSec('Kontraksi Bentuk Negatif', pronChips([
+      ['don\'t','doʊnt'],['doesn\'t','ˈdʌzənt'],['didn\'t','ˈdɪdnt'],['won\'t','woʊnt'],['wouldn\'t','ˈwʊdnt'],
+      ['can\'t','kænt'],['couldn\'t','ˈkʊdnt'],['shan\'t','ʃænt'],['shouldn\'t','ˈʃʊdnt'],['haven\'t','ˈhævnt'],
+      ['hasn\'t','ˈhæznt'],['hadn\'t','ˈhædnt'],['isn\'t','ˈɪznt'],['wasn\'t','ˈwʌznt'],['aren\'t','ɑrnt'],['weren\'t','wɚnt']
+    ])),
+    pronSec('Kontraksi Kata Tanya & Kata Lain', pronChips([
+      ['what\'s','wʌts'],['who\'s','huz'],['what\'ve','wʌtv'],['what\'ll','wʌtl'],['who\'ll','hul'],
+      ['why\'d','waɪd'],['would\'ve','ˈwʊdəv'],['should\'ve','ˈʃʊdəv'],['could\'ve','ˈkʊdəv'],
+      ['that\'s','ðæts'],['that\'ll','ðætl'],['here\'s','hɪrz']
+    ]))
+  ]
+},
+{
+  id:'us-connected-1',
+  title:'18. Sambungan Kata: Catenation & Intrusion',
+  sections:[
+    pronSec('Apa itu Word Connection / Connected Speech?', `Word connection (connected speech) adalah cara bunyi, kata, dan frasa mengalir bersama secara natural dalam ngomong. Native speaker sering menyambungkan kata-kata biar lebih cepat & efisien, lewat: elision (<i>I don't know</i>), asimilasi (<i>I need Tom</i>), linking/catenation (<i>take away</i>), intrusion (<i>go away</i>), dan geminate (<i>What time?</i>). Catatan: gak semua kata harus disambung — tetap perhatikan jeda & artikulasi biar gak susah dipahami, apalagi buat non-native.`),
+    pronSec('Linking / Catenation (Konsonan–Vokal)', `Terjadi kalau bunyi konsonan di akhir kata nempel ke bunyi vokal di awal kata berikutnya. Contoh: "eighteen or eighty?" akan terdengar seperti "eighteen-or-eighty" /eɪˈtinɔreɪti/.` + pronChips([
+      ['take away','teɪkə weɪ'],['come on','kʌmɑn'],['I\'m in','aɪmɪn'],['look at it','lʊkætɪt'],
+      ['on hour is easy','ənaʊɚɪzˈizi'],['shake it off','ʃeɪkɪtɔf']
+    ])),
+    pronSec('Intrusion (Vokal–Vokal)', `Terjadi kalau ada bunyi tambahan (biasanya /w/ atau /y/) yang disisipkan di antara dua kata yang keduanya berbunyi vokal.`),
+    pronSec('Intrusi dengan /w/', `Muncul kalau kata pertama berakhiran bunyi A/O/U (/ɑ/ /ɔ/ /u/ /aʊ/ /oʊ/) lalu ketemu kata berikutnya yang berbunyi vokal.` + pronChips([
+      ['go after','goʊwæftɚ'],['go easy','goʊwizi'],['do it','duwɪt'],['go ahead','goʊwəhɛd'],
+      ['now or never','naʊwɔrnɛvɚ'],['law and order','lɔwænɔrdɚ']
+    ])),
+    pronSec('Intrusi dengan /y/', `Muncul kalau kata pertama berakhiran bunyi E/I (/ə/ /i/ /eɪ/ /aɪ/ /ɔɪ/) lalu ketemu kata berikutnya yang berbunyi vokal.` + pronChips([
+      ['stay away','steɪyəweɪ'],['twenty eight','twɛniyeɪt'],['high up','haɪyʌp'],['easy on me','iziyɑnmi'],
+      ['You\'ll be in my heart.','yulbiyɪnmaɪhɑrt'],['I only need you.','aɪyoʊnlinidyu']
+    ])),
+    pronSec('Bonus: Aturan /t/ di American English', `Dalam American English, kalau ada bunyi /t/ di antara dua vokal, /t/ akan terdengar seperti /d/ yang lembut. Contoh: <i>eat it</i> → /idɪt/, <i>shake it off</i> → /ʃeɪkɪdɔf/. Selain itu, ada beberapa kata yang bunyi awalnya hilang di ngomong santai (bukan formal), contoh: <i>just tell him</i> → /dʒʌstɛlɪm/, <i>help her</i> → /hɛlpɚ/, <i>ask them</i> → /æskəm/.`)
+  ]
+},
+{
+  id:'us-connected-2',
+  title:'19. Sambungan Kata Konsonan-Konsonan',
+  sections:[
+    pronSec('Geminate (Menyambung Konsonan yang Sama)', `Terjadi kalau kata berakhiran bunyi konsonan tertentu, dan kata berikutnya diawali bunyi konsonan yang <b>sama persis</b>. Waktu diucapkan, kedua bunyi digabung jadi satu bunyi tapi ditahan lebih lama.` + pronChips([
+      ['What time?','wətaɪm'],['Not a bad deal.','nɑtəbædil'],['It\'s a black car.','ɪtsəblækɑr'],
+      ['One hundred dollar.','wʌnhʌndrɪdɑlɚ'],['Which chair?','wɪtʃɛr'],['The path through an alley.','ðəpæθruənæli']
+    ])),
+    pronSec('Assimilation (Membaurkan Bunyi)', `Terjadi kalau dua bunyi konsonan berdekatan saling membaur jadi bunyi yang lebih mirip. Biasanya untuk konsonan dengan lokasi ucap yang sama: di bibir (/p/ /b/ /f/ /v/ /m/ /w/), di belakang gigi (/tʃ/ /dʒ/ /l/ /s/ /z/ /ʃ/ /ʒ/ /θ/ /ð/ /t/ /d/), atau di tenggorokan (/k/ /g/ /h/ /r/ /ŋ/).` + pronChips([
+      ['His wife views the best scenery.','warvyuz'],['Is it worth that much?','wəðæt'],
+      ['Why do you keep buying that stuff?','kibaɪ'],['Zoya doesn\'t need Tom.','nɪtam'],
+      ['These scissors are sharp enough.','ðɪzɪzɚz']
+    ])),
+    pronSec('Assimilation: Kombinasi /t/ /d/ /s/ /z/ + Y', `/t/+/y/ → /tʃ/, /d/+/y/ → /dʒ/, /s/+/y/ → /ʃ/, /z/+/y/ → /ʒ/.` + pronChips([
+      ['We want you on this stage.','wɑntʃu'],['They need your help.','nidʒɚ'],["She'll miss your brother.",'mɪʃu'],
+      ["Don't you understand?",'doʊntʃu'],['She needs your back.','nidʒɚ']
+    ])),
+    pronSec('Elision (Menghilangkan Bunyi)', `Terjadi kalau bunyi plosif alveolar /t/ atau /d/ berada setelah konsonan lain — bunyi /t/ /d/ itu gak perlu diucapkan secara meletup.` + pronChips([
+      ["I don't see it.",'aɪdoʊnsi'],['Alison doesn\'t make the bed every morning.','dʌznmeɪk'],
+      ['They kept going on.','kɛpgoʊɪn']
+    ]))
+  ]
+},
+{
+  id:'us-flap-held-t',
+  title:'20. Flap T & Held T (American T Sound)',
+  sections:[
+    pronSec('Soft D /ɾ/ — "Alveolar Flap T"', `Kalau huruf T berada di antara 2 vokal, dan suku kata sebelum T ditekan (stressed) sedangkan suku kata sesudah T gak ditekan, huruf T diucapkan lembut kayak bunyi /d/ yang cepat — disebut <b>flap T</b> /ɾ/. Cara bikinnya: lidah nyentuh ringan & cepat ke langit-langit mulut, jangan sampai udara benar-benar berhenti kayak T biasa.`),
+    pronSec('Contoh Flap T di Awal Suku Kata Gak Bertekanan', pronChips([
+      ['thirty','ˈθɚɾi'],['dirty','ˈdɚɾi'],['charter','ˈtʃɑrɾɚ'],['quarter','ˈkwɔrɾɚ'],['water','ˈwɑɾɚ'],
+      ['meeting','ˈmiɾɪŋ'],['city','ˈsɪɾi'],['caterpillar','ˈkæɾɚpɪlɚ'],['bitter','ˈbɪɾɚ'],['batter','ˈbæɾɚ']
+    ])),
+    pronSec('Contoh Flap T Antara Dua Vokal (Sambungan Kata)', pronChips([
+      ['what a beautiful moonlight.','wʌɾə byutɪfəl munlaɪt'],['our meeting will take place.','aʊɚ miɾɪŋ'],
+      ["It's really my hat.",'ɪɾs rili'],['A bottle of water is next to the kettle.','bɑɾəl əv wɑɾɚ']
+    ])),
+    pronSec('Held T /n/ — "Glottal T"', `Terjadi kalau T berada sebelum bunyi /n/ dalam kata, dan suku kata "T-en" itu gak bertekanan (unstressed) — huruf T "ditahan" (held) di posisi glottal, gak sampai dilepas jelas kayak /t/ biasa, mirip jeda tenggorokan sebelum langsung ke /n/.`),
+    pronSec('Contoh Held T /n/', pronChips([
+      ['mutant','ˈmyutn̩'],['kitten','ˈkɪtn̩'],['button','ˈbʌtn̩'],['mountain','ˈmaʊntn̩'],
+      ['certain','ˈsɚtn̩'],['bitten','ˈbɪtn̩'],['written','ˈrɪtn̩'],['patent','ˈpætn̩'],
+      ['forgotten','fɚˈgɑtn̩'],['sentence','ˈsɛntns̩']
+    ])),
+    pronSec('Catatan Penting', `Kalau T diikuti /n/ tapi suku katanya <b>bertekanan</b> (stressed), aturan Held T ini <b>gak berlaku</b> — contoh <i>ten</i>, <i>attend</i>, tetap diucapkan T biasa.`)
+  ]
+},
+{
+  id:'us-silent-t-to',
+  title:'21. Silent T & Pengucapan "TO"',
+  sections:[
+    pronSec('Silent T di Akhir Kata', `Kalau huruf T berada di posisi akhir kata dan bunyinya "uh-oh" (glottal stop), lidah gak perlu benar-benar dilepas — tahan di belakang tenggorokan tanpa suara plosif jelas, seperti waktu kita bilang "uh-oh".` + pronChips([
+      ['what','wʌt̚'],['hit','hɪt̚'],['sit','sɪt̚'],['fit','fɪt̚'],['caught','kɔt̚'],['lot','lɑt̚'],['light','laɪt̚']
+    ])),
+    pronSec('Silent T di Antara Dua Konsonan', `Kalau T berada di antara dua konsonan lain (bukan vokal), T biasanya gak diucapkan sama sekali (silent).` + pronChips([
+      ['internet','ˈɪnɚnɛt'],['wanted','ˈwɑnɪd'],['interrupt','ɪnɚˈʌpt'],['painting','ˈpeɪnɪŋ'],
+      ['twenty','ˈtwɛni'],['printout','ˈprɪnaʊt'],['center','ˈsɛnɚ'],['international','ɪnɚˈnæʃənəl'],['advantage','ædˈvænɪdʒ']
+    ])),
+    pronSec('Cara Baca "TO" Sebagai Preposisi', `Kata "TO" punya 3 versi bunyi tergantung posisinya: <b>/tu/</b> di awal frasa (<i>To make it perfect</i>), <b>/tə/</b> di akhir frasa/kalimat & di antara dua konsonan (<i>What are you listening to?</i> / <i>I need to ask</i>), dan <b>/du/</b> yang tereduksi jadi <b>/də/</b> setelah bunyi vokal (<i>Diana talked to me</i> → /tɔkdə/).`),
+    pronSec('Contoh Kontraksi Informal dengan "TO"', pronChips([
+      ['gonna','ˈgɔnə'],['wanna','ˈwɑnə'],['gotta','ˈgɑɾə'],['hasta','ˈhæstə'],['hafta','ˈhæftə'],
+      ['needa','ˈnidə'],['usta','ˈyustə'],['oughta','ˈɔɾə']
+    ])),
+    pronSec('Kontraksi Informal dengan "OF" dan "HAVE"', pronChips([
+      ['sorta','ˈsɔrɾə'],['kinda','ˈkaɪndə'],['alotta','əˈlɑɾə'],['lotta','ˈlɑɾə'],['outta','ˈaʊɾə'],
+      ['musta','ˈmʌstə'],['mighta','ˈmaɪɾə'],['coulda','ˈkʊdə'],['woulda','ˈwʊdə'],['shoulda','ˈʃʊdə']
+    ])),
+    pronSec('Kontraksi Informal Lainnya (Casual Speech)', pronChips([
+      ['ain\'t','eɪnt'],['gimme','ˈgɪmi'],['gonna','ˈgɔnə'],["lemme",'ˈlɛmi'],['dunno','dəˈnoʊ'],
+      ["I\'mma",'aɪmə'],["tell\'em",'ˈtɛləm'],['cuz','kəz'],["y\'all",'yɔl'],['howdy','ˈhaʊdi'],['gotcha','ˈgɑtʃə']
+    ]))
+  ]
+},
+{
+  id:'us-phrase-stress',
+  title:'22. Tekanan Frasa (2, 3, & 4 Kata)',
+  sections:[
+    pronSec('Adjective + Noun (Frasa Deskriptif)', `Kalau frasa terdiri dari adjective + noun, tekanan jatuh di kata <b>kedua</b> (noun). Contoh: <i>new shoes</i>, <i>short nail</i>, <i>beautiful day</i>, <i>really expensive</i> (adverb + adjective, tekanan di kata kedua juga).`),
+    pronSec('Noun + Noun (Set Phrase / Compound)', `Kalau dua kata benda digabung jadi satu "barang baru" (compound noun / set phrase), tekanan jatuh di kata <b>pertama</b>. Contoh: <i>toothbrush, newspaper, lunchbox, subway, football, schoolkids, locker room, tennis shoes, card trick, White House, coffee cup</i>.`),
+    pronSec('Frasa 3 Kata: Adverb + Adjective + Noun', `Tekanan jatuh di <b>adverb</b> dan <b>noun</b>. Contoh: <i>really short nail</i>, <i>insanely difficult task</i>, <i>highly recommended book</i>, <i>absolutely lovely roses</i>, <i>quite gorgeous boss</i>, <i>spotlessly shiny glass</i>.`),
+    pronSec('Frasa 3 Kata: Adjective + Set Phrase', `Tekanan tetap di kata <b>pertama</b> set phrase-nya (karena tetap dianggap 1 "barang"). Contoh: <i>bright spotlight</i>, <i>new phone book</i>, <i>beautiful grandmother</i>, <i>sweet pancake</i>, <i>expensive toothpaste</i>, <i>old running shoes</i>.`),
+    pronSec('Frasa 3 Kata: Set Phrase + Noun (jadi 1 hal baru)', `Contoh: <i>pancake shop, spotlight stand, playing card rack, lighthouse keeper, greenhouse plant, permission letter box, toothbrush cleaner</i>.`),
+    pronSec('Frasa 4 Kata: Adverb + Adjective + Set Phrase', `Tekanan jatuh di <b>adverb</b> dan kata <b>pertama</b> set phrase-nya. Contoh: <i>quite tasty pancake, undeniably sour strawberries, totally cheap rubber band, absolutely unique machine gun, super funny talk show, extremely dangerous hit man</i>.`)
+  ]
+},
+{
+  id:'us-sentence-stress',
+  title:'23. Tekanan Kalimat & Bentuk Lemah',
+  sections:[
+    pronSec('Staircase Intonation', `Setiap kali kita mau menekankan sebuah kata/frasa, nadanya seperti "menuruni anak tangga" — mulai tinggi lalu turun sedikit demi sedikit. Ini yang bikin ngomong kedengaran natural & percaya diri.`),
+    pronSec('Intonasi Pernyataan: Noun vs Pronoun', `Kalau kalimat pakai <b>noun</b> (informasi baru), tekanan jatuh di noun-nya, verb lebih rendah. Contoh: <i>My car crashes the trees.</i> Tapi kalau noun diganti <b>pronoun</b> (informasi lama), tekanan pindah ke <b>verb</b>-nya. Contoh: <i>It crashes them.</i>`),
+    pronSec('Intonasi Tanya (Yes/No Question)', `Biasanya nada <b>naik</b> di akhir kalimat. Contoh: <i>Should we go for dinner?</i> — tapi kadang nada <b>turun</b> kalau pertanyaannya menunjukkan keterkejutan/kesenangan/tawaran bantuan, contoh: <i>Can I help you?</i>, <i>Wasn't her voice terrible?</i>`),
+    pronSec('Intonasi WH-Question', `Biasanya nada <b>turun</b> di akhir kalimat (kebalikan dari yes/no question). Contoh: <i>Where should we go for dinner?</i>`),
+    pronSec('Intonasi Question Tag', `Biasanya nada <b>naik-turun</b> (menunjukkan yakin/pendapat pasti). Contoh: <i>It was a great film, wasn't it?</i> Tapi kalau si penanya gak yakin/gak tahu jawabannya, nadanya bisa <b>turun-naik</b>.`),
+    pronSec('Intonasi Kalimat Seru (Exclamation)', `Biasanya nada <b>naik-turun</b> di kata sifat yang ditekankan. Contoh: <i>What a pretty ring!</i>, <i>How beautiful it is!</i>`),
+    pronSec('Content Words vs Function/Structure Words', `<b>Content words</b> (kata benda, kata kerja utama, adjective, adverb, negation words, this/that sebagai pronoun) biasanya <b>ditekan</b>. <b>Function words</b> (kebanyakan pronoun, preposisi, artikel a/an/the, konjungsi, auxiliary verb, verb "be") biasanya <b>gak ditekan</b> dan bentuknya sering berubah jadi <b>bentuk lemah / weak form</b>.`),
+    pronSec('Contoh Weak Forms', pronChips([
+      ['to','tə'],['for','fɚ'],['and','ənd'],['or','ɚ'],['of','əv'],['can','kən'],['could','kəd'],
+      ['should','ʃəd'],['would','wəd'],['had','həd'],['some','səm'],['are','ɚ'],['was','wəz'],['your','yɚ'],['one','wən']
+    ])),
+    pronSec('3 Alasan Kata Ditekan Lebih Ekstra', `1) <b>Informasi baru</b> — kata pertama kali disebut dalam percakapan. 2) <b>Opini</b> — biasanya bikin makna kalimat jadi kebalikannya (sarkasme), contoh: <i>It looks like gold, but I think it's brass.</i> 3) <b>Kontras</b> — membandingkan dua hal yang berbeda dalam satu kalimat.`),
+    pronSec('📖 Bacaan: Life at School', `Life at school can be both exciting and challenging. Many students often find themselves juggling homework assignments and extracurricular activities, which can sometimes feel overwhelming. However, with a bit of planning and determination, they can manage their time effectively. The bustling hallways are filled with laughter and chatter, as friends <mark>catch up</mark> between <mark>classes</mark>.<br><br>Some students are heavily involved in sports teams or clubs, while others prefer to <mark>focus</mark> on their <mark>studies</mark>. It's important to <mark>strike a balance</mark>, as too much stress can lead to <mark>burnout</mark>. Overall, school life is a mix of <mark>hard work</mark> and <mark>fun-filled</mark> moments that shape who we <mark>become</mark>.<br><br><i>Kata yang ditandai adalah content words yang tekanannya paling menonjol di tiap kalimat.</i>`),
+    pronSec('📖 Bacaan: Living in Kampung Inggris Pare', `Living in Kampung Inggris Pare is truly a roller coaster ride of emotions! <b>How come?</b> Every day, I wake up to the sounds of students practising their English, and it feels like I am part of something <u>special</u>. But let's be honest, it can also be incredibly challenging because you need to balance studying, making friends, and adapting to a new environment all at <u>once</u>. The pressure to improve my language skills is intense, but isn't that what makes it <u>worthwhile</u>? I've met people from all over Indonesia and even from abroad, which is <u>fantastic</u>! Yet, there are moments when I feel <u>homesick</u>. Do you think it's normal to feel this <u>way</u>? Despite the challenges, I know that every struggle is an opportunity for <u>growth</u>. After all, isn't that what life is <u>about</u>?<br><br><i>Bacaan ini berisi campuran WH-question, yes/no question, kalimat seru, dan question tag — coba baca dengan intonasi naik-turun yang sesuai.</i>`)
+  ]
+}
+];
+
+/* ============================================================
+   DATA — BRITISH
+   ============================================================ */
+const PRONUN_BRITISH = [
+{
+  id:'gb-intro',
+  title:'1. Kenalan: American vs British',
+  sections:[
+    pronSec('Ngomongin Aksen British', `Kalau ngomongin aksen dalam English, yang paling sering kepikiran adalah aksen British English dan American English. Bedanya bukan cuma di pengucapan — ada 5 area yang beda: <b>Pronunciation</b> (lafal), <b>Word Choice</b> (pilihan kata), <b>Grammatical Structure</b> (struktur tata bahasa), <b>Spelling</b> (ejaan), dan <b>Verb Conjugation</b> (bentuk kata kerja).`),
+    pronSec('Contoh Perbedaan Tiap Kategori', `<b>Word choice:</b> <i>"The apartment is next to the gas station."</i> (American) — British akan bilang "flat" & "petrol station".<br><b>Grammar (have got):</b> <i>"She's got two eyes and two ears."</i> (British, pakai "have got").<br><b>Verb conjugation:</b> <i>"He must take a shower after playing soccer."</i> (American, pakai "soccer" bukan "football").<br><b>Spelling:</b> <i>"I fancy using the words 'organise, familiarise, and appetiser' in my spelling."</i> (British, pakai -ise bukan -ize).<br><b>Grammar (collective noun):</b> <i>"The government are planning to mobilise the resources."</i> (British, collective noun dianggap jamak).`)
+  ]
+},
+{
+  id:'gb-ipa',
+  title:'2. Simbol Fonetik British (Received Pronunciation)',
+  sections:[
+    pronSec('Apa itu Received Pronunciation (RP)?', `Jenis British English yang kita pelajari di sini adalah <b>Received Pronunciation (RP)</b> — bukan aksen daerah seperti Cockney. RP adalah salah satu cara belajar British English yang paling umum dipakai di kamus, seperti kamus Oxford, memakai simbol <b>International Phonetic Alphabet (IPA)</b>.`),
+    pronSec('Beda Simbol IPA: British vs American', `Dibanding simbol fonetik American, di British ada beberapa simbol baru: <b>/ɒ/, /ɪə/, /eə/,</b> dan <b>/ʊə/</b>. Selain itu, ada penggunaan simbol yang beda antara British dan American — British lebih sering pakai tanda titik dua segitiga <b>/ː/</b> yang menandakan vokal panjang.`),
+    pronSec('Contoh Perbandingan Simbol', pronChips([
+      ['glass','glɑːs'],['fast','fɑːst'],['lot','lɒt'],['chalk','tʃɔːk']
+    ])),
+    pronSec('Diftong /əʊ/ (British) Ganti /oʊ/ (American)', `Kebanyakan orang British akan mengucapkan <b>/əʊ/</b> untuk kata-kata yang dalam American diucapkan <b>/oʊ/</b>.` + pronChips([
+      ['go','gəʊ'],['know','nəʊ'],['coat','kəʊt'],['home','həʊm'],['open','ˈəʊpən'],['show','ʃəʊ']
+    ]))
+  ]
+},
+{
+  id:'gb-rhotic',
+  title:'3. Silent /r/ vs Clear R (Rhoticity)',
+  sections:[
+    pronSec('Apa itu Rhoticity?', `Rhoticity adalah soal apakah bunyi /r/ tetap diucapkan atau tidak di semua posisi kata. Aksen yang tetap mengucapkan /r/ historis di semua posisi disebut <b>rhotic</b>. Aksen yang menghilangkan bunyi /r/ (terutama kalau /r/ ada sebelum konsonan atau di akhir kata) disebut <b>non-rhotic</b>.`),
+    pronSec('Siapa yang Rhotic, Siapa yang Non-Rhotic?', `Sebagian besar dialek di Inggris (khususnya Received Pronunciation) dan Wales, serta Selandia Baru, Australia, dan Afrika Selatan, <b>non-rhotic</b> (tidak mengucapkan /r/). Sementara itu, Skotlandia, Irlandia, Amerika Serikat, dan Kanada mayoritas <b>rhotic</b> (tetap mengucapkan /r/) — begitu juga sebagian besar dialek di Inggris hari ini sebenarnya makin rhotic seiring waktu. <b>British English "posh"</b> yang dipakai keluarga Kerajaan Inggris adalah aksen <b>non-rhotic</b>.`),
+    pronSec('Contoh Kata dengan /r/ "Hilang" (British)', `Bandingkan cara baca British (huruf R di akhir/sebelum konsonan gak dibunyikan jelas, vokalnya jadi memanjang) dengan American (R tetap dibunyikan).` + pronChips([
+      ['car','kɑː'],['star','stɑː'],['here','hɪə'],['more','mɔː'],['better','ˈbetə'],
+      ['work','wɜːk'],['teacher','ˈtiːtʃə'],['bird','bɜːd'],['sure','ʃɔː'],['hair','heə']
+    ])),
+    pronSec('Catatan', `Perhatikan juga durasi bunyi — kata yang bunyi akhirnya mirip bisa beda durasi. Contoh: <i>more ice</i> /mɔːr aɪs/ (R muncul lagi karena disambung ke vokal) dibanding <i>more rice</i> /mɔː raɪs/.`)
+  ]
+},
+{
+  id:'gb-diff',
+  title:'4. Beda Lafal, Ejaan & Kosakata British-American',
+  sections:[
+    pronSec('1. Panjang Vokal /ɑː/ (British) vs /æ/ (American)', `Di beberapa kata, British menggunakan vokal panjang <b>/ɑː/</b>, sementara American memakai <b>/æ/</b> yang lebih pendek.`),
+    pronSec('Contoh /ɑː/ (British) vs /æ/ (American)', pronChips([
+      ['dance (Br)','dɑːns'],['dance (Am)','dæns'],['path (Br)','pɑːθ'],['path (Am)','pæθ'],
+      ['mask (Br)','mɑːsk'],['mask (Am)','mæsk'],['laugh (Br)','lɑːf'],['laugh (Am)','læf'],
+      ['half (Br)','hɑːf'],['half (Am)','hæf'],['bath (Br)','bɑːθ'],['bath (Am)','bæθ'],
+      ['aunt (Br)','ɑːnt'],['aunt (Am)','ænt'],["can't (Br)",'kɑːnt'],["can't (Am)",'kænt'],['last (Br)','lɑːst'],['last (Am)','læst']
+    ])),
+    pronSec('2. /ɒ/ (British) vs /ɑ/ (American)', `Untuk beberapa kata dengan ejaan "o", British memakai bunyi bulat pendek <b>/ɒ/</b>, sedangkan American memakai <b>/ɑ/</b>.` + pronChips([
+      ['cot (Br)','kɒt'],['cot (Am)','kɑt'],['hot (Br)','hɒt'],['hot (Am)','hɑt'],
+      ['lot (Br)','lɒt'],['lot (Am)','lɑt'],['rock (Br)','rɒk'],['rock (Am)','rɑk'],
+      ['what (Br)','wɒt'],['what (Am)','wʌt']
+    ])),
+    pronSec('3. Pengucapan Huruf "U" Setelah Konsonan Tertentu (Yod)', `Dalam British English, bunyi <b>/j/</b> (kayak "y") tetap muncul setelah konsonan seperti T, D, N, S sebelum huruf U — sementara di American English bunyi /j/ ini biasanya <b>hilang</b> (disebut "yod-dropping").`),
+    pronSec('Contoh Yod-Dropping', pronChips([
+      ['new (Br)','njuː'],['new (Am)','nuː'],['tune (Br)','tjuːn'],['tune (Am)','tuːn'],
+      ['duty (Br)','ˈdjuːti'],['duty (Am)','ˈduːti'],['student (Br)','ˈstjuːdənt'],['student (Am)','ˈstuːdənt'],
+      ['Tuesday (Br)','ˈtjuːzdeɪ'],['Tuesday (Am)','ˈtuːzdeɪ']
+    ])),
+    pronSec('4. Perbedaan Ejaan: -or/-our, -er/-re, -ize/-ise', `British: <b>-our</b> (colour, favour, labour, honour, neighbour) vs American <b>-or</b> (color, favor, labor, honor, neighbor).<br>British: <b>-re</b> (centre, metre, theatre, litre) vs American <b>-er</b> (center, meter, theater, liter).<br>British: <b>-ise</b> (realise, organise, apologise, minimise, analyse) vs American <b>-ize</b> (realize, organize, apologize, minimize, analyze). Catatan: British kadang juga masih pakai -ize untuk beberapa kata.<br>British: <b>-isation</b> (organisation, globalisation) vs American <b>-ization</b> (organization, globalization).`),
+    pronSec('Perbedaan Ejaan Lainnya', `British <b>dialogue, catalogue, analogue</b> vs American <b>dialog, catalog, analog</b>.<br>British menghilangkan "a" di beberapa kata: <b>anaesthesia, archaeology, haemoglobin, leukaemia, anaemia</b> vs American <b>anesthesia, archeology, hemoglobin, leukemia, anemia</b>.<br>British menggandakan konsonan sebelum akhiran: <b>travelled, modelled, cancelled, labelled, focussed</b> vs American <b>traveled, modeled, canceled, labeled, focused</b>.<br>British <b>-our vs -or</b> di akhiran seperti judgement (British juga tulis judgment), colour vs color, favourite vs favorite.<br>Ejaan lain: British <b>grey, doughnut, moustache, pyjamas, cheque, aeroplane, mum, aluminium, programme, kilogramme, dependant (kata benda)</b> vs American <b>gray, donut, mustache, pajamas, check, airplane, mom, aluminum, program, kilogram, dependent</b>.`),
+    pronSec('5. Pilihan Kosakata Berbeda (Word Choice)', `<table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="background:rgba(0,0,0,0.04);"><th style="text-align:left;padding:4px 6px;">British</th><th style="text-align:left;padding:4px 6px;">American</th></tr>
+      <tr><td style="padding:3px 6px;">torch</td><td style="padding:3px 6px;">flashlight</td></tr>
+      <tr><td style="padding:3px 6px;">biscuits</td><td style="padding:3px 6px;">cookies</td></tr>
+      <tr><td style="padding:3px 6px;">trainers</td><td style="padding:3px 6px;">sneakers</td></tr>
+      <tr><td style="padding:3px 6px;">sweets</td><td style="padding:3px 6px;">candy</td></tr>
+      <tr><td style="padding:3px 6px;">holiday</td><td style="padding:3px 6px;">vacation</td></tr>
+      <tr><td style="padding:3px 6px;">rubbish bin</td><td style="padding:3px 6px;">trash can</td></tr>
+      <tr><td style="padding:3px 6px;">postman</td><td style="padding:3px 6px;">mailman</td></tr>
+      <tr><td style="padding:3px 6px;">mobile phone</td><td style="padding:3px 6px;">cell phone</td></tr>
+      <tr><td style="padding:3px 6px;">petrol</td><td style="padding:3px 6px;">gasoline</td></tr>
+      <tr><td style="padding:3px 6px;">trousers</td><td style="padding:3px 6px;">pants</td></tr>
+      <tr><td style="padding:3px 6px;">pavement</td><td style="padding:3px 6px;">sidewalk</td></tr>
+      <tr><td style="padding:3px 6px;">motorway</td><td style="padding:3px 6px;">freeway</td></tr>
+      <tr><td style="padding:3px 6px;">car park</td><td style="padding:3px 6px;">parking lot</td></tr>
+      <tr><td style="padding:3px 6px;">flat</td><td style="padding:3px 6px;">apartment</td></tr>
+      <tr><td style="padding:3px 6px;">ground floor</td><td style="padding:3px 6px;">first floor</td></tr>
+      <tr><td style="padding:3px 6px;">lift</td><td style="padding:3px 6px;">elevator</td></tr>
+      <tr><td style="padding:3px 6px;">jumper</td><td style="padding:3px 6px;">sweater</td></tr>
+      <tr><td style="padding:3px 6px;">chips</td><td style="padding:3px 6px;">french fries</td></tr>
+      <tr><td style="padding:3px 6px;">crisps</td><td style="padding:3px 6px;">potato chips</td></tr>
+      <tr><td style="padding:3px 6px;">maize</td><td style="padding:3px 6px;">corn</td></tr>
+      <tr><td style="padding:3px 6px;">headmaster</td><td style="padding:3px 6px;">principal</td></tr>
+      <tr><td style="padding:3px 6px;">lorry</td><td style="padding:3px 6px;">truck</td></tr>
+      <tr><td style="padding:3px 6px;">wardrobe</td><td style="padding:3px 6px;">closet</td></tr>
+      <tr><td style="padding:3px 6px;">autumn</td><td style="padding:3px 6px;">fall</td></tr>
+      </table>`),
+    pronSec('📖 Contoh Percakapan: Kata Khas British', `Cooper: <i>At least we have some creativity with our expletives. All you exploitives for you guys? "It's <mark>bloody</mark>" this, "It's a car or a gangster's" going to rob a bank!</i><br>Betty: <i>Well, at least we don't call the trunk of a car a "<mark>boot</mark>". Sounds like you're admitting the way you guys "schedule" so awesome, isn't it?</i><br>Cooper: <i>Awesome? The Grand Canyon? Awesome! All you creativity with our expletives, All you guys have "<mark>realise</mark>" it or "recognise" it in this organisation?</i><br><br><i>Kata yang ditandai adalah kosakata & ejaan khas British — "bloody" (kata seru khas British), "boot" (bahasa British untuk bagasi mobil / trunk), "realise" (ejaan British dari "realize").</i>`)
+  ]
+},
+{
+  id:'gb-grammar',
+  title:'5. Grammar British: Auxiliaries, Present Perfect, & Have Got',
+  sections:[
+    pronSec('1. Auxiliaries & Modals: Shall vs Will', `British lebih sering pakai modal <b>"shall"</b> di posisi subjek "I"/"we", sementara American lebih sering pakai <b>"will"</b> atau <b>"need to"</b>.`),
+    pronSec('Contoh: Shall vs Will/Need to', `British: <i>"She's got to wake up as soon as possible."</i> American: <i>"She has to wake up as soon as possible."</i><br>British: <i>"You've got to do it as soon as possible."</i> American: <i>"You need to do it as soon as possible."</i><br>British: <i>"They needn't come to school today."</i> American: <i>"They don't need to come to school today."</i><br>British: <i>"Shall I stay or should I go?"</i> American: <i>"What time will we leave?"</i><br>British: <i>"We shan't overcome it."</i> American: <i>"We won't overcome it."</i>`),
+    pronSec('2. Present Perfect vs Simple Past', `British lebih suka pakai <b>Present Perfect</b> untuk kejadian yang baru saja terjadi & masih berhubungan dengan sekarang, apalagi dengan kata "just", "already", "yet". American lebih fleksibel, sering pakai <b>Simple Past</b> untuk situasi yang sama.`),
+    pronSec('Contoh: Present Perfect vs Simple Past', `British: <i>"She hasn't arrived yet."</i> American: <i>"She hasn't arrived yet."</i> (atau bisa: <i>"Did she arrive yet?"</i>)<br>British: <i>"I've just had the sandwich already."</i> American: <i>"I have the sandwich already."</i><br>British: <i>"Tiana has just gone home."</i> American: <i>"Tiana just went home."</i><br>British: <i>"I had had the sandwich already."</i> American: <i>"I already had the sandwich."</i>`),
+    pronSec('3. Have Got / Has Got vs Have/Has', `Untuk menunjukkan kepemilikan, British sering menambahkan <b>"got"</b> setelah have/has, sedangkan American biasanya cukup pakai have/has saja.`),
+    pronSec('Contoh: Have Got vs Have', `British: <i>"Dr. Arasy has got two cars at home."</i> American: <i>"Dr. Arasy has two cars at home."</i><br>British: <i>"Adzan and Noureen haven't got any pets."</i> American: <i>"Adzan and Noureen do not have any pets."</i><br>British: <i>"Has Fareedan got some water?"</i> American: <i>"Does Fareedan have some water?"</i><br>British: <i>"My family have got two cars at home."</i> American: <i>"My family has two cars at home."</i>`),
+    pronSec('4. Collective Nouns (Kata Benda Kolektif)', `Kata benda kolektif (noun yang mewakili sekelompok orang/benda, contoh: team, family, government) di British English dianggap sebagai <b>kelompok individu</b> — jadi kata kerjanya bentuk <b>jamak</b>. Di American English, collective noun dianggap sebagai satu kesatuan tunggal (unified whole) — jadi kata kerjanya bentuk <b>tunggal</b>.`),
+    pronSec('Contoh: Collective Noun', `British: <i>"The government have taken over the project."</i> American: <i>"The government has taken over the project."</i><br>British: <i>"My family are in abroad."</i> American: <i>"My family is in abroad."</i><br>British: <i>"The team are on the way."</i> American: <i>"The team is on the way."</i>`)
+  ]
+}
+];
+
+function pronunChapters(accent){ return accent === 'british' ? PRONUN_BRITISH : PRONUN_AMERICAN; }
+function pronunFindChapter(accent, id){ return pronunChapters(accent).find(c=> c.id === id); }
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderPronunciationIntro(){
+  clearTimer();
+  statusVal.textContent = "PRONUNCIATION";
+  setPresenceStatus('idle');
+  setPresenceMode('Materi Pronunciation (menu)');
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag" style="background:#0ea5e9;color:#fff;">🗣️ PRONUNCIATION</div>
+      <h1 class="intro-title">Mau belajar aksen yang mana?</h1>
+      <p class="intro-desc">Materi cara baca & lafal Bahasa Inggris, dipisah menurut aksen. Tap kata yang ada tanda 🔊 buat dengar cara bacanya langsung dari HP-mu.</p>
+      <div class="pron-accent-row">
+        <button type="button" class="pron-accent-tile american" data-accent="american">
+          <span class="pa-flag">🇺🇸</span>
+          <span class="pa-label">American</span>
+          <span class="pa-sub">${PRONUN_AMERICAN.length} materi</span>
+        </button>
+        <span class="pron-vs">VS</span>
+        <button type="button" class="pron-accent-tile british" data-accent="british">
+          <span class="pa-flag">🇬🇧</span>
+          <span class="pa-label">British</span>
+          <span class="pa-sub">${PRONUN_BRITISH.length} materi</span>
+        </button>
+      </div>
+      <button class="btn ghost" id="pronBackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>
+  `;
+  document.getElementById('pronBackBtn').onclick = ()=> renderBelajarSubmenu();
+  document.querySelectorAll('[data-accent]').forEach(btn=>{
+    btn.onclick = ()=>{ pronAccent = btn.dataset.accent; renderPronunciationList(); };
+  });
+}
+
+function renderPronunciationList(){
+  clearTimer();
+  const accent = pronAccent;
+  statusVal.textContent = "PRONUNCIATION";
+  setPresenceStatus('idle');
+  setPresenceMode('Materi Pronunciation: ' + (accent === 'british' ? 'British' : 'American'));
+  const chapters = pronunChapters(accent);
+  const flag = accent === 'british' ? '🇬🇧' : '🇺🇸';
+  const label = accent === 'british' ? 'British' : 'American';
+  const color = accent === 'british' ? '#ED4956' : '#0095F6';
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:${color};color:#fff;">${flag} ${label.toUpperCase()}</div>
+      <h1 class="intro-title" style="font-size:19px;">Materi ${label} Pronunciation</h1>
+      <p class="intro-desc" style="font-size:12px;">Pilih materi di bawah buat mulai baca.</p>
+      <div class="day-grid">
+        ${chapters.map(c=>`
+          <button class="day-btn" data-cid="${escapeHtmlIdx(c.id)}" type="button">
+            <div class="dnum">MATERI</div>
+            <div class="dtitle">${escapeHtmlIdx(c.title)}</div>
+          </button>
+        `).join('')}
+      </div>
+      <button class="btn ghost" id="pronListBackBtn" style="margin-top:14px;">← Ganti Aksen</button>
+    </div>
+  `;
+  document.getElementById('pronListBackBtn').onclick = ()=> renderPronunciationIntro();
+  document.querySelectorAll('[data-cid]').forEach(btn=>{
+    btn.onclick = ()=> renderPronunciationDetail(accent, btn.dataset.cid);
+  });
+}
+
+function renderPronunciationDetail(accent, chapterId){
+  clearTimer();
+  const chapter = pronunFindChapter(accent, chapterId);
+  if(!chapter){ renderPronunciationList(); return; }
+  statusVal.textContent = "PRONUNCIATION";
+  setPresenceStatus('idle');
+  setPresenceMode('Membaca Materi Pronunciation: ' + chapter.title);
+  const flag = accent === 'british' ? '🇬🇧' : '🇺🇸';
+  const color = accent === 'british' ? '#ED4956' : '#0095F6';
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:${color};color:#fff;">${flag} ${accent==='british'?'BRITISH':'AMERICAN'}</div>
+      <h1 class="intro-title" style="font-size:18px;">${escapeHtmlIdx(chapter.title)}</h1>
+      <p class="intro-desc" style="font-size:11.5px;">Tap kata yang bertanda 🔊 buat dengar cara bacanya.</p>
+      <div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:4px;max-height:62vh;overflow-y:auto;padding-right:2px;">
+        ${chapter.sections.map(s=>`
+          <div style="padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;">
+            <div style="font-weight:800;font-size:13.5px;margin-bottom:6px;color:var(--ink);">${escapeHtmlIdx(s.title)}</div>
+            <div class="pron-story" style="font-size:12.5px;line-height:1.75;opacity:0.92;">${s.body}</div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn ghost" id="pronDetailBackBtn" style="margin-top:14px;">← Kembali ke Daftar Materi</button>
+    </div>
+  `;
+  document.getElementById('pronDetailBackBtn').onclick = ()=> renderPronunciationList();
+  document.querySelectorAll('.pron-chip').forEach(btn=>{
+    btn.onclick = ()=> speakPronunWord(btn.dataset.word, accent, btn);
+  });
+}
 
 </script>
 </body>
