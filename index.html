@@ -442,6 +442,20 @@
   .pron-vs{font-weight:900;font-size:14px;color:rgba(38,38,38,0.4);flex-shrink:0;}
   .pron-story mark{background:rgba(237,73,86,0.18);color:var(--ink);border-radius:3px;padding:0 2px;font-weight:800;}
 
+  /* Hafalan Simbol Pronunciation (Monophthongs/Diphthongs/Voiceless/Voiced) */
+  .pron-sym-cat-btn{width:100%;background:#fff;border:1.6px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;text-align:left;font-family:'Nunito',sans-serif;margin-bottom:10px;}
+  .pron-sym-cat-btn:active{transform:scale(0.98);}
+  .pron-sym-cat-emoji{font-size:22px;flex-shrink:0;}
+  .pron-sym-cat-title{font-weight:800;font-size:13.5px;color:var(--ink);}
+  .pron-sym-cat-sub{font-weight:600;font-size:11px;color:rgba(38,38,38,0.55);margin-top:2px;}
+  .pron-sym-tabs{display:flex;gap:8px;width:100%;margin:2px 0 10px;}
+  .pron-sym-tab{flex:1;padding:9px 4px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:800;font-size:11.5px;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--ink);}
+  .pron-sym-tab.active{border-color:var(--red);color:var(--red);background:rgba(237,73,86,0.08);}
+  .pron-sym-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:14px;}
+  .pron-sym-table th{text-align:left;padding:6px;background:rgba(0,0,0,0.04);font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:0.03em;color:rgba(38,38,38,0.55);}
+  .pron-sym-table td{padding:7px 6px;border-top:1px solid var(--line);vertical-align:middle;}
+  .pron-sym-table .pron-sym-cell{font-weight:900;font-size:15px;color:var(--red-dim);white-space:nowrap;}
+
   /* 16 Tenses (hafalan lagu) */
   .tenses-wrap{width:100%;text-align:left;}
   .tenses-group{background:#FFFFFF;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
@@ -16076,6 +16090,13 @@ function renderPronunciationIntro(){
       <div class="section-tag" style="background:#0ea5e9;color:#fff;">🗣️ PRONUNCIATION</div>
       <h1 class="intro-title">Mau belajar aksen yang mana?</h1>
       <p class="intro-desc">Materi cara baca & lafal Bahasa Inggris, dipisah menurut aksen. Tap kata yang ada tanda 🔊 buat dengar cara bacanya langsung dari HP-mu.</p>
+      <button type="button" class="pron-sym-cat-btn" id="pronSymEntryBtn" style="margin-top:2px;border-color:#0ea5e9;">
+        <span class="pron-sym-cat-emoji">🃏</span>
+        <span>
+          <div class="pron-sym-cat-title">1. Hafalan Simbol Pronunciation</div>
+          <div class="pron-sym-cat-sub">Tabel Diphthongs, Monophthongs, Voiceless & Voiced (American & British)</div>
+        </span>
+      </button>
       <div class="pron-accent-row">
         <button type="button" class="pron-accent-tile american" data-accent="american">
           <span class="pa-flag">🇺🇸</span>
@@ -16093,6 +16114,7 @@ function renderPronunciationIntro(){
     </div>
   `;
   document.getElementById('pronBackBtn').onclick = ()=> renderBelajarSubmenu();
+  document.getElementById('pronSymEntryBtn').onclick = ()=> renderPronunSymbolHafalan();
   document.querySelectorAll('[data-accent]').forEach(btn=>{
     btn.onclick = ()=>{ pronAccent = btn.dataset.accent; renderPronunciationList(); };
   });
@@ -16158,6 +16180,136 @@ function renderPronunciationDetail(accent, chapterId){
   document.getElementById('pronDetailBackBtn').onclick = ()=> renderPronunciationList();
   document.querySelectorAll('.pron-chip').forEach(btn=>{
     btn.onclick = ()=> speakPronunWord(btn.dataset.word, accent, btn);
+  });
+}
+
+/* ============================================================
+   MODE HAFALAN — SIMBOL PRONUNCIATION
+   (Monophthongs, Diphthongs, Voiceless & Voiced Consonants)
+   American & British — cuma buat dihafal, gak ada nilai/soal.
+   ============================================================ */
+const PRONUN_SYM_DATA = {
+  monophthongs: {
+    american: [
+      ['i','see','si'],['ɪ','sit','sɪt'],['ɛ','bed','bɛd'],['æ','cat','kæt'],
+      ['ʌ','cup','kʌp'],['ɑ','stop','stɑp'],['ɔ','law','lɔ'],['u','food','fud'],
+      ['ʊ','book','bʊk'],['ə','about','əˈbaʊt'],['ɚ','bird','bɚd']
+    ],
+    british: [
+      ['iː','see','siː'],['ɪ','sit','sɪt'],['e','bed','bed'],['æ','cat','kæt'],
+      ['ʌ','cup','kʌp'],['ɑː','glass','glɑːs'],['ɒ','lot','lɒt'],['ɔː','chalk','tʃɔːk'],
+      ['ʊ','book','bʊk'],['uː','food','fuːd'],['ɜː','bird','bɜːd'],['ə','better','ˈbetə']
+    ]
+  },
+  diphthongs: {
+    american: [
+      ['eɪ','day','deɪ'],['aɪ','eye','aɪ'],['ɔɪ','boy','bɔɪ'],['aʊ','now','naʊ'],['oʊ','go','goʊ']
+    ],
+    british: [
+      ['eɪ','day','deɪ'],['aɪ','eye','aɪ'],['ɔɪ','boy','bɔɪ'],['aʊ','now','naʊ'],
+      ['əʊ','go','gəʊ'],['ɪə','here','hɪə'],['eə','hair','heə'],['ʊə','tour','tʊə']
+    ]
+  },
+  voiceless: [
+    ['p','pen','pɛn'],['t','tea','tiː'],['k','cat','kæt'],['f','fish','fɪʃ'],['θ','think','θɪŋk'],
+    ['s','see','siː'],['ʃ','shape','ʃeɪp'],['tʃ','chair','tʃɛr'],['h','hat','hæt']
+  ],
+  voiced: [
+    ['b','book','bʊk'],['d','dog','dɒg'],['g','go','goʊ'],['v','van','væn'],['ð','this','ðɪs'],
+    ['z','zoo','zuː'],['ʒ','vision','ˈvɪʒən'],['dʒ','jump','dʒʌmp'],['m','man','mæn'],['n','no','noʊ'],
+    ['ŋ','sing','sɪŋ'],['l','leg','lɛg'],['r','red','rɛd'],['w','we','wiː'],['j','yes','jɛs']
+  ]
+};
+
+const PRONUN_SYM_CATS = [
+  { id:'monophthongs', emoji:'🔵', title:'1. Monophthongs (Vokal Tunggal)', sub:'11 simbol American, 12 simbol British', hasAccent:true },
+  { id:'diphthongs', emoji:'🔀', title:'2. Diphthongs (Vokal Rangkap)', sub:'5 simbol American, 8 simbol British', hasAccent:true },
+  { id:'voiceless', emoji:'🌬️', title:'3. Voiceless Consonants', sub:'9 simbol — sama buat American & British', hasAccent:false },
+  { id:'voiced', emoji:'🎤', title:'4. Voiced Consonants', sub:'15 simbol — sama buat American & British', hasAccent:false }
+];
+
+let pronSymAccent = 'american';
+
+function pronunFindSymCat(id){ return PRONUN_SYM_CATS.find(c=> c.id === id); }
+
+function renderPronunSymbolHafalan(){
+  clearTimer();
+  statusVal.textContent = "PRONUNCIATION";
+  setPresenceStatus('idle');
+  setPresenceMode('Hafalan Simbol Pronunciation (menu)');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#0ea5e9;color:#fff;">🃏 HAFALAN SIMBOL</div>
+      <h1 class="intro-title" style="font-size:19px;">Hafalan Simbol Pronunciation</h1>
+      <p class="intro-desc" style="font-size:12px;">Tabel simbol fonetik IPA buat dihafal — Monophthongs, Diphthongs, Voiceless & Voiced Consonants (American & British). Gak ada nilai, tap kata buat dengar cara bacanya.</p>
+      <div style="width:100%;margin-top:4px;">
+        ${PRONUN_SYM_CATS.map(c=>`
+          <button type="button" class="pron-sym-cat-btn" data-symcat="${c.id}">
+            <span class="pron-sym-cat-emoji">${c.emoji}</span>
+            <span>
+              <div class="pron-sym-cat-title">${escapeHtmlIdx(c.title)}</div>
+              <div class="pron-sym-cat-sub">${escapeHtmlIdx(c.sub)}</div>
+            </span>
+          </button>
+        `).join('')}
+      </div>
+      <button class="btn ghost" id="pronSymBackBtn" style="margin-top:6px;">← Kembali</button>
+    </div>
+  `;
+  document.getElementById('pronSymBackBtn').onclick = ()=> renderPronunciationIntro();
+  document.querySelectorAll('[data-symcat]').forEach(btn=>{
+    btn.onclick = ()=> renderPronunSymbolTable(btn.dataset.symcat);
+  });
+}
+
+function pronSymTableHtml(rows){
+  return `
+    <table class="pron-sym-table">
+      <tr><th style="width:16%;">No</th><th style="width:26%;">Simbol</th><th>Contoh Kata</th></tr>
+      ${rows.map((r,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td class="pron-sym-cell">/${escapeHtmlIdx(r[0])}/</td>
+          <td>${pronChip(r[1], r[2])}</td>
+        </tr>
+      `).join('')}
+    </table>
+  `;
+}
+
+function renderPronunSymbolTable(catId){
+  clearTimer();
+  const cat = pronunFindSymCat(catId);
+  if(!cat){ renderPronunSymbolHafalan(); return; }
+  statusVal.textContent = "PRONUNCIATION";
+  setPresenceStatus('idle');
+  setPresenceMode('Hafalan Simbol: ' + cat.title);
+  const accent = pronSymAccent;
+  const rows = cat.hasAccent ? PRONUN_SYM_DATA[catId][accent] : PRONUN_SYM_DATA[catId];
+  const tabLabels = cat.hasAccent
+    ? ['🇺🇸 American','🇬🇧 British']
+    : ['🇺🇸 Dengar American','🇬🇧 Dengar British'];
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#0ea5e9;color:#fff;">🃏 HAFALAN SIMBOL</div>
+      <h1 class="intro-title" style="font-size:17px;">${escapeHtmlIdx(cat.title)}</h1>
+      <p class="intro-desc" style="font-size:11.5px;">${cat.hasAccent ? 'Simbolnya beda antar aksen — pilih aksen buat ganti tabelnya.' : 'Simbolnya sama buat American & British, cuma beda gaya baca aja.'} Tap kata buat dengar suaranya.</p>
+      <div style="width:100%;max-height:56vh;overflow-y:auto;padding-right:2px;">
+        <div class="pron-sym-tabs">
+          <button type="button" class="pron-sym-tab ${accent==='american'?'active':''}" data-symaccent="american">${tabLabels[0]}</button>
+          <button type="button" class="pron-sym-tab ${accent==='british'?'active':''}" data-symaccent="british">${tabLabels[1]}</button>
+        </div>
+        ${pronSymTableHtml(rows)}
+      </div>
+      <button class="btn ghost" id="pronSymTableBackBtn" style="margin-top:12px;">← Kembali ke Kategori</button>
+    </div>
+  `;
+  document.getElementById('pronSymTableBackBtn').onclick = ()=> renderPronunSymbolHafalan();
+  document.querySelectorAll('[data-symaccent]').forEach(btn=>{
+    btn.onclick = ()=>{ pronSymAccent = btn.dataset.symaccent; renderPronunSymbolTable(catId); };
+  });
+  document.querySelectorAll('.pron-chip').forEach(btn=>{
+    btn.onclick = ()=> speakPronunWord(btn.dataset.word, pronSymAccent, btn);
   });
 }
 
