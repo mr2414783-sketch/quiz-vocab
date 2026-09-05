@@ -455,6 +455,14 @@
   .pron-sym-table th{text-align:left;padding:6px;background:rgba(0,0,0,0.04);font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:0.03em;color:rgba(38,38,38,0.55);}
   .pron-sym-table td{padding:7px 6px;border-top:1px solid var(--line);vertical-align:middle;}
   .pron-sym-table .pron-sym-cell{font-weight:900;font-size:15px;color:var(--red-dim);white-space:nowrap;}
+  .pron-sym-speak-btn{
+    display:inline-flex;align-items:center;justify-content:center;margin-left:6px;
+    width:24px;height:24px;border-radius:999px;border:1.3px solid var(--green);
+    background:rgba(63,145,66,0.1);color:var(--green);font-size:11px;cursor:pointer;
+    vertical-align:middle;transition:transform .1s, background .15s;
+  }
+  .pron-sym-speak-btn:active{transform:scale(0.9);background:rgba(63,145,66,0.22);}
+  .pron-sym-speak-btn.playing{opacity:0.55;}
 
   /* 16 Tenses (hafalan lagu) */
   .tenses-wrap{width:100%;text-align:left;}
@@ -8221,7 +8229,7 @@ function renderLainnyaSubmenu(onBack){
 
       <button class="btn ghost" id="lainnyaKamusBtn" style="margin-top:2px;border-color:#0ea5e9;color:#0369a1;">🔍 Kamus Kosakata</button>
       <button class="btn ghost" id="lainnyaMusicBtn" style="border-color:#1DB954;color:#1a9c47;">🎵 Dengarkan Musik</button>
-      <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Kami</button>
+      <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Aku</button>
 
       <button class="btn ghost" id="backToModeSelectBtnLainnya" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -8240,14 +8248,17 @@ function renderLainnyaSubmenu(onBack){
 /* ---------------- TENTANG KAMI (placeholder — cerita di balik aplikasi ini, menyusul) ---------------- */
 function renderTentangKami(onBack){
   clearTimer();
-  statusVal.textContent = "TENTANG KAMI";
+  statusVal.textContent = "TENTANG AKU";
   setPresenceStatus('idle');
   card.innerHTML = `
     <div class="center-stack">
-      <div class="section-tag" style="background:#ec4899;color:#fff;">💌 TENTANG KAMI</div>
+      <div class="section-tag" style="background:#ec4899;color:#fff;">💌 TENTANG AKU</div>
       <img class="credit-avatar" style="width:88px;height:88px;border-radius:50%;margin:8px 0;" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
       <h1 class="intro-title">Cerita di Balik Aplikasi Ini</h1>
-      <p class="intro-desc">Halaman ini masih dalam penyusunan — ceritanya bakal ditambahkan menyusul oleh pembuatnya. 🙏</p>
+      <p class="intro-desc" style="font-size:12.5px;line-height:1.7;text-align:left;">Jujur aja, awalnya aplikasi ini aku bikin buat diri sendiri. Ceritanya, aku ikut kelas di <b>Kampung Inggris Language Center (KILC)</b>, dan kayak yang biasa dialamin — bukunya nggak selalu kebawa ke mana-mana, sementara materi yang difoto satu-satu malah numpuk dan acak, jadi males bukanya lagi.</p>
+      <p class="intro-desc" style="font-size:12.5px;line-height:1.7;text-align:left;">Dari situ kepikiran, gimana caranya biar aku bisa gampang review lagi materi yang udah diajarin, kapan aja dan di mana aja, tanpa harus buka-buka foto atau bawa buku. Jadilah Daily English ini — awalnya cuma buat bantu aku sendiri hafalan ulang.</p>
+      <p class="intro-desc" style="font-size:12.5px;line-height:1.7;text-align:left;">Terus kepikiran juga, kalau ini berguna buat aku, mungkin berguna juga buat temen-temen yang sama-sama belajar di KILC. Jadi aku putusin buat share web ini biar bisa dipakai bareng-bareng, siapa tau bisa bantu kalian juga buat inget-inget lagi materi dan vocab yang sudah dipelajari.</p>
+      <p class="intro-desc" style="font-size:12.5px;line-height:1.7;text-align:left;">Aplikasi ini juga masih terus aku kembangin pelan-pelan. Kalau ada saran, masukan, atau nemu bug/error, jangan ragu buat DM aku ya lewat Instagram. Makasih banyak udah mau nyobain! 🙏</p>
       <div class="credit-box">
         <img class="credit-avatar" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
         <div class="credit-text">
@@ -12496,7 +12507,8 @@ function speakMateriSimple(text, btnEl){
         // Buang tanda baca nyisa di ujung-ujung potongan (misal ", " di depan atau ". " di belakang)
         // supaya tiap utterance mulai & berakhir di kata, bukan di tanda baca yang bisa kebaca aneh.
         const cleaned = s.text.replace(/^[\s,.\-;:()"'!?]+/, '').replace(/[\s,.\-;:()"'!?]+$/, '');
-        const u = new SpeechSynthesisUtterance(cleaned || s.text);
+        const finalText = cleaned || s.text;
+        const u = new SpeechSynthesisUtterance(s.lang === 'en-US' ? ttsRespell(finalText) : finalText);
         u.lang = s.lang;
         u.rate = s.lang === 'en-US' ? 0.9 : 0.95;
         return u;
@@ -14161,7 +14173,7 @@ function speakFlashWord(text, btnEl){
   try{
     if(typeof speechSynthesis === 'undefined' || !text) return;
     speechSynthesis.cancel(); // hentikan suara sebelumnya biar gak numpuk
-    const utter = new SpeechSynthesisUtterance(text);
+    const utter = new SpeechSynthesisUtterance(ttsRespell(text));
     utter.lang = 'en-US';
     utter.rate = 0.85; // sedikit lebih pelan biar jelas cara bacanya
     if(btnEl){
@@ -15413,11 +15425,43 @@ function pronChips(pairs){
 }
 function pronSec(title, body){ return { title, body }; }
 
+/* ============================================================
+   PERBAIKAN LAFAL TTS — kata yang secara alami "t"/huruf tertentu-nya
+   samar/gak dibunyikan penuh di American English kasual (misal:
+   "internet" dibaca "innernet", bukan di-eja lengkap). Ini cuma
+   ngaruh ke SUARA yang diucapkan, teks yang ditampilkan tetap
+   normal apa adanya. Tinggal tambahin key baru kalau nemu kata
+   lain yang kebaca kaku/gak natural.
+   ============================================================ */
+const TTS_RESPELL_MAP = {
+  'internet': 'innernet',
+  'international': 'innernational',
+  'interrupt': 'innerrupt',
+  'twenty': 'twenny',
+  'painting': 'paining',
+  'mountain': 'mountn',
+  'mountains': 'mountnz',
+  'wanted': 'wanned',
+  'printer': 'prinner',
+  'sentence': 'sennence',
+  'center': 'senner'
+};
+function ttsRespell(text){
+  if(!text) return text;
+  let out = text;
+  Object.keys(TTS_RESPELL_MAP).forEach(key=>{
+    const re = new RegExp('\\b' + key + '\\b', 'gi');
+    out = out.replace(re, TTS_RESPELL_MAP[key]);
+  });
+  return out;
+}
+
 function speakPronunWord(word, accent, btnEl){
   try{
     if(typeof speechSynthesis === 'undefined' || !word) return;
     speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(word);
+    const spokenText = accent === 'british' ? word : ttsRespell(word);
+    const utter = new SpeechSynthesisUtterance(spokenText);
     utter.lang = accent === 'british' ? 'en-GB' : 'en-US';
     utter.rate = 0.85;
     if(btnEl){
@@ -16191,33 +16235,33 @@ function renderPronunciationDetail(accent, chapterId){
 const PRONUN_SYM_DATA = {
   monophthongs: {
     american: [
-      ['i','see','si'],['ɪ','sit','sɪt'],['ɛ','bed','bɛd'],['æ','cat','kæt'],
-      ['ʌ','cup','kʌp'],['ɑ','stop','stɑp'],['ɔ','law','lɔ'],['u','food','fud'],
-      ['ʊ','book','bʊk'],['ə','about','əˈbaʊt'],['ɚ','bird','bɚd']
+      ['i','see','si','ee'],['ɪ','sit','sɪt','ih'],['ɛ','bed','bɛd','eh'],['æ','cat','kæt','a'],
+      ['ʌ','cup','kʌp','uh'],['ɑ','stop','stɑp','ah'],['ɔ','law','lɔ','aw'],['u','food','fud','oo'],
+      ['ʊ','book','bʊk','uu'],['ə','about','əˈbaʊt','uh'],['ɚ','bird','bɚd','er']
     ],
     british: [
-      ['iː','see','siː'],['ɪ','sit','sɪt'],['e','bed','bed'],['æ','cat','kæt'],
-      ['ʌ','cup','kʌp'],['ɑː','glass','glɑːs'],['ɒ','lot','lɒt'],['ɔː','chalk','tʃɔːk'],
-      ['ʊ','book','bʊk'],['uː','food','fuːd'],['ɜː','bird','bɜːd'],['ə','better','ˈbetə']
+      ['iː','see','siː','ee'],['ɪ','sit','sɪt','ih'],['e','bed','bed','eh'],['æ','cat','kæt','a'],
+      ['ʌ','cup','kʌp','uh'],['ɑː','glass','glɑːs','ah'],['ɒ','lot','lɒt','o'],['ɔː','chalk','tʃɔːk','aw'],
+      ['ʊ','book','bʊk','uu'],['uː','food','fuːd','oo'],['ɜː','bird','bɜːd','er'],['ə','better','ˈbetə','uh']
     ]
   },
   diphthongs: {
     american: [
-      ['eɪ','day','deɪ'],['aɪ','eye','aɪ'],['ɔɪ','boy','bɔɪ'],['aʊ','now','naʊ'],['oʊ','go','goʊ']
+      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','eye'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],['oʊ','go','goʊ','oh']
     ],
     british: [
-      ['eɪ','day','deɪ'],['aɪ','eye','aɪ'],['ɔɪ','boy','bɔɪ'],['aʊ','now','naʊ'],
-      ['əʊ','go','gəʊ'],['ɪə','here','hɪə'],['eə','hair','heə'],['ʊə','tour','tʊə']
+      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','eye'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],
+      ['əʊ','go','gəʊ','oh'],['ɪə','here','hɪə','ear'],['eə','hair','heə','air'],['ʊə','tour','tʊə','oor']
     ]
   },
   voiceless: [
-    ['p','pen','pɛn'],['t','tea','tiː'],['k','cat','kæt'],['f','fish','fɪʃ'],['θ','think','θɪŋk'],
-    ['s','see','siː'],['ʃ','shape','ʃeɪp'],['tʃ','chair','tʃɛr'],['h','hat','hæt']
+    ['p','pen','pɛn','puh'],['t','tea','tiː','tuh'],['k','cat','kæt','kuh'],['f','fish','fɪʃ','fff'],['θ','think','θɪŋk','th (tak bersuara)'],
+    ['s','see','siː','sss'],['ʃ','shape','ʃeɪp','shh'],['tʃ','chair','tʃɛr','chh'],['h','hat','hæt','huh']
   ],
   voiced: [
-    ['b','book','bʊk'],['d','dog','dɒg'],['g','go','goʊ'],['v','van','væn'],['ð','this','ðɪs'],
-    ['z','zoo','zuː'],['ʒ','vision','ˈvɪʒən'],['dʒ','jump','dʒʌmp'],['m','man','mæn'],['n','no','noʊ'],
-    ['ŋ','sing','sɪŋ'],['l','leg','lɛg'],['r','red','rɛd'],['w','we','wiː'],['j','yes','jɛs']
+    ['b','book','bʊk','buh'],['d','dog','dɒg','duh'],['g','go','goʊ','guh'],['v','van','væn','vvv'],['ð','this','ðɪs','th (bersuara)'],
+    ['z','zoo','zuː','zzz'],['ʒ','vision','ˈvɪʒən','zhh'],['dʒ','jump','dʒʌmp','juh'],['m','man','mæn','mmm'],['n','no','noʊ','nnn'],
+    ['ŋ','sing','sɪŋ','ng'],['l','leg','lɛg','lll'],['r','red','rɛd','rrr'],['w','we','wiː','wuh'],['j','yes','jɛs','yuh']
   ]
 };
 
@@ -16265,11 +16309,13 @@ function renderPronunSymbolHafalan(){
 function pronSymTableHtml(rows){
   return `
     <table class="pron-sym-table">
-      <tr><th style="width:16%;">No</th><th style="width:26%;">Simbol</th><th>Contoh Kata</th></tr>
+      <tr><th style="width:30%;">Simbol</th><th>Contoh Kata</th></tr>
       ${rows.map((r,i)=>`
         <tr>
-          <td>${i+1}</td>
-          <td class="pron-sym-cell">/${escapeHtmlIdx(r[0])}/</td>
+          <td class="pron-sym-cell">
+            /${escapeHtmlIdx(r[0])}/
+            <button type="button" class="pron-sym-speak-btn" data-sound="${escapeHtmlIdx(r[3])}" title="Dengar bunyi simbolnya">🔊</button>
+          </td>
           <td>${pronChip(r[1], r[2])}</td>
         </tr>
       `).join('')}
@@ -16293,7 +16339,7 @@ function renderPronunSymbolTable(catId){
     <div class="center-stack" style="align-items:stretch;">
       <div class="section-tag" style="background:#0ea5e9;color:#fff;">🃏 HAFALAN SIMBOL</div>
       <h1 class="intro-title" style="font-size:17px;">${escapeHtmlIdx(cat.title)}</h1>
-      <p class="intro-desc" style="font-size:11.5px;">${cat.hasAccent ? 'Simbolnya beda antar aksen — pilih aksen buat ganti tabelnya.' : 'Simbolnya sama buat American & British, cuma beda gaya baca aja.'} Tap kata buat dengar suaranya.</p>
+      <p class="intro-desc" style="font-size:11.5px;">${cat.hasAccent ? 'Simbolnya beda antar aksen — pilih aksen buat ganti tabelnya.' : 'Simbolnya sama buat American & British, cuma beda gaya baca aja.'} Tap tombol 🔊 di kolom Simbol buat dengar perkiraan bunyi simbolnya sendiri, atau tap kata di kolom Contoh Kata buat dengar cara baca full katanya.</p>
       <div style="width:100%;max-height:56vh;overflow-y:auto;padding-right:2px;">
         <div class="pron-sym-tabs">
           <button type="button" class="pron-sym-tab ${accent==='american'?'active':''}" data-symaccent="american">${tabLabels[0]}</button>
@@ -16310,6 +16356,9 @@ function renderPronunSymbolTable(catId){
   });
   document.querySelectorAll('.pron-chip').forEach(btn=>{
     btn.onclick = ()=> speakPronunWord(btn.dataset.word, pronSymAccent, btn);
+  });
+  document.querySelectorAll('.pron-sym-speak-btn').forEach(btn=>{
+    btn.onclick = ()=> speakPronunWord(btn.dataset.sound, pronSymAccent, btn);
   });
 }
 
