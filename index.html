@@ -8229,7 +8229,7 @@ function renderLainnyaSubmenu(onBack){
 
       <button class="btn ghost" id="lainnyaKamusBtn" style="margin-top:2px;border-color:#0ea5e9;color:#0369a1;">🔍 Kamus Kosakata</button>
       <button class="btn ghost" id="lainnyaMusicBtn" style="border-color:#1DB954;color:#1a9c47;">🎵 Dengarkan Musik</button>
-      <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Aku</button>
+      <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Kami</button>
 
       <button class="btn ghost" id="backToModeSelectBtnLainnya" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -8248,17 +8248,14 @@ function renderLainnyaSubmenu(onBack){
 /* ---------------- TENTANG KAMI (placeholder — cerita di balik aplikasi ini, menyusul) ---------------- */
 function renderTentangKami(onBack){
   clearTimer();
-  statusVal.textContent = "TENTANG AKU";
+  statusVal.textContent = "TENTANG KAMI";
   setPresenceStatus('idle');
   card.innerHTML = `
     <div class="center-stack">
-      <div class="section-tag" style="background:#ec4899;color:#fff;">💌 TENTANG AKU</div>
+      <div class="section-tag" style="background:#ec4899;color:#fff;">💌 TENTANG KAMI</div>
       <img class="credit-avatar" style="width:88px;height:88px;border-radius:50%;margin:8px 0;" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
       <h1 class="intro-title">Cerita di Balik Aplikasi Ini</h1>
-      <p class="intro-desc" style="font-size:12.5px;line-height:1.7;text-align:left;">Jujur aja, awalnya aplikasi ini aku bikin buat diri sendiri. Ceritanya, aku ikut kelas di <b>Kampung Inggris Language Center (KILC)</b>, dan kayak yang biasa dialamin — bukunya nggak selalu kebawa ke mana-mana, sementara materi yang difoto satu-satu malah numpuk dan acak, jadi males bukanya lagi.</p>
-      <p class="intro-desc" style="font-size:12.5px;line-height:1.7;text-align:left;">Dari situ kepikiran, gimana caranya biar aku bisa gampang review lagi materi yang udah diajarin, kapan aja dan di mana aja, tanpa harus buka-buka foto atau bawa buku. Jadilah Daily English ini — awalnya cuma buat bantu aku sendiri hafalan ulang.</p>
-      <p class="intro-desc" style="font-size:12.5px;line-height:1.7;text-align:left;">Terus kepikiran juga, kalau ini berguna buat aku, mungkin berguna juga buat temen-temen yang sama-sama belajar di KILC. Jadi aku putusin buat share web ini biar bisa dipakai bareng-bareng, siapa tau bisa bantu kalian juga buat inget-inget lagi materi dan vocab yang sudah dipelajari.</p>
-      <p class="intro-desc" style="font-size:12.5px;line-height:1.7;text-align:left;">Aplikasi ini juga masih terus aku kembangin pelan-pelan. Kalau ada saran, masukan, atau nemu bug/error, jangan ragu buat DM aku ya lewat Instagram. Makasih banyak udah mau nyobain! 🙏</p>
+      <p class="intro-desc">Halaman ini masih dalam penyusunan — ceritanya bakal ditambahkan menyusul oleh pembuatnya. 🙏</p>
       <div class="credit-box">
         <img class="credit-avatar" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
         <div class="credit-text">
@@ -15456,20 +15453,29 @@ function ttsRespell(text){
   return out;
 }
 
+let _pronSpeechToken = 0;
 function speakPronunWord(word, accent, btnEl){
   try{
     if(typeof speechSynthesis === 'undefined' || !word) return;
+    // NOTE: cancel() lalu langsung speak() di beberapa browser (terutama Chrome Android)
+    // punya bug lama — utterance sebelumnya kadang belum bener-bener berhenti pas utterance
+    // baru mulai, jadi kedengeran kayak dibacain 2x/numpuk. Fix-nya: kasih jeda dikit
+    // (setTimeout) sebelum speak() beneran jalan, dan pakai token biar kalau user
+    // tap tombol lain lagi dengan cepat, cuma request yang PALING TERAKHIR yang bunyi.
+    const token = ++_pronSpeechToken;
     speechSynthesis.cancel();
-    const spokenText = accent === 'british' ? word : ttsRespell(word);
-    const utter = new SpeechSynthesisUtterance(spokenText);
-    utter.lang = accent === 'british' ? 'en-GB' : 'en-US';
-    utter.rate = 0.85;
-    if(btnEl){
-      btnEl.classList.add('playing');
-      utter.onend = ()=> btnEl.classList.remove('playing');
-      utter.onerror = ()=> btnEl.classList.remove('playing');
-    }
-    speechSynthesis.speak(utter);
+    if(btnEl) btnEl.classList.add('playing');
+    setTimeout(()=>{
+      if(token !== _pronSpeechToken) return; // udah keduluan tap lain, batalin yang ini
+      const spokenText = accent === 'british' ? word : ttsRespell(word);
+      const utter = new SpeechSynthesisUtterance(spokenText);
+      utter.lang = accent === 'british' ? 'en-GB' : 'en-US';
+      utter.rate = 0.85;
+      const resetPlaying = ()=>{ if(btnEl) btnEl.classList.remove('playing'); };
+      utter.onend = resetPlaying;
+      utter.onerror = resetPlaying;
+      speechSynthesis.speak(utter);
+    }, 60);
   }catch(e){ /* diam aja kalau device gak support TTS */ }
 }
 
@@ -16235,33 +16241,33 @@ function renderPronunciationDetail(accent, chapterId){
 const PRONUN_SYM_DATA = {
   monophthongs: {
     american: [
-      ['i','see','si','ee'],['ɪ','sit','sɪt','ih'],['ɛ','bed','bɛd','eh'],['æ','cat','kæt','a'],
-      ['ʌ','cup','kʌp','uh'],['ɑ','stop','stɑp','ah'],['ɔ','law','lɔ','aw'],['u','food','fud','oo'],
-      ['ʊ','book','bʊk','uu'],['ə','about','əˈbaʊt','uh'],['ɚ','bird','bɚd','er']
+      ['i','see','si','we'],['ɪ','sit','sɪt','it'],['ɛ','bed','bɛd','end'],['æ','cat','kæt','at'],
+      ['ʌ','cup','kʌp','up'],['ɑ','stop','stɑp','odd'],['ɔ','law','lɔ','all'],['u','food','fud','who'],
+      ['ʊ','book','bʊk','put'],['ə','about','əˈbaʊt','uh'],['ɚ','bird','bɚd','er']
     ],
     british: [
-      ['iː','see','siː','ee'],['ɪ','sit','sɪt','ih'],['e','bed','bed','eh'],['æ','cat','kæt','a'],
-      ['ʌ','cup','kʌp','uh'],['ɑː','glass','glɑːs','ah'],['ɒ','lot','lɒt','o'],['ɔː','chalk','tʃɔːk','aw'],
-      ['ʊ','book','bʊk','uu'],['uː','food','fuːd','oo'],['ɜː','bird','bɜːd','er'],['ə','better','ˈbetə','uh']
+      ['iː','see','siː','we'],['ɪ','sit','sɪt','it'],['e','bed','bed','end'],['æ','cat','kæt','at'],
+      ['ʌ','cup','kʌp','up'],['ɑː','glass','glɑːs','arm'],['ɒ','lot','lɒt','odd'],['ɔː','chalk','tʃɔːk','all'],
+      ['ʊ','book','bʊk','put'],['uː','food','fuːd','who'],['ɜː','bird','bɜːd','her'],['ə','better','ˈbetə','uh']
     ]
   },
   diphthongs: {
     american: [
-      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','eye'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],['oʊ','go','goʊ','oh']
+      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','my'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],['oʊ','go','goʊ','oh']
     ],
     british: [
-      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','eye'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],
-      ['əʊ','go','gəʊ','oh'],['ɪə','here','hɪə','ear'],['eə','hair','heə','air'],['ʊə','tour','tʊə','oor']
+      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','my'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],
+      ['əʊ','go','gəʊ','oh'],['ɪə','here','hɪə','ear'],['eə','hair','heə','air'],['ʊə','tour','tʊə','poor']
     ]
   },
   voiceless: [
-    ['p','pen','pɛn','puh'],['t','tea','tiː','tuh'],['k','cat','kæt','kuh'],['f','fish','fɪʃ','fff'],['θ','think','θɪŋk','th (tak bersuara)'],
-    ['s','see','siː','sss'],['ʃ','shape','ʃeɪp','shh'],['tʃ','chair','tʃɛr','chh'],['h','hat','hæt','huh']
+    ['p','pen','pɛn','pen'],['t','tea','tiː','tea'],['k','cat','kæt','cat'],['f','fish','fɪʃ','fish'],['θ','think','θɪŋk','thin'],
+    ['s','see','siː','see'],['ʃ','shape','ʃeɪp','shape'],['tʃ','chair','tʃɛr','chair'],['h','hat','hæt','hat']
   ],
   voiced: [
-    ['b','book','bʊk','buh'],['d','dog','dɒg','duh'],['g','go','goʊ','guh'],['v','van','væn','vvv'],['ð','this','ðɪs','th (bersuara)'],
-    ['z','zoo','zuː','zzz'],['ʒ','vision','ˈvɪʒən','zhh'],['dʒ','jump','dʒʌmp','juh'],['m','man','mæn','mmm'],['n','no','noʊ','nnn'],
-    ['ŋ','sing','sɪŋ','ng'],['l','leg','lɛg','lll'],['r','red','rɛd','rrr'],['w','we','wiː','wuh'],['j','yes','jɛs','yuh']
+    ['b','book','bʊk','book'],['d','dog','dɒg','dog'],['g','go','goʊ','go'],['v','van','væn','van'],['ð','this','ðɪs','that'],
+    ['z','zoo','zuː','zoo'],['ʒ','vision','ˈvɪʒən','vision'],['dʒ','jump','dʒʌmp','jump'],['m','man','mæn','man'],['n','no','noʊ','no'],
+    ['ŋ','sing','sɪŋ','sing'],['l','leg','lɛg','leg'],['r','red','rɛd','red'],['w','we','wiː','we'],['j','yes','jɛs','yes']
   ]
 };
 
