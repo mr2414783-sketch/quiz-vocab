@@ -8229,7 +8229,7 @@ function renderLainnyaSubmenu(onBack){
 
       <button class="btn ghost" id="lainnyaKamusBtn" style="margin-top:2px;border-color:#0ea5e9;color:#0369a1;">🔍 Kamus Kosakata</button>
       <button class="btn ghost" id="lainnyaMusicBtn" style="border-color:#1DB954;color:#1a9c47;">🎵 Dengarkan Musik</button>
-      <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Kami</button>
+      <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Saya</button>
 
       <button class="btn ghost" id="backToModeSelectBtnLainnya" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -8245,17 +8245,20 @@ function renderLainnyaSubmenu(onBack){
   document.getElementById('lainnyaAboutBtn').onclick = ()=> renderTentangKami(()=> renderLainnyaSubmenu(onBack));
 }
 
-/* ---------------- TENTANG KAMI (placeholder — cerita di balik aplikasi ini, menyusul) ---------------- */
+/* ---------------- TENTANG SAYA (cerita di balik aplikasi ini) ---------------- */
 function renderTentangKami(onBack){
   clearTimer();
-  statusVal.textContent = "TENTANG KAMI";
+  statusVal.textContent = "TENTANG SAYA";
   setPresenceStatus('idle');
   card.innerHTML = `
     <div class="center-stack">
-      <div class="section-tag" style="background:#ec4899;color:#fff;">💌 TENTANG KAMI</div>
+      <div class="section-tag" style="background:#ec4899;color:#fff;">💌 TENTANG SAYA</div>
       <img class="credit-avatar" style="width:88px;height:88px;border-radius:50%;margin:8px 0;" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
       <h1 class="intro-title">Cerita di Balik Aplikasi Ini</h1>
-      <p class="intro-desc">Halaman ini masih dalam penyusunan — ceritanya bakal ditambahkan menyusul oleh pembuatnya. 🙏</p>
+      <p class="intro-desc" style="text-align:left;">Aplikasi ini awalnya aku bikin buat belajar sendiri. Soalnya materi yang ditulis di buku itu kan gak mungkin bukunya selalu dibawa ke mana-mana.</p>
+      <p class="intro-desc" style="text-align:left;">Sempat coba difoto aja tiap halamannya, tapi ujung-ujungnya foto-fotonya numpuk di galeri, urutannya acak, jadi malah males buat dibuka & dibaca lagi.</p>
+      <p class="intro-desc" style="text-align:left;">Dari situ aku kepikiran buat mindahin semua materinya ke satu tempat yang bisa dibuka kapan aja lewat HP — tinggal buka aplikasinya, materinya udah rapi per topik, tinggal pilih mau belajar apa, tanpa perlu scroll-scroll galeri foto yang berantakan. Makanya aplikasi ini dibuat.</p>
+      <p class="intro-desc" style="text-align:left;">Awalnya emang buat kebutuhan belajar sendiri, tapi semoga bisa berguna juga buat siapa pun yang makai. 🙏</p>
       <div class="credit-box">
         <img class="credit-avatar" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
         <div class="credit-text">
@@ -16241,22 +16244,22 @@ function renderPronunciationDetail(accent, chapterId){
 const PRONUN_SYM_DATA = {
   monophthongs: {
     american: [
-      ['i','see','si','we'],['ɪ','sit','sɪt','it'],['ɛ','bed','bɛd','end'],['æ','cat','kæt','at'],
-      ['ʌ','cup','kʌp','up'],['ɑ','stop','stɑp','odd'],['ɔ','law','lɔ','all'],['u','food','fud','who'],
+      ['i','see','si','eat'],['ɪ','sit','sɪt','it'],['ɛ','bed','bɛd','end'],['æ','cat','kæt','at'],
+      ['ʌ','cup','kʌp','up'],['ɑ','stop','stɑp','odd'],['ɔ','law','lɔ','all'],['u','food','fud','ooze'],
       ['ʊ','book','bʊk','put'],['ə','about','əˈbaʊt','uh'],['ɚ','bird','bɚd','er']
     ],
     british: [
-      ['iː','see','siː','we'],['ɪ','sit','sɪt','it'],['e','bed','bed','end'],['æ','cat','kæt','at'],
+      ['iː','see','siː','eat'],['ɪ','sit','sɪt','it'],['e','bed','bed','end'],['æ','cat','kæt','at'],
       ['ʌ','cup','kʌp','up'],['ɑː','glass','glɑːs','arm'],['ɒ','lot','lɒt','odd'],['ɔː','chalk','tʃɔːk','all'],
-      ['ʊ','book','bʊk','put'],['uː','food','fuːd','who'],['ɜː','bird','bɜːd','her'],['ə','better','ˈbetə','uh']
+      ['ʊ','book','bʊk','put'],['uː','food','fuːd','ooze'],['ɜː','bird','bɜːd','earn'],['ə','better','ˈbetə','uh']
     ]
   },
   diphthongs: {
     american: [
-      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','my'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],['oʊ','go','goʊ','oh']
+      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','eye'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],['oʊ','go','goʊ','oh']
     ],
     british: [
-      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','my'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],
+      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','eye'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],
       ['əʊ','go','gəʊ','oh'],['ɪə','here','hɪə','ear'],['eə','hair','heə','air'],['ʊə','tour','tʊə','poor']
     ]
   },
