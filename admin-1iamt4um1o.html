@@ -1920,12 +1920,10 @@
     /* ---------------- KELOLA MODE LATIHAN ---------------- */
     const MODE_META_ADMIN = {
       standard: { icon:'📚', label:'Mode Standar (Latihan Soal + Hafalan)' },
-      kids: { icon:'🧒', label:'Mode Anak-Anak' },
       grammar: { icon:'📝', label:'Latihan Grammar' }
     };
     let localModeStatus = {
       standard: { open:true, message:'' },
-      kids: { open:true, message:'' },
       grammar: { open:true, message:'' }
     };
     function renderModeStatusUI(){
@@ -1964,7 +1962,6 @@
         if(val){
           localModeStatus = {
             standard: val.standard || { open:true, message:'' },
-            kids: val.kids || { open:true, message:'' },
             grammar: val.grammar || { open:true, message:'' }
           };
         }
