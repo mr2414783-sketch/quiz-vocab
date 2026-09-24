@@ -2573,6 +2573,666 @@ const M2_DAY_TITLES = {
   13:"Occupations",14:"Environment",15:"Natural Disaster",16:"Irregular Verbs 4"
 };
 
+/* ================= MONTH 3 (Stand Up Speaking 3 - per Chapter) ================= */
+const m3ExprPhrasalRaw = [
+  ["Sarat / kental akan tradisi","Steeped in tradition","Cultural Heritage",""],
+  ["Melestarikan warisan budaya","Preserving cultural heritage","Cultural Heritage",""],
+  ["Fondasi utama suatu budaya","A cornerstone of the culture","Cultural Heritage",""],
+  ["Diwariskan turun-temurun","Passed down through generations","Cultural Heritage",""],
+  ["Tradisi yang masih hidup/dijalankan","A living tradition","Cultural Heritage",""],
+  ["Mewujudkan nilai-nilai budaya","To embody cultural values","Cultural Heritage",""],
+  ["Memiliki makna budaya yang penting","To be culturally significant","Cultural Heritage",""],
+  ["Menjembatani perbedaan budaya","To bridge cultural divides","Cultural Heritage",""],
+  ["Pertukaran budaya","Cultural exchange","Cultural Heritage",""],
+  ["Karya yang luar biasa keren (hit besar)","Absolute banger","Pop Culture",""],
+  ["Favorit sepanjang masa","All-time favorite","Pop Culture",""],
+  ["Sukses besar di pasaran (box office)","Box office","Pop Culture",""],
+  ["Menggemparkan dunia maya","Break the internet","Pop Culture",""],
+  ["Budaya cancel (pemboikotan publik)","Cancel culture","Pop Culture",""],
+  ["Karya klasik yang dipuja segelintir penggemar setia","Cult classic","Pop Culture",""],
+  ["Fenomena budaya populer","Pop culture phenomenon","Pop Culture",""],
+  ["Kesenangan yang diam-diam disukai walau agak malu mengakuinya","Guilty pleasure","Pop Culture",""],
+  ["Permata tersembunyi (hal bagus yang belum banyak diketahui)","Hidden gem","Pop Culture",""],
+  ["Di luar jalur wisata biasa / tidak biasa","Off the beaten path","Pop Culture",""],
+  ["Membuka rekening bank","To open a bank account","Studying Abroad",""],
+  ["Memperluas wawasan","To broaden one’s horizon","Studying Abroad",""],
+  ["Mencari pekerjaan paruh waktu","To find a part-time job","Studying Abroad",""],
+  ["Meraih gelar di luar negeri","To earn a degree abroad","Studying Abroad",""],
+  ["Berteman dengan penduduk setempat","To make friends with locals","Studying Abroad",""],
+  ["Mengemasi barang/berkemas","To pack one’s bag","Studying Abroad",""],
+  ["Berangkat (terbang) ke suatu tempat","To jet off","Studying Abroad",""],
+  ["Beradaptasi/menetap di tempat baru","To settle in(to)","Studying Abroad",""],
+  ["Mengajukan permohonan visa","To apply for a visa","Studying Abroad",""],
+  ["Memperluas wawasan","Broaden one's horizons","Working Overseas",""],
+  ["Langsung tancap gas / bekerja cekatan sejak awal","Hit the ground running","Working Overseas",""],
+  ["Akan mengalami gegar budaya","Be in for a culture shock","Working Overseas",""],
+  ["Mencairkan suasana","Break the ice","Working Overseas",""],
+  ["Menyesuaikan diri hingga sejajar (paham situasi terkini)","Get up to speed","Working Overseas",""],
+  ["Memanfaatkan kesempatan sebaik mungkin","Make the most of an opportunity","Working Overseas",""],
+  ["Keluar dari zona nyaman","Be out of one's comfort zone","Working Overseas",""],
+  ["Mulai terbiasa/menyesuaikan diri","Find one's feet","Working Overseas",""],
+  ["Menjalin hubungan baik","Build bridges","Working Overseas",""],
+  ["Mempelajari seluk-beluk (suatu pekerjaan)","Learn the ropes","Working Overseas",""],
+  ["Dulu / pada masa lalu","Back in the day..","Past vs. Present",""],
+  ["Zaman telah berubah","Times have changed","Past vs. Present",""],
+  ["Di zaman sekarang ini...","In this day and age...","Past vs. Present",""],
+  ["Buang yang lama, sambut yang baru","Out with the old, in with the new","Past vs. Present",""],
+  ["Kenangan dari masa lalu","A blast from the past","Past vs. Present",""],
+  ["Mengikuti perkembangan zaman","Moving with the times","Past vs. Present",""],
+  ["Masa-masa indah dahulu","The good old days","Past vs. Present",""],
+  ["Memandang ke depan","Looking ahead","Past vs. Present",""],
+  ["Memutar kembali waktu (kembali ke masa lalu)","Turn back the clock","Past vs. Present",""],
+  ["Menghadapi konsekuensi","Face the music","Climate Problems in the World",""],
+  ["Membayar akibatnya","Pay the price","Climate Problems in the World",""],
+  ["Berada dalam situasi yang sama","In the same boat","Climate Problems in the World",""],
+  ["Meningkatkan kesadaran","Raise awareness","Climate Problems in the World",""],
+  ["Mengambil langkah/tindakan","Take steps","Climate Problems in the World",""],
+  ["Membuat perubahan berarti","Make a difference","Climate Problems in the World",""],
+  ["Di ambang","On the brink of","Climate Problems in the World",""],
+  ["Dipertaruhkan","At stake","Climate Problems in the World",""],
+  ["Meninggalkan warisan","Leave a legacy","Climate Problems in the World",""],
+  ["Beralih ramah lingkungan","Go green","Climate Problems in the World",""],
+  ["Merupakan isu mendesak","(it)'s a pressing issue","Social Issues",""],
+  ["Meningkatkan kesadaran","To raise awareness","Social Issues",""],
+  ["Menangani masalah","To address the problem","Social Issues",""],
+  ["Berpura-pura tidak melihat / mengabaikan","To turn a blind eye","Social Issues",""],
+  ["Memenuhi kebutuhan hidup (pas-pasan)","To make ends meet","Social Issues",""],
+  ["Menjembatani kesenjangan","To bridge the gap","Social Issues",""],
+  ["Menjelaskan/menerangi (suatu isu)","To shed light on","Social Issues",""],
+  ["Mengambil sikap tegas","To take a stand","Social Issues",""],
+  ["Menghentikan sejak dini","To nip (it) in the bud","Social Issues",""],
+  ["Terjebak dalam lingkaran setan","To be caught in a vicious cycle","Social Issues",""],
+  ["Mengetatkan pengeluaran","Tighten the purse strings","Economic and Financial Challenges",""],
+  ["Bangkit kembali","Bounce back","Economic and Financial Challenges",""],
+  ["Menghabiskan banyak uang","Break the bank","Economic and Financial Challenges",""],
+  ["Merasakan kesulitan finansial","Feel the pinch","Economic and Financial Challenges",""],
+  ["Merasakan kesulitan finansial","Feel the pinch","Economic and Financial Challenges",""],
+  ["Kekurangan uang","Strapped for cash","Economic and Financial Challenges",""],
+  ["Memenuhi kebutuhan hidup (pas-pasan)","Make ends meet","Economic and Financial Challenges",""],
+  ["Berhemat","Tighten one's belt","Economic and Financial Challenges",""],
+  ["Mengetatkan pengeluaran","Tighten the purse strings","Economic and Financial Challenges",""],
+  ["Bertahan melewati masa sulit","Weather the storm","Economic and Financial Challenges",""],
+  ["Menjadi perantara perdamaian","To broker peace","International Conflicts and Peace",""],
+  ["Meningkatkan ketegangan","To escalate tensions","International Conflicts and Peace",""],
+  ["Menawarkan perdamaian","To extend an olive branch","International Conflicts and Peace",""],
+  ["Berselisih/bertentangan","To be at loggerheads","International Conflicts and Peace",""],
+  ["Menjalin hubungan baik","To build bridges","International Conflicts and Peace",""],
+  ["Mengubah alat perang menjadi alat damai","To beat swords into plowshares","International Conflicts and Peace",""],
+  ["Berdamai / mengakhiri permusuhan","To bury the hatchet","International Conflicts and Peace",""],
+  ["Memperkeruh/memperburuk keadaan","To fan the flames","International Conflicts and Peace",""],
+  ["Mengulurkan tangan persahabatan","To extend a hand of friendship","International Conflicts and Peace",""],
+  ["Membuka jalan menuju perdamaian","To pave the way for peace","International Conflicts and Peace",""],
+  ["Kemajuan ekonomi menguntungkan semua pihak","A rising tide lifts all boats","Economic Systems and Ideologies",""],
+  ["Siklus naik-turun ekonomi","Boom and bust cycle","Economic Systems and Ideologies",""],
+  ["Ekonomi sirkular","Circular economy","Economic Systems and Ideologies",""],
+  ["Kapitalisme kroni (kolusi bisnis-pemerintah)","Crony capitalism","Economic Systems and Ideologies",""],
+  ["Gelembung ekonomi","Economic bubble","Economic Systems and Ideologies",""],
+  ["Ekonomi kerja lepas (gig)","Gig economy","Economic Systems and Ideologies",""],
+  ["Tangan tak terlihat (mekanisme pasar bebas)","Invisible hand","Economic Systems and Ideologies",""],
+  ["Kesetaraan kesempatan/persaingan adil","Level playing field","Economic Systems and Ideologies",""],
+  ["Terlalu besar untuk gagal (bangkrut)","Too big to fail","Economic Systems and Ideologies",""],
+  ["Perlombaan menurunkan standar demi daya saing","Race to the bottom","Economic Systems and Ideologies",""],
+  ["Mendorong keberlanjutan","To promote sustainability","Global Issue",""],
+  ["Melestarikan keanekaragaman hayati","To preserve biodiversity","Global Issue",""],
+  ["Memberikan bantuan kemanusiaan","To provide humanitarian aid","Global Issue",""],
+  ["Melakukan diplomasi","To engage in diplomacy","Global Issue",""],
+  ["Merangkul globalisasi","To embrace globalization","Global Issue",""],
+  ["Membangun ketahanan","To build resilience","Global Issue",""],
+  ["Mengatasi ketimpangan","To address inequality","Global Issue",""],
+  ["Mengendalikan pandemi","To contain a pandemic","Global Issue",""],
+  ["Mendorong inovasi","To drive innovation","Global Issue",""],
+  ["Memupuk kerja sama","To foster collaboration","Global Issue",""],
+  ["Memberikan kontribusi/nilai tambah","Bring something to the table","Job Opportunities",""],
+  ["Menaiki jenjang karier","Climb the corporate ladder","Job Opportunities",""],
+  ["Mendapat kesempatan awal untuk masuk","Get your foot in the door","Job Opportunities",""],
+  ["Berusaha melebihi ekspektasi","Go above and beyond","Job Opportunities",""],
+  ["Langsung tancap gas sejak awal","Hit the ground running","Job Opportunities",""],
+  ["Mempelajari seluk-beluk pekerjaan","Learn the ropes","Job Opportunities",""],
+  ["Menampilkan yang terbaik","Put your best foot forward","Job Opportunities",""],
+  ["Berpikir kreatif/di luar kebiasaan","Think outside the box","Job Opportunities",""],
+  ["Menyatakan diri ikut bersaing","Throw your hat in the ring","Job Opportunities",""],
+  ["Mengerjakan banyak peran sekaligus","Wear many hats","Job Opportunities",""],
+  ["Meratakan kurva (menekan laju penyebaran)","Flatten the curve","Global Health",""],
+  ["Pasien pertama (sumber penularan)","Patient zero","Global Health",""],
+  ["Memutus rantai (penularan)","Breaking the chain","Global Health",""],
+  ["Sehat itu (bagai) kekayaan","Health is wealth","Global Health",""],
+  ["Menghentikan sejak dini","Nip (it) in the bud","Global Health",""],
+  ["Dinyatakan sehat sepenuhnya","A clean bill of health","Global Health",""],
+  ["Bekerja/beraktivitas berlebihan tanpa istirahat cukup","Burning the candle at both ends","Global Health",""],
+  ["Makan sehat setiap hari menjaga tubuh dari sakit","An apple a day keeps the doctor away","Global Health",""],
+  ["Menjadi perantara kesepakatan","Broker a deal","International Organizations",""],
+  ["Mengadakan pertemuan puncak","Convene a summit","International Organizations",""],
+  ["Membina hubungan diplomatik","Cultivate diplomatic ties","International Organizations",""],
+  ["Melakukan perundingan bilateral","Engage in bilateral talks","International Organizations",""],
+  ["Menggunakan hak veto","Exercise veto power","International Organizations",""],
+  ["Memupuk kerja sama internasional","Foster international cooperation","International Organizations",""],
+  ["Melaksanakan resolusi","Implement a resolution","International Organizations",""],
+  ["Menengahi konflik","Mediate a conflict","International Organizations",""],
+  ["Merundingkan perjanjian","Negotiate a treaty","International Organizations",""],
+  ["Menegakkan hukum internasional","Uphold international law","International Organizations",""],
+  ["Mendahului zamannya","Ahead of (its) time","Past and Current Inventions",""],
+  ["Pengubah keadaan secara besar","Game-changer","Past and Current Inventions",""],
+  ["Menciptakan ulang hal yang sudah ada (mubazir)","Reinvent the wheel","Past and Current Inventions",""],
+  ["Membuka terobosan baru","Break new ground","Past and Current Inventions",""],
+  ["Kemajuan pesat","Leaps and bounds","Past and Current Inventions",""],
+  ["Tahan terhadap ujian waktu","Stand the test of time","Past and Current Inventions",""],
+  ["Berada di garis depan (teknologi/inovasi)","On the cutting edge","Past and Current Inventions",""],
+  ["Sudah menjadi masa lalu (usang)","A thing of the past","Past and Current Inventions",""],
+  ["Merevolusi industri","Revolutionize the industry","Past and Current Inventions",""],
+  ["Menjembatani kesenjangan","Bridge the gap","Past and Current Inventions",""],
+  ["Jejak ekologis","Ecological footprint","Endangered Species",""],
+  ["Spesies andalan/unggulan","Flagship species","Endangered Species",""],
+  ["Fragmentasi habitat","Habitat fragmentation","Endangered Species",""],
+  ["Spesies kunci (penentu ekosistem)","Keystone species","Endangered Species",""],
+  ["Di ambang kepunahan","On the brink of extinction","Endangered Species",""],
+  ["Berpacu dengan waktu","Racing against time","Endangered Species",""],
+  ["Daftar merah (spesies terancam)","Red list","Endangered Species",""],
+  ["Pengembalian ke alam liar","Rewilding","Endangered Species",""],
+  ["Kepunahan massal keenam","Sixth mass extinction","Endangered Species",""],
+  ["Koridor satwa liar","Wildlife corridor","Endangered Species",""],
+  ["Kota masa depan bergantung pada...","The city of tomorrow hinges on...","The Future Cities",""],
+  ["Kunci kehidupan perkotaan berkelanjutan terletak pada...","The key to sustainable urban living lies in...","The Future Cities",""],
+  ["Untuk meningkatkan kualitas hidup, kota perlu...","To improve quality of life, cities will need to...","The Future Cities",""],
+  ["Keberlanjutan menjadi inti dari...","Sustainability is at the heart of...","The Future Cities",""],
+  ["Teknologi pintar akan berperan penting dalam...","Smart technology will play a crucial role in...","The Future Cities",""],
+  ["Dengan menerapkan..., kita dapat menciptakan...","By implementing..., we can create...","The Future Cities",""],
+  ["Kota masa depan mengutamakan...","The city of the future prioritizes...","The Future Cities",""],
+  ["Fondasi utama pembangunan kota masa depan adalah...","The cornerstone of future urban development is...","The Future Cities",""],
+  ["Suara bagi yang tak bersuara","A voice for the voiceless","Animal Abuse",""],
+  ["Perlakuan kejam dan tidak wajar","Cruel and unusual treatment","Animal Abuse",""],
+  ["Setiap hewan itu berharga","Every animal matters","Animal Abuse",""],
+  ["Berjuang demi kesejahteraan hewan","Fight for animal welfare","Animal Abuse",""],
+  ["Sedang dalam masalah/tidak disukai","In the doghouse","Animal Abuse",""],
+  ["Tidak ada alasan untuk penyiksaan","No excuse for abuse","Animal Abuse",""],
+  ["Bersuara demi hewan","Speak up for animals","Animal Abuse",""],
+  ["Menderita dalam diam","Suffer in silence","Animal Abuse",""],
+  ["Mengorbankan/membiarkan celaka","Throw to the wolves","Animal Abuse",""],
+  ["Memperlakukan hewan dengan hormat","Treat animals with respect","Animal Abuse",""],
+  ["Desain terinspirasi alam","Nature-inspired design","The Magic of Mimicry",""],
+  ["Perlombaan evolusi (antarspesies)","Evolutionary arms race","The Magic of Mimicry",""],
+  ["Bentuk mengikuti fungsi","Form follows function","The Magic of Mimicry",""],
+  ["Tekanan seleksi (evolusi)","Selective pressure","The Magic of Mimicry",""],
+  ["Cetak biru biologis","Biological blueprint","The Magic of Mimicry",""],
+  ["Laboratorium hidup (alami)","Living laboratory","The Magic of Mimicry",""],
+  ["Strategi adaptasi","Adaptive strategy","The Magic of Mimicry",""],
+  ["Pendekatan biomimetik (meniru alam)","Biomimetic approach","The Magic of Mimicry",""],
+  ["Memiliki hal yang sangat mengganggu (bagi diri sendiri)","To have a pet peeve","Food or Friends?",""],
+  ["Menjadi kelinci percobaan","To be a guinea pig","Food or Friends?",""],
+  ["Membocorkan rahasia","To let the cat out of the bag","Food or Friends?",""],
+  ["Menjadi sumber keuntungan utama","To be a cash cow","Food or Friends?",""],
+  ["Memiliki urusan yang lebih penting","To have bigger fish to fry","Food or Friends?",""],
+  ["Menghadapi masalah secara langsung dengan berani","To take the bull by the horns","Food or Friends?",""],
+  ["Merasa tidak nyaman/asing di suatu tempat","To be like a fish out of water","Food or Friends?",""],
+  ["Menjadi kambing hitam/orang yang berbeda dalam keluarga","To be the black sheep","Food or Friends?",""],
+  ["Memiliki masalah/perselisihan dengan seseorang","To have a beef with someone","Food or Friends?",""],
+  ["Berhenti total secara mendadak (dari kebiasaan)","To go cold turkey","Food or Friends?",""],
+  ["Munculnya [teknologi] telah menyebabkan...","The rise of [technology] has led to...","The Effect of Technology",""],
+  ["[Teknologi] mengganggu (mendisrupsi) ... tradisional","[Technology] is disrupting traditional...","The Effect of Technology",""],
+  ["Ada kekhawatiran yang meningkat tentang...","There's growing concern about...","The Effect of Technology",""],
+  ["[Teknologi] telah menyederhanakan/mengefisienkan...","[Technology] has streamlined...","The Effect of Technology",""],
+  ["[Teknologi] memunculkan pertanyaan etis mengenai...","[Technology] raises ethical questions regarding...","The Effect of Technology",""],
+  ["Integrasi [teknologi] ke dalam [bidang] telah...","The integration of [technology] into [field] has...","The Effect of Technology",""],
+  ["[Teknologi] menjembatani kesenjangan antara...","[Technology] is bridging the gap between...","The Effect of Technology",""],
+  ["Titik kelemahan (tumit Achilles)","Achilles' heel","Mythological Creatures",""],
+  ["Khimera (makhluk gabungan/angan-angan mustahil)","Chimera","Mythological Creatures",""],
+  ["Tugas yang sangat berat","Herculean task","Mythological Creatures",""],
+  ["Sentuhan Midas (selalu berhasil dalam segala hal)","Midas touch","Mythological Creatures",""],
+  ["Kotak Pandora (sumber masalah besar tak terduga)","Pandora's box","Mythological Creatures",""],
+  ["Phoenix bangkit (bangkit kembali dari keterpurukan)","Phoenix rising","Mythological Creatures",""],
+  ["Nyanyian siren (godaan yang menyesatkan)","Siren song","Mythological Creatures",""],
+  ["Mengalahkan naga (mengatasi tantangan besar)","Slaying the dragon","Mythological Creatures",""],
+  ["Kuda troya (tipu muslihat tersembunyi)","Trojan horse","Mythological Creatures",""],
+  ["Unicorn (sesuatu yang langka/luar biasa)","Unicorn","Mythological Creatures",""],
+  ["Merayakan momen tersebut","To mark the occasion","Festival and Celebration",""],
+  ["Merayakan hari libur/peringatan","To observe a holiday","Festival and Celebration",""],
+  ["Menjaga tradisi tetap hidup","To keep a tradition alive","Festival and Celebration",""],
+  ["Berusaha semaksimal mungkin","To pull out all the stops","Festival and Celebration",""],
+  ["Bersemangat tinggi/gembira","To be in high spirits","Festival and Celebration",""],
+  ["Menghormati leluhur","To honor (one's) ancestors","Festival and Celebration",""],
+  ["Menyambut tahun baru","To ring in the new year","Festival and Celebration",""],
+  ["Larut dalam suasana/semangat perayaan","To get into the spirit","Festival and Celebration",""],
+  ["Menjadi pusat keceriaan pesta","To be the life of the party","Festival and Celebration",""],
+  ["Berpesta pora / bersenang-senang habis-habisan","To paint the town red","Festival and Celebration",""],
+  ["Sebuah prestasi rekayasa/teknik","A feat of engineering","The Seven Wonders",""],
+  ["Sesuatu yang menakjubkan untuk disaksikan","A wonder to behold","The Seven Wonders",""],
+  ["Mahakarya arsitektur","Architectural masterpiece","The Seven Wonders",""],
+  ["Pemandangan yang menakjubkan","Breathtaking view","The Seven Wonders",""],
+  ["Keajaiban dunia kedelapan","Eighth wonder of the world","The Seven Wonders",""],
+  ["Meninggalkan warisan abadi","Leave a lasting legacy","The Seven Wonders",""],
+  ["Hilang ditelan sejarah","Lost to history","The Seven Wonders",""],
+  ["Terkagum-kagum melihat pemandangan itu","Marvel at the sight","The Seven Wonders",""],
+  ["Tahan terhadap ujian waktu","Stand the test of time","The Seven Wonders",""],
+  ["Diselimuti misteri","Steeped in mystery","The Seven Wonders",""],
+  ["Wadah peleburan budaya","Melting pot","Ethnicity and Race",""],
+  ["Meruntuhkan hambatan","Break down barriers","Ethnicity and Race",""],
+  ["Merasakan berada di posisi orang lain","Walk a mile in someone's shoes","Ethnicity and Race",""],
+  ["Mozaik budaya (keberagaman yang saling melengkapi)","Cultural mosaic","Ethnicity and Race",""],
+  ["Menjembatani kesenjangan","Bridge the gap","Ethnicity and Race",""],
+  ["Merayakan keberagaman","Celebrate diversity","Ethnicity and Race",""],
+  ["Sepaham/sependapat","See eye to eye","Ethnicity and Race",""],
+  ["Memperluas wawasan","Broaden (one's) horizons","Ethnicity and Race",""],
+  ["Menemukan kesamaan pandangan","Find common ground","Ethnicity and Race",""],
+  ["Mematahkan stereotipe","Break stereotypes","Ethnicity and Race",""],
+  ["Memperingati momen tersebut","Commemorate the occasion","International Important Dates",""],
+  ["Memperingati momen tersebut","Commemorate the occasion","International Important Dates",""],
+  ["Memperingati momen tersebut","Commemorate the occasion","International Important Dates",""],
+  ["Menandai makna pentingnya","Mark the significance","International Important Dates",""],
+  ["Diperingati setiap tahun","Observe annually","International Important Dates",""],
+  ["Mendorong saling pengertian","Promote understanding","International Important Dates",""],
+  ["Meningkatkan kesadaran","Raise awareness","International Important Dates",""],
+  ["Mengakui kontribusi","Recognize contributions","International Important Dates",""],
+  ["Menunjukkan solidaritas","Show solidarity","International Important Dates",""],
+  ["Menyebarkan pesan","Spread the message","International Important Dates",""],
+  ["Mengukir sejarah","To make history","Ancient Civilization",""],
+  ["Mengungkap misteri","To unveil a mystery","Ancient Civilization",""],
+  ["Memutar kembali waktu","To turn back the clock","Ancient Civilization",""],
+  ["Meletakkan dasar/fondasi","To lay the foundation","Ancient Civilization",""],
+  ["Mengungkap rahasia","To uncover secrets","Ancient Civilization",""],
+  ["Meninggalkan jejak/kesan","To leave a mark","Ancient Civilization",""],
+  ["Mengubah wajah dunia","To change the face of the world","Ancient Civilization",""],
+  ["Menelusuri akar/asal-usul","To trace the roots","Ancient Civilization",""],
+  ["Membangun peradaban","To build a civilization","Ancient Civilization",""],
+  ["Mewariskan kebijaksanaan","To pass down wisdom","Ancient Civilization",""],
+  ["Pemimpin sejak lahir (pemimpin alami)","A born leader","Influential People",""],
+  ["Menjadi kekuatan pendorong perubahan","Be a force for change","Influential People",""],
+  ["Mendapatkan rasa hormat secara alami","Command respect","Influential People",""],
+  ["Mengikuti jejak seseorang","Follow in someone's footsteps","Influential People",""],
+  ["Memimpin dengan memberi teladan","Lead by example","Influential People",""],
+  ["Membuat jejak/prestasi yang diingat","Make one's mark","Influential People",""],
+  ["Membuat terkenal/dikenal luas","Put on the map","Influential People",""],
+  ["Mampu menghadapi tantangan dengan baik saat dibutuhkan","Rise to the occasion","Influential People",""],
+  ["Mengambil alih kendali/kepemimpinan","Take the reins","Influential People",""],
+  ["Membuktikan ucapan dengan tindakan nyata","Walk the talk","Influential People",""],
+  ["Sama sekali tidak dipahami (seperti bahasa asing)","It's all Greek to me","World Languages",""],
+  ["Bahasa ibu","Mother tongue","World Languages",""],
+  ["Sepaham/memiliki pandangan yang sama","Speak the same language","World Languages",""],
+  ["Hilang makna saat diterjemahkan","Lost in translation","World Languages",""],
+  ["Mengatasi kendala bahasa","Break the language barrier","World Languages",""],
+  ["Pandai merangkai kata","Have a way with words","World Languages",""],
+  ["Menara Babel (simbol kekacauan bahasa)","Tower of Babel","World Languages",""],
+  ["Kelu / tidak bisa berkata-kata","Tongue-tied","World Languages",""],
+  ["Ada di ujung lidah (hampir teringat)","On the tip of my tongue","World Languages",""],
+  ["Salah ucap/keseleo lidah","Slip of the tongue","World Languages",""],
+  ["Melawan segala rintangan","Against all odds","Believe It or Not!",""],
+  ["Percaya atau tidak","Believe it or not","Believe It or Not!",""],
+  ["Fakta menarik","Fun fact","Believe It or Not!",""],
+  ["Bersiaplah (untuk terkejut)","Hold onto your hat","Believe It or Not!",""],
+  ["Sungguh, aku tidak bercanda","I kid you not","Believe It or Not!",""],
+  ["Mungkin terdengar gila, tapi...","It may sound crazy, but...","Believe It or Not!",""],
+  ["Renungkanlah itu / resapi baik-baik","Let that sink in","Believe It or Not!",""],
+  ["Sungguh mengejutkan","Talk about surprising","Believe It or Not!",""],
+  ["Siapa sangka","Who would have thought","Believe It or Not!",""],
+  ["Kamu pasti tidak akan percaya ini.","You're not going to believe this.","Believe It or Not!",""],
+];
+const m3VocabRaw = [
+  ["Warisan budaya","Heritage","Cultural Heritage",""],
+  ["Artefak / benda peninggalan","Artifact","Cultural Heritage",""],
+  ["Etnografi (kajian budaya masyarakat)","Ethnography","Cultural Heritage",""],
+  ["Seni rakyat","Folk art","Cultural Heritage",""],
+  ["Adat istiadat","Custom","Cultural Heritage",""],
+  ["Pribumi / asli daerah setempat","Indigenous","Cultural Heritage",""],
+  ["Upacara","Ceremony","Cultural Heritage",""],
+  ["Perajin / pengrajin","Artisan","Cultural Heritage",""],
+  ["Gastronomi (seni kuliner)","Gastronomy","Cultural Heritage",""],
+  ["Cerita rakyat","Folklore","Cultural Heritage",""],
+  ["Sedang berlangsung","On-going","Pop Culture",""],
+  ["Sekuel / kelanjutan cerita","Sequel","Pop Culture",""],
+  ["Chemistry (kecocokan/kedekatan antar tokoh)","Chemistry","Pop Culture",""],
+  ["Genre / aliran","Genre","Pop Culture",""],
+  ["Plot hole (celah logika cerita)","Plothole(s)","Pop Culture",""],
+  ["Ditulis dengan baik","Well-written","Pop Culture",""],
+  ["Menonton maraton (berturut-turut)","Binge-watch","Pop Culture",""],
+  ["Prekuel (cerita sebelum kisah utama)","Prequel","Pop Culture",""],
+  ["Meme","Meme","Pop Culture",""],
+  ["(Menjadi) viral","(go) viral","Pop Culture",""],
+  ["Akomodasi / tempat tinggal","Accommodation","Studying Abroad",""],
+  ["Beban mata kuliah","Course load","Studying Abroad",""],
+  ["Penerimaan (mahasiswa)","Admissions","Studying Abroad",""],
+  ["Pinjaman","Loan","Studying Abroad",""],
+  ["Perencanaan keuangan","Financial planning","Studying Abroad",""],
+  ["Kredit / SKS","Credit","Studying Abroad",""],
+  ["Adaptasi budaya","Cultural adaptation","Studying Abroad",""],
+  ["Kemahiran berbahasa","Language proficiency","Studying Abroad",""],
+  ["Beasiswa/hibah","Grant","Studying Abroad",""],
+  ["Pendaftaran (kuliah)","Enrollment","Studying Abroad",""],
+  ["Ekspatriat (warga asing yang tinggal/bekerja di negara lain)","Expatriate","Working Overseas",""],
+  ["Relokasi / kepindahan","Relocation","Working Overseas",""],
+  ["Visa kerja","Work visa","Working Overseas",""],
+  ["Membangun relasi/jejaring","Networking","Working Overseas",""],
+  ["Penyesuaian budaya","Cultural adjustment","Working Overseas",""],
+  ["Adaptasi","Adaptation","Working Overseas",""],
+  ["Izin kerja","Work permit","Working Overseas",""],
+  ["Komunikasi lintas budaya","Cross-cultural communication","Working Overseas",""],
+  ["Kendala bahasa","Language barrier","Working Overseas",""],
+  ["Pengalaman internasional","International experience","Working Overseas",""],
+  ["Evolusi","Evolution","Past vs. Present",""],
+  ["Inovasi","Innovation","Past vs. Present",""],
+  ["Futuristik","Futuristic","Past vs. Present",""],
+  ["Pergeseran","Shift","Past vs. Present",""],
+  ["Usang / ketinggalan zaman","Obsolete","Past vs. Present",""],
+  ["Modernisasi","Modernization","Past vs. Present",""],
+  ["Beradaptasi","Adapt","Past vs. Present",""],
+  ["Kemajuan","Advancement","Past vs. Present",""],
+  ["Gaya lama/retro","Retro","Past vs. Present",""],
+  ["Revolusi","Revolution","Past vs. Present",""],
+  ["Keanekaragaman hayati","Biodiversity","Climate Problems in the World",""],
+  ["Perubahan iklim","Climate change","Climate Problems in the World",""],
+  ["Ekosistem","Ecosystem","Climate Problems in the World",""],
+  ["Pemanasan global","Global warming","Climate Problems in the World",""],
+  ["Polusi","Pollution","Climate Problems in the World",""],
+  ["Keberlanjutan","Sustainability","Climate Problems in the World",""],
+  ["Jejak karbon","Carbon footprint","Climate Problems in the World",""],
+  ["Deforestasi / penggundulan hutan","Deforestation","Climate Problems in the World",""],
+  ["Gas rumah kaca","Greenhouse gas","Climate Problems in the World",""],
+  ["Energi terbarukan","Renewable energy","Climate Problems in the World",""],
+  ["Ketimpangan","Inequality","Social Issues",""],
+  ["Perundungan siber","Cyberbullying","Social Issues",""],
+  ["Buta huruf","Illiteracy","Social Issues",""],
+  ["Diskriminasi","Discrimination","Social Issues",""],
+  ["Xenofobia (kebencian terhadap orang asing)","Xenophobia","Social Issues",""],
+  ["Kesenjangan gender","Gender gap","Social Issues",""],
+  ["Pengangguran","Unemployment","Social Issues",""],
+  ["Tunawisma","Homelessness","Social Issues",""],
+  ["Berita bohong","Fake news","Social Issues",""],
+  ["Gentrifikasi","Gentrification","Social Issues",""],
+  ["Utang","Debt","Economic and Financial Challenges",""],
+  ["Defisit","Deficit","Economic and Financial Challenges",""],
+  ["Depresiasi (penyusutan nilai)","Depreciation","Economic and Financial Challenges",""],
+  ["Ketimpangan","Inequality","Economic and Financial Challenges",""],
+  ["Inflasi","Inflation","Economic and Financial Challenges",""],
+  ["Likuiditas","Liquidity","Economic and Financial Challenges",""],
+  ["Kemiskinan","Poverty","Economic and Financial Challenges",""],
+  ["Resesi","Recession","Economic and Financial Challenges",""],
+  ["Pengangguran","Unemployment","Economic and Financial Challenges",""],
+  ["Volatilitas (fluktuasi/ketidakstabilan)","Volatility","Economic and Financial Challenges",""],
+  ["Bantuan kemanusiaan","Humanitarian aid","International Conflicts and Peace",""],
+  ["Gencatan senjata","Ceasefire","International Conflicts and Peace",""],
+  ["Krisis pengungsi","Refugee crisis","International Conflicts and Peace",""],
+  ["Intervensi","Intervention","International Conflicts and Peace",""],
+  ["Rekonsiliasi","Reconciliation","International Conflicts and Peace",""],
+  ["Perjanjian damai","Peace treaty","International Conflicts and Peace",""],
+  ["Kedaulatan","Sovereignty","International Conflicts and Peace",""],
+  ["Penjagaan perdamaian","Peacekeeping","International Conflicts and Peace",""],
+  ["Arbitrase / mediasi hukum","Arbitration","International Conflicts and Peace",""],
+  ["Perlucutan senjata","Disarmament","International Conflicts and Peace",""],
+  ["Penghematan (kebijakan pengetatan ekonomi)","Austerity","Economic Systems and Ideologies",""],
+  ["Kapitalisme","Capitalism","Economic Systems and Ideologies",""],
+  ["Komunisme","Communism","Economic Systems and Ideologies",""],
+  ["Pasar bebas","Free market","Economic Systems and Ideologies",""],
+  ["Globalisasi","Globalization","Economic Systems and Ideologies",""],
+  ["Ekonomi campuran","Mixed economy","Economic Systems and Ideologies",""],
+  ["Nasionalisasi","Nationalization","Economic Systems and Ideologies",""],
+  ["Privatisasi","Privatization","Economic Systems and Ideologies",""],
+  ["Proteksionisme","Protectionism","Economic Systems and Ideologies",""],
+  ["Sosialisme","Socialism","Economic Systems and Ideologies",""],
+  ["Keberlanjutan","Sustainability","Global Issue",""],
+  ["Pengungsi","Refugee","Global Issue",""],
+  ["Deforestasi","Deforestation","Global Issue",""],
+  ["Keanekaragaman hayati","Biodiversity","Global Issue",""],
+  ["Ketahanan/daya lenting","Resilience","Global Issue",""],
+  ["Energi terbarukan","Renewable energy","Global Issue",""],
+  ["Kemanusiaan","Humanitarian","Global Issue",""],
+  ["Ketimpangan","Inequality","Global Issue",""],
+  ["Geopolitik","Geopolitics","Global Issue",""],
+  ["Keamanan siber","Cybersecurity","Global Issue",""],
+  ["Tunjangan","Benefits","Job Opportunities",""],
+  ["Kualifikasi","Qualifications","Job Opportunities",""],
+  ["Jenjang karier","Career path","Job Opportunities",""],
+  ["Perekrut","Recruiter","Job Opportunities",""],
+  ["Wawancara","Interview","Job Opportunities",""],
+  ["Resume/CV","Resume","Job Opportunities",""],
+  ["Membangun relasi","Networking","Job Opportunities",""],
+  ["Gaji","Salary","Job Opportunities",""],
+  ["Promosi (jabatan)","Promotion","Job Opportunities",""],
+  ["Kumpulan keterampilan","Skillset","Job Opportunities",""],
+  ["Wabah","Outbreak","Global Health",""],
+  ["Telemedis (layanan medis jarak jauh)","Telemedicine","Global Health",""],
+  ["Kronis","Chronic","Global Health",""],
+  ["Menular","Contagious","Global Health",""],
+  ["Karantina","Quarantine","Global Health",""],
+  ["Preventif / pencegahan","Preventive","Global Health",""],
+  ["Angka kematian","Mortality","Global Health",""],
+  ["Sanitasi","Sanitation","Global Health",""],
+  ["Menular (infeksius)","Infectious","Global Health",""],
+  ["Antibiotik","Antibiotics","Global Health",""],
+  ["Duta besar","Ambassador","International Organizations",""],
+  ["Diplomasi","Diplomacy","International Organizations",""],
+  ["Kedutaan besar","Embassy","International Organizations",""],
+  ["Ekstradisi","Extradition","International Organizations",""],
+  ["Multilateral","Multilateral","International Organizations",""],
+  ["LSM (Organisasi Non-Pemerintah)","NGO (Non-Governmental Organization)","International Organizations",""],
+  ["Protokol","Protocol","International Organizations",""],
+  ["Ratifikasi","Ratification","International Organizations",""],
+  ["Sanksi","Sanction","International Organizations",""],
+  ["Perjanjian (traktat)","Treaty","International Organizations",""],
+  ["Disruptif (mengubah tatanan lama)","Disruptive","Past and Current Inventions",""],
+  ["Prototipe","Prototype","Past and Current Inventions",""],
+  ["Pendahulu","Predecessor","Past and Current Inventions",""],
+  ["Terobosan","Breakthrough","Past and Current Inventions",""],
+  ["Paten","Patent","Past and Current Inventions",""],
+  ["Berkembang/berevolusi","Evolve","Past and Current Inventions",""],
+  ["Revolusioner","Revolutionary","Past and Current Inventions",""],
+  ["Dampak","Impact","Past and Current Inventions",""],
+  ["Mulus/tanpa hambatan","Seamless","Past and Current Inventions",""],
+  ["Teknologis","Technological","Past and Current Inventions",""],
+  ["Mutakhir/terdepan","Cutting-edge","Past and Current Inventions",""],
+  ["Pergeseran paradigma","Paradigm shift","Past and Current Inventions",""],
+  ["Terancam punah","Endangered","Endangered Species",""],
+  ["Habitat","Habitat","Endangered Species",""],
+  ["Perburuan liar","Illicit hunting","Endangered Species",""],
+  ["Konservasi","Conservation","Endangered Species",""],
+  ["Punah","Extinct","Endangered Species",""],
+  ["Ekosistem","Ecosystems","Endangered Species",""],
+  ["Keanekaragaman hayati","Biodiversity","Endangered Species",""],
+  ["Ketahanan","Resilience","Endangered Species",""],
+  ["Rantai makanan","Food chains","Endangered Species",""],
+  ["Spesies","Species","Endangered Species",""],
+  ["Berkelanjutan","Sustainable","The Future Cities",""],
+  ["Energi terbarukan","Renewable energy","The Future Cities",""],
+  ["Taman vertikal","Vertical garden","The Future Cities",""],
+  ["Ramah lingkungan","Eco-friendly","The Future Cities",""],
+  ["Perencanaan kota","Urban planning","The Future Cities",""],
+  ["Transportasi efisien","Efficient transportation","The Future Cities",""],
+  ["Teknologi pintar","Smart technology","The Future Cities",""],
+  ["Pengelolaan sampah","Waste management","The Future Cities",""],
+  ["Ruang terbuka hijau","Green space","The Future Cities",""],
+  ["Pusat inovasi","Innovation hub","The Future Cities",""],
+  ["Nol sampah/bebas limbah","Zero-waste","The Future Cities",""],
+  ["Kekejaman","Cruelty","Animal Abuse",""],
+  ["Penelantaran","Neglect","Animal Abuse",""],
+  ["Pengabaian/penelantaran","Abandonment","Animal Abuse",""],
+  ["Kesejahteraan hewan","Animal welfare","Animal Abuse",""],
+  ["Hak-hak hewan","Animal rights","Animal Abuse",""],
+  ["Eksploitasi","Exploitation","Animal Abuse",""],
+  ["Tempat penampungan","Shelter","Animal Abuse",""],
+  ["Rehabilitasi","Rehabilitation","Animal Abuse",""],
+  ["Perundang-undangan","Legislation","Animal Abuse",""],
+  ["Advokasi","Advocacy","Animal Abuse",""],
+  ["Biomimikri (meniru alam untuk teknologi)","Biomimicry","The Magic of Mimicry",""],
+  ["Kriptografi","Cryptography","The Magic of Mimicry",""],
+  ["Menyerupai","Resemble","The Magic of Mimicry",""],
+  ["Kamuflase","Camouflage","The Magic of Mimicry",""],
+  ["Mereplikasi/menduplikasi","Replicate","The Magic of Mimicry",""],
+  ["Biosintetik","Biosynthetic","The Magic of Mimicry",""],
+  ["Konvergensi","Convergence","The Magic of Mimicry",""],
+  ["Ketahanan","Resilience","The Magic of Mimicry",""],
+  ["Biofabrikasi","Biofabrication","The Magic of Mimicry",""],
+  ["Penyamaran","Disguise","The Magic of Mimicry",""],
+  ["Bahan makanan/penopang hidup","Sustenance","Food or Friends?",""],
+  ["Peternakan","Livestock farming","Food or Friends?",""],
+  ["Peternakan pabrik (intensif)","Factory farming","Food or Friends?",""],
+  ["Rumah potong hewan","Slaughterhouse","Food or Friends?",""],
+  ["Etis","Ethical","Food or Friends?",""],
+  ["Tidak manusiawi","Inhumane","Food or Friends?",""],
+  ["Vegetarian","Vegetarian","Food or Friends?",""],
+  ["Vegan","Vegan","Food or Friends?",""],
+  ["Kesadaran indrawi (kemampuan merasakan)","Sentience","Food or Friends?",""],
+  ["Peliharaan/domestik","Domestic","Food or Friends?",""],
+  ["Kecerdasan buatan","Artificial intelligence","The Effect of Technology",""],
+  ["Inovasi","Innovation","The Effect of Technology",""],
+  ["Pembelajaran jarak jauh","Distance learning","The Effect of Technology",""],
+  ["Dunia maya","Cyberspace","The Effect of Technology",""],
+  ["Otomatisasi","Automation","The Effect of Technology",""],
+  ["Jejak digital","Digital footprint","The Effect of Technology",""],
+  ["Ketergantungan","Dependency","The Effect of Technology",""],
+  ["Privasi digital","Digital privacy","The Effect of Technology",""],
+  ["Konektivitas","Connectivity","The Effect of Technology",""],
+  ["Revolusi industri","Industrial revolution","The Effect of Technology",""],
+  ["Ribuan tahun (milenium)","Millennia","Mythological Creatures",""],
+  ["Supranatural","Supernatural","Mythological Creatures",""],
+  ["Labirin","Labyrinth","Mythological Creatures",""],
+  ["Mitologi","Mythology","Mythological Creatures",""],
+  ["Baik hati/penuh kebajikan","Benevolent","Mythological Creatures",""],
+  ["Legenda/pengetahuan turun-temurun","Lore","Mythological Creatures",""],
+  ["Cerita rakyat","Folklore","Mythological Creatures",""],
+  ["Ilmu sihir","Witchcraft","Mythological Creatures",""],
+  ["Bukti/kesaksian","Testament","Mythological Creatures",""],
+  ["Aspirasi/cita-cita","Aspiration","Mythological Creatures",""],
+  ["Tradisi","Tradition","Festival and Celebration",""],
+  ["Ritual","Ritual","Festival and Celebration",""],
+  ["Memperingati","Commemorate","Festival and Celebration",""],
+  ["Perayaan/kemeriahan","Festivity","Festival and Celebration",""],
+  ["Tontonan megah","Spectacle","Festival and Celebration",""],
+  ["Warisan budaya","Heritage","Festival and Celebration",""],
+  ["Sesuai kebiasaan/adat","Customary","Festival and Celebration",""],
+  ["Pawai/arak-arakan","Procession","Festival and Celebration",""],
+  ["Peringatan besar (jubileum)","Jubilee","Festival and Celebration",""],
+  ["Pesta pora/kemeriahan","Revelry","Festival and Celebration",""],
+  ["Luar biasa","Remarkable","The Seven Wonders",""],
+  ["Keajaiban","Wonder","The Seven Wonders",""],
+  ["Keajaiban yang menakjubkan","Marvel","The Seven Wonders",""],
+  ["Rekayasa/teknik","Engineering","The Seven Wonders",""],
+  ["Mengungkap","Unveil","The Seven Wonders",""],
+  ["Peradaban","Civilization","The Seven Wonders",""],
+  ["Piramida","Pyramid","The Seven Wonders",""],
+  ["Kuno","Ancient","The Seven Wonders",""],
+  ["Kecerdikan","Ingenuity","The Seven Wonders",""],
+  ["Abadi/tak lekang waktu","Timeless","The Seven Wonders",""],
+  ["Etnisitas/suku bangsa","Ethnicity","Ethnicity and Race",""],
+  ["Stereotipe","Stereotype","Ethnicity and Race",""],
+  ["Diskriminasi","Discrimination","Ethnicity and Race",""],
+  ["Keberagaman","Diversity","Ethnicity and Race",""],
+  ["Asimilasi (peleburan budaya)","Assimilation","Ethnicity and Race",""],
+  ["Toleransi","Tolerance","Ethnicity and Race",""],
+  ["Xenofobia","Xenophobia","Ethnicity and Race",""],
+  ["Multikulturalisme","Multiculturalism","Ethnicity and Race",""],
+  ["Identitas","Identity","Ethnicity and Race",""],
+  ["Pengadopsian (penerapan)","Adoption","International Important Dates",""],
+  ["Memperingati","Commemorate","International Important Dates",""],
+  ["Deklarasi/pernyataan","Declaration","International Important Dates",""],
+  ["Ekologis","Ecological","International Important Dates",""],
+  ["Pendirian","Founding","International Important Dates",""],
+  ["Buruh/pekerja","Laborer","International Important Dates",""],
+  ["Peringatan (hari tertentu)","Observance","International Important Dates",""],
+  ["Pandemi","Pandemic","International Important Dates",""],
+  ["Penderitaan/keadaan sulit","Plight","International Important Dates",""],
+  ["Kepentingan/makna","Significance","International Important Dates",""],
+  ["Peradaban","Civilization","Ancient Civilization",""],
+  ["Artefak","Artifact","Ancient Civilization",""],
+  ["Irigasi","Irrigation","Ancient Civilization",""],
+  ["Arkeologi","Archaeology","Ancient Civilization",""],
+  ["Dinasti","Dynasty","Ancient Civilization",""],
+  ["Perdagangan","Trade","Ancient Civilization",""],
+  ["Prasasti/inskripsi","Inscription","Ancient Civilization",""],
+  ["Mitologi","Mythology","Ancient Civilization",""],
+  ["Warisan","Legacy","Ancient Civilization",""],
+  ["Hieroglif","Hieroglyphs","Ancient Civilization",""],
+  ["Ketekunan/kegigihan","Perseverance","Influential People",""],
+  ["Melampaui","Transcends","Influential People",""],
+  ["Berpengaruh","Influential","Influential People",""],
+  ["Pendukung/pembela","Advocate","Influential People",""],
+  ["Transformatif (mengubah secara besar)","Transformative","Influential People",""],
+  ["Merevolusi","Revolutionize","Influential People",""],
+  ["Membayangkan/memvisikan","Envisage","Influential People",""],
+  ["Keteguhan hati","Fortitude","Influential People",""],
+  ["Pemberdayaan","Empowerment","Influential People",""],
+  ["Meraih/mengumpulkan","Garner","Influential People",""],
+  ["Multibahasa","Multilingual","World Languages",""],
+  ["Kata serumpun (kognat)","Cognate","World Languages",""],
+  ["Etimologi (asal-usul kata)","Etymology","World Languages",""],
+  ["Fonologi","Phonology","World Languages",""],
+  ["Idiom","Idiom","World Languages",""],
+  ["Ahli bahasa/linguis","Linguist","World Languages",""],
+  ["Sintaksis","Syntax","World Languages",""],
+  ["Poliglot (menguasai banyak bahasa)","Polyglot","World Languages",""],
+  ["Dwibahasa","Bilingual","World Languages",""],
+  ["Dialek","Dialect","World Languages",""],
+  ["Mengagumkan/mencengangkan","Astonishing","Believe It or Not!",""],
+  ["Menakjubkan","Astounding","Believe It or Not!",""],
+  ["Aneh/ganjil","Bizarre","Believe It or Not!",""],
+  ["Luar biasa","Extraordinary","Believe It or Not!",""],
+  ["Memesona","Fascinating","Believe It or Not!",""],
+  ["Tak terpercaya/luar biasa","Incredible","Believe It or Not!",""],
+  ["Membingungkan pikiran","Mind-boggling","Believe It or Not!",""],
+  ["Ganjil/khas","Peculiar","Believe It or Not!",""],
+  ["Mengejutkan","Startling","Believe It or Not!",""],
+  ["Tak masuk akal","Unbelievable","Believe It or Not!",""],
+];
+const M3_TAG_DAY = {
+  "Cultural Heritage": 1,
+  "Pop Culture": 2,
+  "Studying Abroad": 3,
+  "Working Overseas": 4,
+  "Past vs. Present": 5,
+  "Climate Problems in the World": 6,
+  "Social Issues": 7,
+  "Economic and Financial Challenges": 8,
+  "International Conflicts and Peace": 9,
+  "Economic Systems and Ideologies": 10,
+  "Global Issue": 11,
+  "Job Opportunities": 12,
+  "Global Health": 13,
+  "International Organizations": 14,
+  "Past and Current Inventions": 15,
+  "Endangered Species": 16,
+  "The Future Cities": 17,
+  "Animal Abuse": 18,
+  "The Magic of Mimicry": 19,
+  "Food or Friends?": 20,
+  "The Effect of Technology": 21,
+  "Mythological Creatures": 22,
+  "Festival and Celebration": 23,
+  "The Seven Wonders": 24,
+  "Ethnicity and Race": 25,
+  "International Important Dates": 26,
+  "Ancient Civilization": 27,
+  "Influential People": 28,
+  "World Languages": 29,
+  "Believe It or Not!": 30,
+};
+const M3_DAY_TITLES = {
+  1: "Chapter 1: Cultural Heritage",
+  2: "Chapter 2: Pop Culture",
+  3: "Chapter 3: Studying Abroad",
+  4: "Chapter 4: Working Overseas",
+  5: "Chapter 5: Past vs. Present",
+  6: "Chapter 6: Climate Problems in the World",
+  7: "Chapter 7: Social Issues",
+  8: "Chapter 8: Economic and Financial Challenges",
+  9: "Chapter 9: International Conflicts and Peace",
+  10: "Chapter 10: Economic Systems and Ideologies",
+  11: "Chapter 11: Global Issue",
+  12: "Chapter 12: Job Opportunities",
+  13: "Chapter 13: Global Health",
+  14: "Chapter 14: International Organizations",
+  15: "Chapter 15: Past and Current Inventions",
+  16: "Chapter 16: Endangered Species",
+  17: "Chapter 17: The Future Cities",
+  18: "Chapter 18: Animal Abuse",
+  19: "Chapter 19: The Magic of Mimicry",
+  20: "Chapter 20: Food or Friends?",
+  21: "Chapter 21: The Effect of Technology",
+  22: "Chapter 22: Mythological Creatures",
+  23: "Chapter 23: Festival and Celebration",
+  24: "Chapter 24: The Seven Wonders",
+  25: "Chapter 25: Ethnicity and Race",
+  26: "Chapter 26: International Important Dates",
+  27: "Chapter 27: Ancient Civilization",
+  28: "Chapter 28: Influential People",
+  29: "Chapter 29: World Languages",
+  30: "Chapter 30: Believe It or Not!",
+};
+
 /* ================= COMBINE ================= */
 function buildItems(exprRaw, vocabRaw, tagDayMap, month){
   const rows = exprRaw.concat(vocabRaw);
@@ -2583,13 +3243,16 @@ function buildItems(exprRaw, vocabRaw, tagDayMap, month){
 }
 const M1_ITEMS = buildItems(m1ExprPhrasalRaw, m1VocabRaw, M1_TAG_DAY, 1);
 const M2_ITEMS = buildItems(m2ExprPhrasalRaw, m2VocabRaw, M2_TAG_DAY, 2);
+const M3_ITEMS = buildItems(m3ExprPhrasalRaw, m3VocabRaw, M3_TAG_DAY, 3);
 // BASE_ALL = data kosakata bawaan asli (gak pernah diubah setelah ini) — dipakai buat
 // migrasi/sinkronisasi ke Firebase. ALL = data yang beneran dipakai app (bisa ketiban
 // hasil edit/hapus/tambahan admin dari Firebase lewat loadContentBankOverlay()).
-const BASE_ALL = M1_ITEMS.concat(M2_ITEMS);
+const BASE_ALL = M1_ITEMS.concat(M2_ITEMS).concat(M3_ITEMS);
 let ALL = BASE_ALL;
-const MONTH_DAY_TITLES = {1: M1_DAY_TITLES, 2: M2_DAY_TITLES};
-const MONTH_LABEL = {1:"Bulan 1", 2:"Bulan 2"};
+const MONTH_DAY_TITLES = {1: M1_DAY_TITLES, 2: M2_DAY_TITLES, 3: M3_DAY_TITLES};
+const MONTH_LABEL = {1:"Bulan 1", 2:"Bulan 2", 3:"Bulan 3"};
+const TOTAL_DAY_COUNT = Object.values(MONTH_DAY_TITLES).reduce((s,t)=>s+Object.keys(t).length,0);
+const ALL_MONTHS_LABEL = Object.values(MONTH_LABEL).join(' & '); // ex: "Bulan 1 & Bulan 2 & Bulan 3"
 
 /* ---------------- BANK SOAL: overlay dari Firebase (edit/hapus/tambah oleh admin) ----------------
    Struktur di Firebase:
@@ -8315,7 +8978,7 @@ function renderDictionarySearch(onBack){
     <div class="center-stack" style="align-items:stretch;">
       <div class="section-tag">🔍 KAMUS KOSAKATA</div>
       <h1 class="intro-title">Cari Kata</h1>
-      <p class="intro-desc" style="font-size:12px;">Ketik kata dalam Bahasa Indonesia atau Inggris — hasil dicari dari seluruh ${ALL.length} kosakata Bulan 1 &amp; 2.</p>
+      <p class="intro-desc" style="font-size:12px;">Ketik kata dalam Bahasa Indonesia atau Inggris — hasil dicari dari seluruh ${ALL.length} kosakata ${ALL_MONTHS_LABEL}.</p>
       <input type="text" id="dictSearchInput" class="name-gate-input" style="text-align:left;" placeholder="Contoh: makan / eat / crime..." autocomplete="off">
       <div id="dictResultCount" style="font-size:11px;opacity:0.7;margin-top:6px;width:100%;text-align:left;"></div>
       <div id="dictResultList" style="width:100%;display:flex;flex-direction:column;gap:6px;margin-top:8px;max-height:56vh;overflow-y:auto;"></div>
@@ -13729,8 +14392,9 @@ function dayGridHtml(month, day){
   month = month || selectedMonth;
   day = day || selectedDay;
   const titles = MONTH_DAY_TITLES[month];
+  const dayCount = Object.keys(titles).length;
   let html = '<div class="day-grid">';
-  for(let d=1; d<=16; d++){
+  for(let d=1; d<=dayCount; d++){
     const title = titles[d];
     const count = ALL.filter(it=>it.month===month && it.day===d).length;
     const activeCls = day===d ? 'active' : '';
@@ -13748,8 +14412,9 @@ function dayGridHtml(month, day){
 function dayGridHtmlMulti(month, daysArr){
   month = month || selectedMonth;
   const titles = MONTH_DAY_TITLES[month];
+  const dayCount = Object.keys(titles).length;
   let html = '<div class="day-grid">';
-  for(let d=1; d<=16; d++){
+  for(let d=1; d<=dayCount; d++){
     const title = titles[d];
     const count = ALL.filter(it=>it.month===month && it.day===d).length;
     const activeCls = daysArr.includes(d) ? 'active' : '';
@@ -13774,12 +14439,12 @@ function renderIntro(){
         : sortedDays.length === 1
         ? `${MONTH_LABEL[selectedMonth]} · Day ${sortedDays[0]} — ${MONTH_DAY_TITLES[selectedMonth][sortedDays[0]]} (${ALL.filter(it=>it.month===selectedMonth && it.day===sortedDays[0]).length} kata).`
         : `${MONTH_LABEL[selectedMonth]} · Day ${sortedDays.join(', ')} (${ALL.filter(it=>it.month===selectedMonth && selectedDays.includes(it.day)).length} kata gabungan).`)
-    : `Gabungan <b>seluruh 32 hari</b> (${ALL.length} kata), diacak.`;
+    : `Gabungan <b>seluruh ${TOTAL_DAY_COUNT} hari</b> (${ALL.length} kata), diacak.`;
 
   card.innerHTML = `
     <div class="center-stack">
-      <div class="section-tag">32 HARI · ${ALL.length} SOAL</div>
-      <h1 class="intro-title">Rekap Bulan 1 & 2 — siap mulai?</h1>
+      <div class="section-tag">${TOTAL_DAY_COUNT} HARI · ${ALL.length} SOAL</div>
+      <h1 class="intro-title">Rekap ${ALL_MONTHS_LABEL} — siap mulai?</h1>
       <div class="streak-chip" id="streakChip">✨ Memuat streak...</div>
       <div class="profile-chip" id="introProfileChip">
         <div class="profile-chip-avatar" data-size="40">${avatarHtml(40)}</div>
@@ -13795,18 +14460,19 @@ function renderIntro(){
         <button class="mode-btn ${primaryMode==='flashcard' ? 'active' : ''}" id="subFlashBtn" type="button">🃏 Mode Hafalan</button>
       </div>
       <div class="mode-row" style="margin-top:6px;">
-        <button class="mode-btn ${scope==='all' ? 'active' : ''}" id="scopeAllBtn" type="button">📚 Gabungan (Bulan 1+2)</button>
+        <button class="mode-btn ${scope==='all' ? 'active' : ''}" id="scopeAllBtn" type="button">📚 Gabungan (${ALL_MONTHS_LABEL})</button>
         <button class="mode-btn ${scope==='day' ? 'active' : ''}" id="scopeDayBtn" type="button">🗓 Per Hari</button>
       </div>
       ${scope==='day' ? `
           <div class="mode-row">
             <button class="mode-btn month-btn ${selectedMonth===1 ? 'active' : ''}" id="monthOneBtn" type="button">Bulan 1</button>
             <button class="mode-btn month-btn ${selectedMonth===2 ? 'active' : ''}" id="monthTwoBtn" type="button">Bulan 2</button>
+            <button class="mode-btn month-btn ${selectedMonth===3 ? 'active' : ''}" id="monthThreeBtn" type="button">Bulan 3</button>
           </div>
           <p class="intro-desc" style="font-size:11px;opacity:0.75;margin:2px 0 6px;">Tap beberapa hari buat gabungin soal dari beberapa hari sekaligus (misal Day 3, 6, dan 14).</p>
           ${dayGridHtmlMulti(selectedMonth, selectedDays)}
           <div class="mode-row">
-            <button class="mode-btn" id="daySelectAllBtn" type="button">✅ Pilih Semua 16 Hari</button>
+            <button class="mode-btn" id="daySelectAllBtn" type="button">✅ Pilih Semua ${Object.keys(MONTH_DAY_TITLES[selectedMonth]).length} Hari</button>
             <button class="mode-btn" id="dayResetBtn" type="button">↺ Kosongkan Pilihan</button>
           </div>
         ` : ''}
@@ -13910,6 +14576,7 @@ function renderIntro(){
   if(scope === 'day'){
     document.getElementById('monthOneBtn').onclick = ()=>{ selectedMonth = 1; selectedDays = []; renderIntro(); };
     document.getElementById('monthTwoBtn').onclick = ()=>{ selectedMonth = 2; selectedDays = []; renderIntro(); };
+    document.getElementById('monthThreeBtn').onclick = ()=>{ selectedMonth = 3; selectedDays = []; renderIntro(); };
     document.querySelectorAll('.day-btn').forEach(btn=>{
       btn.onclick = ()=>{
         const d = parseInt(btn.dataset.day, 10);
@@ -13922,7 +14589,7 @@ function renderIntro(){
         renderIntro();
       };
     });
-    document.getElementById('daySelectAllBtn').onclick = ()=>{ selectedDays = Array.from({length:16}, (_,i)=>i+1); renderIntro(); };
+    document.getElementById('daySelectAllBtn').onclick = ()=>{ const dc = Object.keys(MONTH_DAY_TITLES[selectedMonth]).length; selectedDays = Array.from({length:dc}, (_,i)=>i+1); renderIntro(); };
     document.getElementById('dayResetBtn').onclick = ()=>{ selectedDays = []; renderIntro(); };
   }
 
@@ -14076,8 +14743,8 @@ function renderFlashcard(){
   const word = flashFlipped ? item.en : item.id;
   const isLast = flashIdx === flashQueue.length - 1;
   const phonHtml = (flashFlipped && item.ph) ? `<div class="flash-phonetic">${item.ph}</div>` : '';
-  // Sound cara baca (TTS) — sekarang aktif buat Bulan 1 & Bulan 2
-  const canSpeak = flashFlipped && (item.month === 1 || item.month === 2) && item.en && (typeof speechSynthesis !== 'undefined');
+  // Sound cara baca (TTS) — sekarang aktif buat Bulan 1, Bulan 2 & Bulan 3
+  const canSpeak = flashFlipped && (item.month === 1 || item.month === 2 || item.month === 3) && item.en && (typeof speechSynthesis !== 'undefined');
   const soundBtnHtml = canSpeak ? `<button type="button" class="flash-sound-btn" id="flashSoundBtn">🔊 Dengarkan Cara Baca</button>` : '';
 
   card.innerHTML = `
@@ -14260,7 +14927,7 @@ function renderAllCorrect(){
     ? (sortedDaysDone.length === 1
         ? `${MONTH_LABEL[selectedMonth]} · Day ${sortedDaysDone[0]} — ${MONTH_DAY_TITLES[selectedMonth][sortedDaysDone[0]]}`
         : `${MONTH_LABEL[selectedMonth]} · Day ${sortedDaysDone.join(', ')}`)
-    : 'seluruh 32 hari (Bulan 1 & Bulan 2)';
+    : `seluruh ${TOTAL_DAY_COUNT} hari (${ALL_MONTHS_LABEL})`;
   statusVal.textContent = "KHATAM ✓";
   card.innerHTML = `
     <div class="center-stack">
@@ -14334,7 +15001,7 @@ function renderExamIntro(){
     ? `Grammar — ${cfg.grammarCategory && cfg.grammarCategory !== 'all' ? cfg.grammarCategory : 'Semua Kategori'}`
     : (cfg.scope === 'day'
       ? `${MONTH_LABEL[cfg.month]} · Day ${cfg.day} — ${MONTH_DAY_TITLES[cfg.month][cfg.day]}`
-      : 'Semua 32 hari (Bulan 1 & Bulan 2)') + (source === 'mix' ? ` + Grammar (${cfg.grammarCategory && cfg.grammarCategory !== 'all' ? cfg.grammarCategory : 'Semua Kategori'})` : '');
+      : `Semua ${TOTAL_DAY_COUNT} hari (${ALL_MONTHS_LABEL})`) + (source === 'mix' ? ` + Grammar (${cfg.grammarCategory && cfg.grammarCategory !== 'all' ? cfg.grammarCategory : 'Semua Kategori'})` : '');
   const typeDesc = cfg.types === 'mc' ? 'Pilihan Ganda saja' : cfg.types === 'essay' ? 'Esai saja' : 'Campuran Pilihan Ganda & Esai';
 
   card.innerHTML = `
@@ -14390,7 +15057,7 @@ function renderSelfExamSetup(){
   setPresenceStatus('idle');
   const scopeDesc = selfExamScope === 'day'
     ? `Kamu akan diuji khusus <b>${MONTH_LABEL[selfExamMonth]} · Day ${selfExamDay} — ${MONTH_DAY_TITLES[selfExamMonth][selfExamDay]}</b> (${ALL.filter(it=>it.month===selfExamMonth && it.day===selfExamDay).length} soal).`
-    : `Kamu akan diuji dari <b>seluruh 32 hari (Bulan 1 & Bulan 2)</b> (${ALL.length} soal), diacak.`;
+    : `Kamu akan diuji dari <b>seluruh ${TOTAL_DAY_COUNT} hari (${ALL_MONTHS_LABEL})</b> (${ALL.length} soal), diacak.`;
   const grammarPoolCount = (selfExamGrammarScope === 'category' && selfExamGrammarCategory)
     ? grammarQuizPoolByCategory(selfExamGrammarCategory).length
     : GRAMMAR_QUIZ_QUESTIONS.length;
@@ -14417,13 +15084,14 @@ function renderSelfExamSetup(){
       ${selfExamSource !== 'grammar' ? `
         <p class="intro-desc" style="font-size:11px;font-weight:800;margin-bottom:2px;margin-top:8px;">Cakupan Vocab</p>
         <div class="mode-row">
-          <button class="mode-btn ${selfExamScope==='all' ? 'active' : ''}" id="selfScopeAllBtn" type="button">📚 Gabungan (Bulan 1+2)</button>
+          <button class="mode-btn ${selfExamScope==='all' ? 'active' : ''}" id="selfScopeAllBtn" type="button">📚 Gabungan (${ALL_MONTHS_LABEL})</button>
           <button class="mode-btn ${selfExamScope==='day' ? 'active' : ''}" id="selfScopeDayBtn" type="button">🗓 Per Hari</button>
         </div>
         ${selfExamScope==='day' ? `
           <div class="mode-row">
             <button class="mode-btn month-btn ${selfExamMonth===1 ? 'active' : ''}" id="selfMonthOneBtn" type="button">Bulan 1</button>
             <button class="mode-btn month-btn ${selfExamMonth===2 ? 'active' : ''}" id="selfMonthTwoBtn" type="button">Bulan 2</button>
+            <button class="mode-btn month-btn ${selfExamMonth===3 ? 'active' : ''}" id="selfMonthThreeBtn" type="button">Bulan 3</button>
           </div>
           ${dayGridHtml(selfExamMonth, selfExamDay)}
         ` : ''}
@@ -14465,6 +15133,7 @@ function renderSelfExamSetup(){
     if(selfExamScope === 'day'){
       document.getElementById('selfMonthOneBtn').onclick = ()=>{ selfExamMonth = 1; selfExamDay = 1; renderSelfExamSetup(); };
       document.getElementById('selfMonthTwoBtn').onclick = ()=>{ selfExamMonth = 2; selfExamDay = 1; renderSelfExamSetup(); };
+      document.getElementById('selfMonthThreeBtn').onclick = ()=>{ selfExamMonth = 3; selfExamDay = 1; renderSelfExamSetup(); };
       document.querySelectorAll('.day-btn[data-day]').forEach(btn=>{
         btn.onclick = ()=>{ selfExamDay = parseInt(btn.dataset.day, 10); renderSelfExamSetup(); };
       });
