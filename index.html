@@ -14668,6 +14668,15 @@ let flashFlipped = false;
 let flashCountedKeys = new Set(); // biar 1 kartu cuma dihitung 1x ke leaderboard walau dibolak-balik
 const FLASH_PROGRESS_KEY = 'flashProgress_gabungan_v1'; // cuma dipakai buat scope 'all' (Gabungan Bulan 1+2)
 
+// Bahasa yang ditampilkan duluan di kartu (sisi depan) sebelum di-tap. Default: Indonesia dulu (perilaku lama).
+function loadFlashFrontLang(){
+  try{ const v = localStorage.getItem('flashFrontLang'); return (v === 'en') ? 'en' : 'id'; }catch(e){ return 'id'; }
+}
+let flashFrontLang = loadFlashFrontLang(); // 'id' | 'en'
+function saveFlashFrontLang(){
+  try{ localStorage.setItem('flashFrontLang', flashFrontLang); }catch(e){}
+}
+
 function saveFlashProgress(){
   if(scope !== 'all') return; // fitur lanjutkan cuma buat mode Gabungan yg soalnya banyak
   try{
@@ -14739,12 +14748,14 @@ function renderFlashcard(){
     return;
   }
   const item = flashQueue[flashIdx];
-  const langTag = flashFlipped ? 'BAHASA INGGRIS' : 'BAHASA INDONESIA';
-  const word = flashFlipped ? item.en : item.id;
+  const backLang = flashFrontLang === 'id' ? 'en' : 'id'; // sisi belakang = kebalikan dari sisi depan yang dipilih
+  const shownLang = flashFlipped ? backLang : flashFrontLang;
+  const langTag = shownLang === 'en' ? 'BAHASA INGGRIS' : 'BAHASA INDONESIA';
+  const word = shownLang === 'en' ? item.en : item.id;
   const isLast = flashIdx === flashQueue.length - 1;
-  const phonHtml = (flashFlipped && item.ph) ? `<div class="flash-phonetic">${item.ph}</div>` : '';
+  const phonHtml = (shownLang === 'en' && item.ph) ? `<div class="flash-phonetic">${item.ph}</div>` : '';
   // Sound cara baca (TTS) — sekarang aktif buat Bulan 1, Bulan 2 & Bulan 3
-  const canSpeak = flashFlipped && (item.month === 1 || item.month === 2 || item.month === 3) && item.en && (typeof speechSynthesis !== 'undefined');
+  const canSpeak = shownLang === 'en' && (item.month === 1 || item.month === 2 || item.month === 3) && item.en && (typeof speechSynthesis !== 'undefined');
   const soundBtnHtml = canSpeak ? `<button type="button" class="flash-sound-btn" id="flashSoundBtn">🔊 Dengarkan Cara Baca</button>` : '';
 
   card.innerHTML = `
@@ -14753,6 +14764,10 @@ function renderFlashcard(){
       <span>KARTU ${flashIdx+1} / ${flashQueue.length}</span>
     </div>
     <div class="section-tag">${item.tag}</div>${monthBadgeHtml(item)}
+    <div class="mode-row" style="margin-top:2px;">
+      <button class="mode-btn ${flashFrontLang==='id' ? 'active' : ''}" id="flashLangIdBtn" type="button">🇮🇩 Tampil Indonesia Dulu</button>
+      <button class="mode-btn ${flashFrontLang==='en' ? 'active' : ''}" id="flashLangEnBtn" type="button">🇬🇧 Tampil Inggris Dulu</button>
+    </div>
     <div class="flash-card ${flashFlipped ? 'flipped' : ''}" id="flashCardEl">
       <div class="flash-lang-tag">${langTag}</div>
       <div class="flash-word">${word}</div>
@@ -14767,6 +14782,16 @@ function renderFlashcard(){
     </div>
   `;
 
+  document.getElementById('flashLangIdBtn').onclick = (e)=>{
+    e.stopPropagation();
+    if(flashFrontLang === 'id') return;
+    flashFrontLang = 'id'; saveFlashFrontLang(); flashFlipped = false; renderFlashcard();
+  };
+  document.getElementById('flashLangEnBtn').onclick = (e)=>{
+    e.stopPropagation();
+    if(flashFrontLang === 'en') return;
+    flashFrontLang = 'en'; saveFlashFrontLang(); flashFlipped = false; renderFlashcard();
+  };
   document.getElementById('flashCardEl').onclick = ()=>{
     flashFlipped = !flashFlipped;
     // Catatan: kartu flashcard sengaja TIDAK dihitung ke leaderboard aktivitas / XP lagi —
