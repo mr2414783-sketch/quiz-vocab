@@ -14428,16 +14428,18 @@ function dayGridHtmlMulti(month, daysArr){
   return html;
 }
 
-function renderVocabTable(onBack){
+function renderVocabTable(onBack, filter){
   clearTimer();
   statusVal.textContent = "TABEL MATERI";
-  const monthsSorted = Object.keys(MONTH_LABEL).map(Number).sort((a,b)=>a-b);
+  const isFiltered = !!(filter && filter.month && filter.days && filter.days.length > 0);
+  const monthsSorted = isFiltered ? [filter.month] : Object.keys(MONTH_LABEL).map(Number).sort((a,b)=>a-b);
+  const baseSet = isFiltered ? ALL.filter(it => it.month === filter.month && filter.days.includes(it.day)) : ALL;
   let tableSearch = '';
   function rowsHtml(){
     const term = tableSearch.trim().toLowerCase();
     const filtered = term
-      ? ALL.filter(it => (it.id||'').toLowerCase().includes(term) || (it.en||'').toLowerCase().includes(term) || (it.tag||'').toLowerCase().includes(term))
-      : ALL;
+      ? baseSet.filter(it => (it.id||'').toLowerCase().includes(term) || (it.en||'').toLowerCase().includes(term) || (it.tag||'').toLowerCase().includes(term))
+      : baseSet;
     if(filtered.length === 0){
       return '<div class="lb-empty-light">Gak ketemu kata yang cocok dengan pencarian.</div>';
     }
@@ -14445,7 +14447,9 @@ function renderVocabTable(onBack){
     monthsSorted.forEach(m=>{
       const monthItems = filtered.filter(it => it.month === m);
       if(monthItems.length === 0) return;
-      html += `<h2 style="font-size:14px;font-weight:900;margin:16px 0 8px;color:var(--red-dim);border-bottom:2px solid var(--red-dim);padding-bottom:4px;">${escapeHtmlIdx(MONTH_LABEL[m])} (${monthItems.length} kata)</h2>`;
+      if(!isFiltered){
+        html += `<h2 style="font-size:14px;font-weight:900;margin:16px 0 8px;color:var(--red-dim);border-bottom:2px solid var(--red-dim);padding-bottom:4px;">${escapeHtmlIdx(MONTH_LABEL[m])} (${monthItems.length} kata)</h2>`;
+      }
       // kelompokkan per kategori (Day + topik/tag) di dalam bulan ini
       const byDay = {};
       monthItems.forEach(it=>{
@@ -14466,11 +14470,15 @@ function renderVocabTable(onBack){
     });
     return html;
   }
+  const titleText = isFiltered ? `Materi Terpilih (${baseSet.length} kata)` : `Semua Kosakata (${ALL.length} kata)`;
+  const descText = isFiltered
+    ? `Materi dari ${escapeHtmlIdx(MONTH_LABEL[filter.month])} · Day ${filter.days.slice().sort((a,b)=>a-b).join(', ')} dalam bentuk tabel per hari.`
+    : `Daftar lengkap materi dari ${ALL_MONTHS_LABEL}, dikelompokkan per bulan lalu per kategori/topik hari, buat kamu yang mau lihat/scroll semuanya sekaligus tanpa flashcard.`;
   card.innerHTML = `
     <div class="center-stack" style="align-items:stretch;">
       <div class="section-tag" style="background:var(--blue,#2E6FD9);color:#fff;">TABEL MATERI</div>
-      <h1 class="intro-title">Semua Kosakata (${ALL.length} kata)</h1>
-      <p class="intro-desc" style="font-size:12px;">Daftar lengkap materi dari ${ALL_MONTHS_LABEL}, dikelompokkan per bulan lalu per kategori/topik hari, buat kamu yang mau lihat/scroll semuanya sekaligus tanpa flashcard.</p>
+      <h1 class="intro-title">${titleText}</h1>
+      <p class="intro-desc" style="font-size:12px;">${descText}</p>
       <input type="text" id="vocabTableSearch" class="plain-input" placeholder="🔍 Cari kata (Indonesia/English/topik)..." style="margin-bottom:6px;">
       <div id="vocabTableWrap" style="width:100%;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--panel-2, #fff8ea);">${rowsHtml()}</div>
       <button class="btn ghost" id="vocabTableBackBtn" style="margin-top:10px;">← Kembali</button>
@@ -14534,6 +14542,7 @@ function renderIntro(){
           </div>
         ` : ''}
         <p class="intro-desc" style="font-size:12px;">${scopeDesc}</p>
+        ${(scope==='day' && sortedDays.length > 0) ? `<button class="btn ghost" id="vocabTableDayBtn" style="margin-bottom:6px;">📋 Lihat Materi Hari Ini (Tabel)</button>` : ''}
 
         ${primaryMode==='quiz' ? `
           <div class="mode-row">
@@ -14649,6 +14658,10 @@ function renderIntro(){
     });
     document.getElementById('daySelectAllBtn').onclick = ()=>{ const dc = Object.keys(MONTH_DAY_TITLES[selectedMonth]).length; selectedDays = Array.from({length:dc}, (_,i)=>i+1); renderIntro(); };
     document.getElementById('dayResetBtn').onclick = ()=>{ selectedDays = []; renderIntro(); };
+  }
+  const vocabTableDayBtn = document.getElementById('vocabTableDayBtn');
+  if(vocabTableDayBtn){
+    vocabTableDayBtn.onclick = ()=> renderVocabTable(renderIntro, { month: selectedMonth, days: selectedDays.slice() });
   }
 
   if(primaryMode === 'quiz'){
