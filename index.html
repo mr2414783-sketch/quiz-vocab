@@ -14428,6 +14428,51 @@ function dayGridHtmlMulti(month, daysArr){
   return html;
 }
 
+function renderVocabTable(onBack){
+  clearTimer();
+  statusVal.textContent = "TABEL MATERI";
+  const monthsSorted = Object.keys(MONTH_LABEL).map(Number).sort((a,b)=>a-b);
+  let tableSearch = '';
+  function rowsHtml(){
+    const term = tableSearch.trim().toLowerCase();
+    const filtered = term
+      ? ALL.filter(it => (it.id||'').toLowerCase().includes(term) || (it.en||'').toLowerCase().includes(term) || (it.tag||'').toLowerCase().includes(term))
+      : ALL;
+    if(filtered.length === 0){
+      return '<div class="lb-empty-light">Gak ketemu kata yang cocok dengan pencarian.</div>';
+    }
+    let html = '';
+    monthsSorted.forEach(m=>{
+      const monthItems = filtered.filter(it => it.month === m).sort((a,b)=> (a.day-b.day) || a.id.localeCompare(b.id));
+      if(monthItems.length === 0) return;
+      html += `<h2 style="font-size:13px;font-weight:900;margin:14px 0 6px;color:var(--red-dim);">${escapeHtmlIdx(MONTH_LABEL[m])} (${monthItems.length} kata)</h2>`;
+      html += `<table class="pron-sym-table"><tr><th style="width:26px;">#</th><th>Bahasa Indonesia</th><th>English</th><th>Topik / Hari</th></tr>`;
+      monthItems.forEach((it, i)=>{
+        html += `<tr><td style="opacity:0.55;">${i+1}</td><td>${escapeHtmlIdx(it.id)}</td><td style="font-weight:700;color:var(--blue,#2E6FD9);">${escapeHtmlIdx(it.en)}</td><td style="font-size:11px;opacity:0.75;">Day ${it.day} — ${escapeHtmlIdx(it.tag||'')}</td></tr>`;
+      });
+      html += `</table>`;
+    });
+    return html;
+  }
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:var(--blue,#2E6FD9);color:#fff;">TABEL MATERI</div>
+      <h1 class="intro-title">Semua Kosakata (${ALL.length} kata)</h1>
+      <p class="intro-desc" style="font-size:12px;">Daftar lengkap materi dari ${ALL_MONTHS_LABEL} dalam bentuk tabel, buat kamu yang mau lihat/scroll semuanya sekaligus tanpa flashcard.</p>
+      <input type="text" id="vocabTableSearch" class="plain-input" placeholder="🔍 Cari kata (Indonesia/English/topik)..." style="margin-bottom:6px;">
+      <div id="vocabTableWrap" style="width:100%;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--panel-2, #fff8ea);">${rowsHtml()}</div>
+      <button class="btn ghost" id="vocabTableBackBtn" style="margin-top:10px;">← Kembali</button>
+    </div>
+  `;
+  document.getElementById('vocabTableBackBtn').onclick = onBack;
+  const searchInput = document.getElementById('vocabTableSearch');
+  searchInput.addEventListener('input', ()=>{
+    tableSearch = searchInput.value;
+    const wrap = document.getElementById('vocabTableWrap');
+    if(wrap) wrap.innerHTML = rowsHtml();
+  });
+}
+
 function renderIntro(){
   statusVal.textContent = "OPEN BOOK";
   setPresenceStatus('idle');
@@ -14509,6 +14554,7 @@ function renderIntro(){
             <button class="btn" id="resumeFlashBtn" style="background:var(--green,#16a34a);">▶️ Lanjutkan Soal</button>`;
           })()}
           <button class="btn ${scope==='all' && loadFlashProgress() ? 'ghost' : ''}" id="startBtn">${scope==='all' && loadFlashProgress() ? '🔄 Mulai dari Awal (soal diacak ulang)' : 'Mulai Menghafal →'}</button>
+          <button class="btn ghost" id="vocabTableBtn" style="margin-top:8px;">📋 Lihat Semua Materi (Tabel)</button>
         `}
 
       <div class="util-grid">
@@ -14657,6 +14703,10 @@ function renderIntro(){
     const resumeBtn = document.getElementById('resumeFlashBtn');
     if(resumeBtn){
       resumeBtn.onclick = ()=>{ resumeFlashcards(currentPool()); };
+    }
+    const vocabTableBtn = document.getElementById('vocabTableBtn');
+    if(vocabTableBtn){
+      vocabTableBtn.onclick = ()=> renderVocabTable(renderIntro);
     }
   }
 }
