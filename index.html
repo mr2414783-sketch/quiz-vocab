@@ -3822,6 +3822,8 @@ let scope = 'all';    // 'all' (gabungan Bulan 1+2) | 'day' (per hari, pilih bul
 let selectedMonth = 1;
 let selectedDay = 1;
 let selectedDays = []; // multi-pilih hari untuk menu Latihan Soal & Mode Hafalan (kosong = belum pilih)
+let selectedOtherLevels = []; // multi-pilih level CEFR (A1-C2) untuk kategori "Lainnya" (kosong = belum pilih)
+const OTHER_LEVELS = ['A1','A2','B1','B2','C1','C2'];
 let activePool = ALL; // the pool actually being quizzed right now
 
 /* matching-mode state */
@@ -14781,7 +14783,7 @@ function currentPool(){
     return ALL.filter(it => it.month === selectedMonth && selectedDays.includes(it.day));
   }
   if(scope === 'other'){
-    return ALL.filter(it => it.month === OTHER_MONTH);
+    return ALL.filter(it => it.month === OTHER_MONTH && selectedOtherLevels.includes(it.tag));
   }
   return ALL.filter(it => it.month !== OTHER_MONTH); // gabungan bulan 1 + 2 + 3 (gak termasuk 'Lainnya')
 }
@@ -14928,9 +14930,15 @@ function dayGridHtmlMulti(month, daysArr){
 function renderVocabTable(onBack, filter){
   clearTimer();
   statusVal.textContent = "TABEL MATERI";
-  const isFiltered = !!(filter && filter.month && filter.days && filter.days.length > 0);
+  const isFilteredByDay = !!(filter && filter.days && filter.days.length > 0);
+  const isFilteredByLevel = !!(filter && filter.levels && filter.levels.length > 0);
+  const isFiltered = isFilteredByDay || isFilteredByLevel;
   const monthsSorted = isFiltered ? [filter.month] : Object.keys(MONTH_LABEL).map(Number).sort((a,b)=>a-b);
-  const baseSet = isFiltered ? ALL.filter(it => it.month === filter.month && filter.days.includes(it.day)) : ALL;
+  const baseSet = isFilteredByLevel
+    ? ALL.filter(it => it.month === filter.month && filter.levels.includes(it.tag))
+    : isFilteredByDay
+    ? ALL.filter(it => it.month === filter.month && filter.days.includes(it.day))
+    : ALL.filter(it => it.month !== OTHER_MONTH); // tabel "semua" gak termasuk kosakata Lainnya (biar konsisten sama Gabungan)
   let tableSearch = '';
   function rowsHtml(){
     const term = tableSearch.trim().toLowerCase();
@@ -14939,6 +14947,20 @@ function renderVocabTable(onBack, filter){
       : baseSet;
     if(filtered.length === 0){
       return '<div class="lb-empty-light">Gak ketemu kata yang cocok dengan pencarian.</div>';
+    }
+    if(isFilteredByLevel){
+      let html = '';
+      filter.levels.forEach(lv=>{
+        const items = filtered.filter(it => it.tag === lv).sort((a,b)=> a.id.localeCompare(b.id));
+        if(items.length === 0) return;
+        html += `<h3 style="font-size:12px;font-weight:800;margin:10px 0 4px;color:var(--blue,#2E6FD9);">Level ${lv} (${items.length} kata)</h3>`;
+        html += `<table class="pron-sym-table"><tr><th style="width:26px;">#</th><th>Bahasa Indonesia</th><th>English</th></tr>`;
+        items.forEach((it, i)=>{
+          html += `<tr><td style="opacity:0.55;">${i+1}</td><td>${escapeHtmlIdx(it.id)}</td><td style="font-weight:700;color:var(--blue,#2E6FD9);">${escapeHtmlIdx(it.en)}</td></tr>`;
+        });
+        html += `</table>`;
+      });
+      return html;
     }
     let html = '';
     monthsSorted.forEach(m=>{
@@ -14967,8 +14989,10 @@ function renderVocabTable(onBack, filter){
     });
     return html;
   }
-  const titleText = isFiltered ? `Materi Terpilih (${baseSet.length} kata)` : `Semua Kosakata (${ALL.length} kata)`;
-  const descText = isFiltered
+  const titleText = isFiltered ? `Materi Terpilih (${baseSet.length} kata)` : `Semua Kosakata (${baseSet.length} kata)`;
+  const descText = isFilteredByLevel
+    ? `Materi kosakata tambahan (Lainnya) level ${filter.levels.join(', ')} dalam bentuk tabel.`
+    : isFilteredByDay
     ? `Materi dari ${escapeHtmlIdx(MONTH_LABEL[filter.month])} · Day ${filter.days.slice().sort((a,b)=>a-b).join(', ')} dalam bentuk tabel per hari.`
     : `Daftar lengkap materi dari ${ALL_MONTHS_LABEL}, dikelompokkan per bulan lalu per kategori/topik hari, buat kamu yang mau lihat/scroll semuanya sekaligus tanpa flashcard.`;
   card.innerHTML = `
@@ -14996,6 +15020,7 @@ function renderIntro(){
   setPresenceMode('Latihan Soal & Hafalan (menu)');
   const sortedDays = selectedDays.slice().sort((a,b)=>a-b);
   const otherCount = ALL.filter(it=>it.month===OTHER_MONTH).length;
+  const selectedOtherCount = ALL.filter(it=>it.month===OTHER_MONTH && selectedOtherLevels.includes(it.tag)).length;
   const scopeDesc = scope === 'day'
     ? (sortedDays.length === 0
         ? `Belum ada hari yang dipilih — tap salah satu Day di atas dulu ya.`
@@ -15003,7 +15028,9 @@ function renderIntro(){
         ? `${MONTH_LABEL[selectedMonth]} · Day ${sortedDays[0]} — ${MONTH_DAY_TITLES[selectedMonth][sortedDays[0]]} (${ALL.filter(it=>it.month===selectedMonth && it.day===sortedDays[0]).length} kata).`
         : `${MONTH_LABEL[selectedMonth]} · Day ${sortedDays.join(', ')} (${ALL.filter(it=>it.month===selectedMonth && selectedDays.includes(it.day)).length} kata gabungan).`)
     : scope === 'other'
-    ? `Kosakata tambahan <b>CEFR A1–C2</b> (${otherCount} kata), diacak.`
+    ? (selectedOtherLevels.length === 0
+        ? `Belum ada level yang dipilih — tap salah satu level CEFR di atas dulu ya.`
+        : `Level <b>${selectedOtherLevels.join(', ')}</b> (${selectedOtherCount} kata), diacak.`)
     : `Gabungan <b>seluruh ${TOTAL_DAY_COUNT} hari</b> (${ALL.filter(it=>it.month!==OTHER_MONTH).length} kata), diacak.`;
 
   card.innerHTML = `
@@ -15042,8 +15069,28 @@ function renderIntro(){
             <button class="mode-btn" id="dayResetBtn" type="button">↺ Kosongkan Pilihan</button>
           </div>
         ` : ''}
+      ${scope==='other' ? `
+          <p class="intro-desc" style="font-size:11px;opacity:0.75;margin:2px 0 6px;">Tap satu atau beberapa level CEFR buat digabung (misal A1 + A2 sekaligus).</p>
+          <div class="day-grid">
+            ${OTHER_LEVELS.map(lv=>{
+              const count = ALL.filter(it=>it.month===OTHER_MONTH && it.tag===lv).length;
+              const activeCls = selectedOtherLevels.includes(lv) ? 'active' : '';
+              return `<button class="day-btn ${activeCls}" data-level="${lv}" type="button">
+                <div class="dnum">LEVEL</div>
+                <div class="dtitle">${lv}</div>
+                <div class="dcount">${count} soal</div>
+              </button>`;
+            }).join('')}
+          </div>
+          <div class="mode-row">
+            <button class="mode-btn" id="otherLevelSelectAllBtn" type="button">✅ Pilih Semua Level</button>
+            <button class="mode-btn" id="otherLevelResetBtn" type="button">↺ Kosongkan Pilihan</button>
+          </div>
+        ` : ''}
         <p class="intro-desc" style="font-size:12px;">${scopeDesc}</p>
         ${(scope==='day' && sortedDays.length > 0) ? `<button class="btn ghost" id="vocabTableDayBtn" style="margin-bottom:6px;">📋 Lihat Materi Hari Ini (Tabel)</button>` : ''}
+        ${(scope==='other' && selectedOtherLevels.length > 0) ? `<button class="btn ghost" id="vocabTableOtherBtn" style="margin-bottom:6px;">📋 Lihat Materi Level Ini (Tabel)</button>` : ''}
+
 
         ${primaryMode==='quiz' ? `
           <div class="mode-row">
@@ -15161,9 +15208,25 @@ function renderIntro(){
     document.getElementById('daySelectAllBtn').onclick = ()=>{ const dc = Object.keys(MONTH_DAY_TITLES[selectedMonth]).length; selectedDays = Array.from({length:dc}, (_,i)=>i+1); renderIntro(); };
     document.getElementById('dayResetBtn').onclick = ()=>{ selectedDays = []; renderIntro(); };
   }
+  if(scope === 'other'){
+    document.querySelectorAll('[data-level]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const lv = btn.dataset.level;
+        const pos = selectedOtherLevels.indexOf(lv);
+        if(pos >= 0){ selectedOtherLevels.splice(pos, 1); } else { selectedOtherLevels.push(lv); }
+        renderIntro();
+      };
+    });
+    document.getElementById('otherLevelSelectAllBtn').onclick = ()=>{ selectedOtherLevels = OTHER_LEVELS.slice(); renderIntro(); };
+    document.getElementById('otherLevelResetBtn').onclick = ()=>{ selectedOtherLevels = []; renderIntro(); };
+  }
   const vocabTableDayBtn = document.getElementById('vocabTableDayBtn');
   if(vocabTableDayBtn){
     vocabTableDayBtn.onclick = ()=> renderVocabTable(renderIntro, { month: selectedMonth, days: selectedDays.slice() });
+  }
+  const vocabTableOtherBtn = document.getElementById('vocabTableOtherBtn');
+  if(vocabTableOtherBtn){
+    vocabTableOtherBtn.onclick = ()=> renderVocabTable(renderIntro, { month: OTHER_MONTH, levels: selectedOtherLevels.slice() });
   }
 
   if(primaryMode === 'quiz'){
@@ -15211,6 +15274,7 @@ function renderIntro(){
     };
     document.getElementById('startBtn').onclick = ()=>{
       if(scope === 'day' && selectedDays.length === 0){ alert('Pilih minimal 1 hari dulu ya sebelum mulai.'); return; }
+      if(scope === 'other' && selectedOtherLevels.length === 0){ alert('Pilih minimal 1 level dulu ya sebelum mulai.'); return; }
       const pool = currentPool();
       if(quizType === 'mc'){ if(scope === 'all') clearQuizProgress(); startMainQuiz(pool); }
       else if(quizType === 'match'){ startMatchQuiz(pool); }
@@ -15224,6 +15288,7 @@ function renderIntro(){
   } else {
     document.getElementById('startBtn').onclick = ()=>{
       if(scope === 'day' && selectedDays.length === 0){ alert('Pilih minimal 1 hari dulu ya sebelum mulai.'); return; }
+      if(scope === 'other' && selectedOtherLevels.length === 0){ alert('Pilih minimal 1 level dulu ya sebelum mulai.'); return; }
       if(scope === 'all') clearFlashProgress();
       startFlashcards(currentPool());
     };
