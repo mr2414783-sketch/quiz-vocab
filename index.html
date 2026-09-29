@@ -371,6 +371,18 @@
 
   /* menu bawah yang tadinya numpuk badge full-width */
   .util-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;margin-top:14px;}
+  /* Lipatan menu (pakai <details>): tombol sekunder disimpan di dalam 1 tombol biar layar gak penuh tombol */
+  .simple-fold{width:100%;margin-top:10px;}
+  .simple-fold > summary{
+    list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:#FFFFFF;border:1px solid var(--line);border-radius:9px;padding:10px 12px;
+    font-size:12px;font-weight:800;color:var(--ink);font-family:'Nunito',sans-serif;
+  }
+  .simple-fold > summary::-webkit-details-marker{display:none;}
+  .simple-fold > summary::after{content:'▾';opacity:0.6;transition:transform .15s;}
+  .simple-fold[open] > summary::after{transform:rotate(180deg);}
+  .simple-fold > summary .fold-sub{font-weight:600;font-size:11px;opacity:0.65;display:block;margin-top:1px;}
+  .simple-fold-body{padding-top:8px;}
   .menu-tile{
     background:#FFFFFF;border:1px solid var(--line);border-radius:9px;padding:9px 8px;
     font-size:11px;font-weight:800;color:var(--ink);cursor:pointer;text-align:center;
@@ -4339,6 +4351,8 @@ let quizType = 'mc'; // 'mc' | 'match' | 'essay' | 'srs'
 let primaryMode = 'quiz'; // 'quiz' | 'flashcard'
 let modeChosenThisSession = false;
 let scope = 'day';    // 'day' (per hari, pilih bulan dulu) | 'other' (Lainnya, per level CEFR) — tombol 'all' (Gabungan) sudah dihapus dari UI
+let introSettingsOpen = false; // lipatan "Atur soal" di menu Latihan Soal
+let introMenuOpen = false;     // lipatan "Menu lainnya" (Grup, Pesan Admin, Masukan, Riwayat Nilai)
 let selectedMonth = 1;
 let selectedDay = 1;
 let selectedDays = []; // multi-pilih hari untuk menu Latihan Soal & Mode Hafalan (kosong = belum pilih)
@@ -14166,6 +14180,19 @@ function grammarCategoryGridHtml(){
   return html;
 }
 
+/* Lipatan "Menu lainnya": simpan status buka/tutup + tampilkan titik notifikasi Pesan Admin di tombol lipatannya */
+function wireMenuFold(){
+  const f = document.getElementById('introMenuFold');
+  if(f) f.addEventListener('toggle', ()=>{ introMenuOpen = f.open; });
+  const dot = document.getElementById('privateChatDot');
+  const fd = document.getElementById('utilFoldDot');
+  if(dot && fd && window.MutationObserver){
+    const sync = ()=>{ fd.style.display = (dot.style.display === 'none' || !dot.style.display) ? 'none' : 'flex'; fd.textContent = dot.textContent; };
+    new MutationObserver(sync).observe(dot, { attributes:true, childList:true, characterData:true, subtree:true });
+    sync();
+  }
+}
+
 function renderGrammarIntro(){
   clearTimer();
   statusVal.textContent = "GRAMMAR";
@@ -14176,6 +14203,7 @@ function renderGrammarIntro(){
   if(hasMateri && grammarScope === 'category' && !selectedGrammarCategory){
     selectedGrammarCategory = cats[0];
   }
+  const showFlashScope = hasMateri && grammarMode === 'flashcard'; // baris kategori ini cuma dipakai Mode Hafalan (kuis & materi punya pilihan kategori sendiri)
   const scopeDesc = (!hasMateri)
     ? ''
     : (grammarScope === 'category'
@@ -14202,14 +14230,14 @@ function renderGrammarIntro(){
         <button class="mode-btn ${grammarMode==='materi' ? 'active' : ''}" id="gSubMateriBtn" type="button">📘 Materi</button>
       </div>
 
-      ${hasMateri ? `
+      ${showFlashScope ? `
         <div class="mode-row" style="margin-top:6px;">
           <button class="mode-btn ${grammarScope==='all' ? 'active' : ''}" id="gScopeAllBtn" type="button">📚 Semua Kategori</button>
           <button class="mode-btn ${grammarScope==='category' ? 'active' : ''}" id="gScopeCatBtn" type="button">🗂 Per Kategori</button>
         </div>
         ${grammarScope==='category' ? grammarCategoryGridHtml() : ''}
       ` : ''}
-      ${scopeDesc ? `<p class="intro-desc" style="font-size:12px;">${scopeDesc}</p>` : ''}
+      ${(showFlashScope && scopeDesc) ? `<p class="intro-desc" style="font-size:12px;">${scopeDesc}</p>` : ''}
 
       ${grammarMode==='quiz' ? `
         <div class="mode-row" style="margin-top:6px;">
@@ -14241,13 +14269,18 @@ function renderGrammarIntro(){
         <button class="btn ghost" id="gSixteenTensesBtn" type="button" style="margin-top:10px;">1. 🎵 Hafalan dan Materi 16 Tenses</button>
       ` : ''}
 
-      <div class="util-grid">
-        ${(examModeOn && examControlMode === 'mandiri') ? `<button class="menu-tile util-wide" id="selfExamBadge" type="button">🎓 Ujian Mandiri</button>` : ''}
-        <button class="menu-tile" id="myGroupsBadge" type="button">👥 Grup Saya</button>
-        <button class="menu-tile" id="privateChatBadge" type="button">📩 Pesan Admin<span id="privateChatDot" class="tile-dot" style="display:none;"></span></button>
-        <button class="menu-tile" id="feedbackBadge" type="button">📝 Kirim Masukan</button>
-        <button class="menu-tile util-wide" id="scoreHistoryBadge" type="button">📊 Riwayat Nilai</button>
-      </div>
+      ${(examModeOn && examControlMode === 'mandiri') ? `<button class="menu-tile util-wide" id="selfExamBadge" type="button" style="width:100%;margin-top:10px;">🎓 Ujian Mandiri</button>` : ''}
+      <details class="simple-fold" id="introMenuFold" ${introMenuOpen ? 'open' : ''}>
+        <summary><span>☰ Menu lainnya<span class="fold-sub">Grup, Pesan Admin, Masukan, Riwayat Nilai</span></span><span id="utilFoldDot" class="tile-dot" style="display:none;position:static;"></span></summary>
+        <div class="simple-fold-body">
+          <div class="util-grid" style="margin-top:0;">
+            <button class="menu-tile" id="myGroupsBadge" type="button">👥 Grup Saya</button>
+            <button class="menu-tile" id="privateChatBadge" type="button">📩 Pesan Admin<span id="privateChatDot" class="tile-dot" style="display:none;"></span></button>
+            <button class="menu-tile" id="feedbackBadge" type="button">📝 Kirim Masukan</button>
+            <button class="menu-tile util-wide" id="scoreHistoryBadge" type="button">📊 Riwayat Nilai</button>
+          </div>
+        </div>
+      </details>
 
       <div class="credit-box">
         <img class="credit-avatar" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
@@ -14261,6 +14294,7 @@ function renderGrammarIntro(){
   `;
 
   document.getElementById('changeModeBadge').onclick = ()=> renderModeSelect();
+  wireMenuFold();
   document.getElementById('introProfileChip').onclick = ()=> renderProfileEdit(renderGrammarIntro);
   document.getElementById('feedbackBadge').onclick = ()=> renderFeedbackForm(renderGrammarIntro);
   document.getElementById('scoreHistoryBadge').onclick = ()=> renderScoreHistory(renderGrammarIntro);
@@ -14346,7 +14380,7 @@ function renderGrammarIntro(){
     };
   }
 
-  if(hasMateri){
+  if(showFlashScope){
     document.getElementById('gScopeAllBtn').onclick = ()=>{ grammarScope = 'all'; renderGrammarIntro(); };
     document.getElementById('gScopeCatBtn').onclick = ()=>{ grammarScope = 'category'; renderGrammarIntro(); };
     if(grammarScope === 'category'){
@@ -15612,18 +15646,23 @@ function renderIntro(){
 
 
         ${primaryMode==='quiz' ? `
-          <div class="mode-row">
-            <button class="mode-btn ${quizType==='mc' ? 'active' : ''}" id="typeMcBtn" type="button">🔤 Pilihan Ganda</button>
-            <button class="mode-btn ${quizType==='match' ? 'active' : ''}" id="typeMatchBtn" type="button">🔗 Penjodohan</button>
-            <button class="mode-btn ${quizType==='essay' ? 'active' : ''}" id="typeEssayBtn" type="button">✍️ Esai</button>
-            <button class="mode-btn ${quizType==='srs' ? 'active' : ''}" id="typeSrsBtn" type="button">🧠 Latihan Cerdas</button>
-          </div>
-          <p class="intro-desc" id="srsHint" style="font-size:11px;opacity:0.75;${quizType==='srs' ? '' : 'display:none;'}">Latihan Cerdas otomatis mendahulukan kata yang sering kamu salah &amp; yang belum pernah kamu coba.</p>
-          <div class="mode-row">
-            <button class="mode-btn ${timedMode ? 'active' : ''}" id="modeTimedBtn" type="button">⏱ Dengan Waktu (10 detik)</button>
-            <button class="mode-btn ${timedMode ? '' : 'active'}" id="modeFreeBtn" type="button">♾ Tanpa Waktu</button>
-          </div>
-          <p class="intro-desc" style="font-size:11px;opacity:0.75;">*Mode waktu berlaku untuk Pilihan Ganda &amp; Esai</p>
+          <details class="simple-fold" id="introSettingsFold" ${introSettingsOpen ? 'open' : ''}>
+            <summary><span>⚙️ Atur soal<span class="fold-sub">${({mc:'Pilihan Ganda',match:'Penjodohan',essay:'Esai',srs:'Latihan Cerdas'})[quizType] || 'Pilihan Ganda'} · ${timedMode ? 'Dengan waktu' : 'Tanpa waktu'}</span></span></summary>
+            <div class="simple-fold-body">
+              <div class="mode-row">
+                <button class="mode-btn ${quizType==='mc' ? 'active' : ''}" id="typeMcBtn" type="button">🔤 Pilihan Ganda</button>
+                <button class="mode-btn ${quizType==='match' ? 'active' : ''}" id="typeMatchBtn" type="button">🔗 Penjodohan</button>
+                <button class="mode-btn ${quizType==='essay' ? 'active' : ''}" id="typeEssayBtn" type="button">✍️ Esai</button>
+                <button class="mode-btn ${quizType==='srs' ? 'active' : ''}" id="typeSrsBtn" type="button">🧠 Latihan Cerdas</button>
+              </div>
+              <p class="intro-desc" id="srsHint" style="font-size:11px;opacity:0.75;${quizType==='srs' ? '' : 'display:none;'}">Latihan Cerdas otomatis mendahulukan kata yang sering kamu salah &amp; yang belum pernah kamu coba.</p>
+              <div class="mode-row">
+                <button class="mode-btn ${timedMode ? 'active' : ''}" id="modeTimedBtn" type="button">⏱ Dengan Waktu (10 detik)</button>
+                <button class="mode-btn ${timedMode ? '' : 'active'}" id="modeFreeBtn" type="button">♾ Tanpa Waktu</button>
+              </div>
+              <p class="intro-desc" style="font-size:11px;opacity:0.75;">*Mode waktu berlaku untuk Pilihan Ganda &amp; Esai</p>
+            </div>
+          </details>
           ${(function(){
             if(scope !== 'all' || quizType !== 'mc') return '';
             const saved = loadQuizProgress();
@@ -15644,13 +15683,18 @@ function renderIntro(){
           <button class="btn ${scope==='all' && loadFlashProgress() ? 'ghost' : ''}" id="startBtn">${scope==='all' && loadFlashProgress() ? '🔄 Mulai dari Awal (soal diacak ulang)' : 'Mulai Menghafal →'}</button>
         `}
 
-      <div class="util-grid">
-        ${(examModeOn && examControlMode === 'mandiri') ? `<button class="menu-tile util-wide" id="selfExamBadge" type="button">🎓 Ujian Mandiri</button>` : ''}
-        <button class="menu-tile" id="myGroupsBadge" type="button">👥 Grup Saya</button>
-        <button class="menu-tile" id="privateChatBadge" type="button">📩 Pesan Admin<span id="privateChatDot" class="tile-dot" style="display:none;"></span></button>
-        <button class="menu-tile" id="feedbackBadge" type="button">📝 Kirim Masukan</button>
-        <button class="menu-tile util-wide" id="scoreHistoryBadge" type="button">📊 Riwayat Nilai</button>
-      </div>
+      ${(examModeOn && examControlMode === 'mandiri') ? `<button class="menu-tile util-wide" id="selfExamBadge" type="button" style="width:100%;margin-top:10px;">🎓 Ujian Mandiri</button>` : ''}
+      <details class="simple-fold" id="introMenuFold" ${introMenuOpen ? 'open' : ''}>
+        <summary><span>☰ Menu lainnya<span class="fold-sub">Grup, Pesan Admin, Masukan, Riwayat Nilai</span></span><span id="utilFoldDot" class="tile-dot" style="display:none;position:static;"></span></summary>
+        <div class="simple-fold-body">
+          <div class="util-grid" style="margin-top:0;">
+            <button class="menu-tile" id="myGroupsBadge" type="button">👥 Grup Saya</button>
+            <button class="menu-tile" id="privateChatBadge" type="button">📩 Pesan Admin<span id="privateChatDot" class="tile-dot" style="display:none;"></span></button>
+            <button class="menu-tile" id="feedbackBadge" type="button">📝 Kirim Masukan</button>
+            <button class="menu-tile util-wide" id="scoreHistoryBadge" type="button">📊 Riwayat Nilai</button>
+          </div>
+        </div>
+      </details>
 
       <div class="credit-box">
         <img class="credit-avatar" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
@@ -15664,6 +15708,7 @@ function renderIntro(){
   `;
 
   document.getElementById('changeModeBadge').onclick = ()=> renderModeSelect();
+  wireMenuFold();
   document.getElementById('introProfileChip').onclick = ()=> renderProfileEdit(renderIntro);
   document.getElementById('feedbackBadge').onclick = ()=> renderFeedbackForm(renderIntro);
   document.getElementById('scoreHistoryBadge').onclick = ()=> renderScoreHistory(renderIntro);
@@ -15747,6 +15792,12 @@ function renderIntro(){
   }
 
   if(primaryMode === 'quiz'){
+    const settingsFold = document.getElementById('introSettingsFold');
+    function refreshSettingsSummary(){
+      const sub = settingsFold && settingsFold.querySelector('.fold-sub');
+      if(sub) sub.textContent = ({mc:'Pilihan Ganda',match:'Penjodohan',essay:'Esai',srs:'Latihan Cerdas'})[quizType] + ' · ' + (timedMode ? 'Dengan waktu' : 'Tanpa waktu');
+    }
+    if(settingsFold) settingsFold.addEventListener('toggle', ()=>{ introSettingsOpen = settingsFold.open; });
     document.getElementById('typeMcBtn').onclick = ()=>{
       quizType = 'mc';
       document.getElementById('typeMcBtn').classList.add('active');
@@ -15754,6 +15805,7 @@ function renderIntro(){
       document.getElementById('typeEssayBtn').classList.remove('active');
       document.getElementById('typeSrsBtn').classList.remove('active');
       document.getElementById('srsHint').style.display = 'none';
+      refreshSettingsSummary();
     };
     document.getElementById('typeMatchBtn').onclick = ()=>{
       quizType = 'match';
@@ -15762,6 +15814,7 @@ function renderIntro(){
       document.getElementById('typeEssayBtn').classList.remove('active');
       document.getElementById('typeSrsBtn').classList.remove('active');
       document.getElementById('srsHint').style.display = 'none';
+      refreshSettingsSummary();
     };
     document.getElementById('typeEssayBtn').onclick = ()=>{
       quizType = 'essay';
@@ -15770,6 +15823,7 @@ function renderIntro(){
       document.getElementById('typeMatchBtn').classList.remove('active');
       document.getElementById('typeSrsBtn').classList.remove('active');
       document.getElementById('srsHint').style.display = 'none';
+      refreshSettingsSummary();
     };
     document.getElementById('typeSrsBtn').onclick = ()=>{
       quizType = 'srs';
@@ -15778,16 +15832,19 @@ function renderIntro(){
       document.getElementById('typeMatchBtn').classList.remove('active');
       document.getElementById('typeEssayBtn').classList.remove('active');
       document.getElementById('srsHint').style.display = 'block';
+      refreshSettingsSummary();
     };
     document.getElementById('modeTimedBtn').onclick = ()=>{
       timedMode = true;
       document.getElementById('modeTimedBtn').classList.add('active');
       document.getElementById('modeFreeBtn').classList.remove('active');
+      refreshSettingsSummary();
     };
     document.getElementById('modeFreeBtn').onclick = ()=>{
       timedMode = false;
       document.getElementById('modeFreeBtn').classList.add('active');
       document.getElementById('modeTimedBtn').classList.remove('active');
+      refreshSettingsSummary();
     };
     document.getElementById('startBtn').onclick = ()=>{
       if(scope === 'day' && selectedDays.length === 0){ alert('Pilih minimal 1 hari dulu ya sebelum mulai.'); return; }
