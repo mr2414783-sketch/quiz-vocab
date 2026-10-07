@@ -9744,7 +9744,7 @@ function deleteOwnAccount(){
 const MODE_META = {
   belajar: { icon:'📚', label:'Mode Belajar', sub:'Soal & Vocab, dan Materi & Grammar' },
   game: { icon:'🎮', label:'Mode Game', sub:'Duel 1v1, Kuis Live (Kahoot), & Ular Tangga' },
-  lainnya: { icon:'✨', label:'Mode Lainnya', sub:'Kamus Kosakata & Tentang Kami' },
+  lainnya: { icon:'✨', label:'Mode Lainnya', sub:'Kamus, IELTS & TOEFL, Panduan Pemula & Tentang Kami' },
   standard: { icon:'📚', label:'Mode Standar', sub:'Latihan dan hafalan Vocab, Verb, dan latihan Grammar' },
   practice: { icon:'📖', label:'Soal & Vocab', sub:'Kuis, penjodohan, esai, & flashcard' },
   grammar: { icon:'✍️', label:'Materi & Soal Grammar', sub:'Mode Hafalan Rumus & Latihan Soal Grammar' },
@@ -9926,6 +9926,8 @@ function renderLainnyaSubmenu(onBack){
       <p class="intro-desc">Beberapa hal seru di luar belajar & game.</p>
 
       <button class="btn ghost" id="lainnyaKamusBtn" style="margin-top:2px;border-color:#0ea5e9;color:#0369a1;">🔍 Kamus Kosakata</button>
+      <button class="btn ghost" id="lainnyaIeltsBtn" style="border-color:#f97316;color:#c2410c;">🎓 Persiapan IELTS &amp; TOEFL</button>
+      <button class="btn ghost" id="lainnyaGuideBtn" style="border-color:#0ea5e9;color:#0369a1;">📖 Panduan Pemula</button>
       <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Saya</button>
 
       <button class="btn ghost" id="backToModeSelectBtnLainnya" style="margin-top:14px;">← Kembali</button>
@@ -9938,6 +9940,13 @@ function renderLainnyaSubmenu(onBack){
     if(!myPresenceRef){ startPresence(savedName); }
     renderDictionarySearch(()=> renderLainnyaSubmenu(onBack));
   };
+  document.getElementById('lainnyaIeltsBtn').onclick = ()=>{
+    const savedName = getSavedName();
+    if(!savedName){ renderNameGate(); return; }
+    if(!myPresenceRef){ startPresence(savedName); }
+    renderIeltsToefl(()=> renderLainnyaSubmenu(onBack));
+  };
+  document.getElementById('lainnyaGuideBtn').onclick = ()=> renderBeginnerGuide(()=> renderLainnyaSubmenu(onBack));
   document.getElementById('lainnyaAboutBtn').onclick = ()=> renderTentangKami(()=> renderLainnyaSubmenu(onBack));
 }
 
@@ -9969,6 +9978,269 @@ function renderTentangKami(onBack){
   document.getElementById('backFromAboutBtn').onclick = ()=> onBack();
 }
 
+
+/* ---------------- PANDUAN PEMULA (tutorial lengkap cara pakai aplikasi) ---------------- */
+function renderBeginnerGuide(onBack){
+  clearTimer();
+  statusVal.textContent = "PANDUAN";
+  setPresenceStatus('idle');
+  const P = t => `<p style="font-size:12.5px;line-height:1.6;margin:6px 0 0;text-align:left;">${t}</p>`;
+  const OL = items => `<ol style="margin:6px 0 0 18px;padding:0;font-size:12.5px;line-height:1.6;text-align:left;">${items.map(i=>`<li style="margin-bottom:4px;">${i}</li>`).join('')}</ol>`;
+  const UL = items => `<ul style="margin:6px 0 0 18px;padding:0;font-size:12.5px;line-height:1.6;text-align:left;">${items.map(i=>`<li style="margin-bottom:4px;">${i}</li>`).join('')}</ul>`;
+  const H = t => `<div style="font-weight:800;font-size:12.5px;margin-top:10px;text-align:left;">${t}</div>`;
+  const SECTIONS = [
+    { open:false, icon:'👋', title:'Apa itu aplikasi ini?', sub:'Kenalan dulu sebentar', body:
+      P('<b>Daily English</b> adalah aplikasi latihan Bahasa Inggris dari LC Language Center · Basic Camp (sumber materi: KILC). Dibuka lewat browser di HP, dan butuh koneksi internet.') +
+      UL(['Latihan &amp; hafalan <b>vocab</b> dan <b>grammar</b>','Materi <b>pronunciation</b> (American vs British) yang bisa didengarkan','Hafalan <b>16 Tenses</b> lewat lagu','Game bareng peserta lain: Duel, Kuis Live, Ular Tangga','Leaderboard, level, dan lencana biar makin semangat']) },
+    { open:true, icon:'🆕', title:'Cara bikin akun (mulai dari sini)', sub:'Khusus pengguna baru', body:
+      OL(['Buka aplikasinya. Di layar <b>Selamat Datang</b>, pastikan tab <b>Daftar Akun Baru</b> yang aktif.',
+          'Isi <b>Nama</b> kamu (maksimal 30 karakter). Nama ini yang tampil di leaderboard dan chat, jadi pakai nama yang pantas.',
+          'Buat <b>password</b> (minimal 4 karakter), lalu ketik lagi di kolom <b>Ulangi password</b>.',
+          'Tap <b>Daftar &amp; Mulai →</b>.',
+          'Kalau muncul pesan <i>"Nama ini sudah dipakai"</i>, berarti nama itu sudah dipakai orang lain. Coba nama lain.',
+          'Tutorial singkat akan muncul. Baca dengan <b>Lanjut →</b>, atau tap <b>Lewati tutorial</b>.',
+          'Lengkapi profilmu (lihat bagian <b>Lengkapi profil</b> di bawah), lalu pilih mode belajar.']) +
+      P('💡 <b>Tips:</b> catat nama dan passwordmu. Kamu butuh keduanya kalau mau masuk dari HP lain.') },
+    { open:false, icon:'🔑', title:'Cara masuk lagi (sudah punya akun)', sub:'Di HP yang sama atau HP baru', body:
+      H('Di HP yang pernah dipakai') +
+      P('Layar <b>Pilih Akunmu</b> menampilkan akun yang pernah masuk di HP ini. Tap akunmu, langsung masuk tanpa mengetik password lagi.') +
+      H('Di HP baru atau akun lain') +
+      OL(['Tap <b>+ Masuk / Daftar Akun Lain</b>.','Pilih tab <b>Masuk</b>.','Isi nama dan password akunmu, lalu tap <b>Masuk →</b>.']) +
+      P('Tanda <b>✕</b> di samping akun hanya menghapus akun dari daftar di HP ini. Akunnya sendiri tidak terhapus.') +
+      P('Lupa password? Hubungi admin atau pembuat aplikasi (Instagram <b>@rifkimaulana701</b>).') },
+    { open:false, icon:'🧭', title:'Mengenal tampilan &amp; menu bawah', sub:'Biar gak bingung cari tombol', body:
+      P('Di bagian bawah layar ada 5 menu:') +
+      UL(['🏠 <b>Beranda</b>: pilih mode belajar','🔍 <b>Cari Peserta</b>: lihat profil peserta lain','🏆 <b>Leaderboard</b>: papan peringkat','💬 <b>Chat</b>: ngobrol dengan peserta lain','👤 <b>Profil</b>: atur profil, lihat level dan lencana']) +
+      P('Di Beranda ada 3 pilihan besar: <b>Mode Belajar</b>, <b>Mode Game</b>, dan <b>Mode Lainnya</b>. Mau pindah mode? Tap <b>← Ganti Mode</b> atau <b>← Kembali</b>.') +
+      P('Kalau admin menyalakan musik, ada pemutar kecil 🎵 di bawah layar dengan tombol ⏪ ▶️ ⏩ 🔁 dan ✕ (stop).') },
+    { open:false, icon:'👤', title:'Lengkapi profil', sub:'Wajib diisi sekali saja', body:
+      OL(['Tap menu <b>👤 Profil</b> di bawah.','Isi <b>Nama Lengkap</b>, <b>Username Instagram</b>, <b>Status</b>, dan <b>Umur</b> (semuanya wajib).','Tambahkan <b>foto profil</b> supaya profilmu lengkap.','Simpan. Di halaman yang sama kamu bisa lihat ⭐ Level &amp; XP dan 🎖 Lencana.']) },
+    { open:false, icon:'📚', title:'Mode Belajar', sub:'Soal &amp; Vocab, Grammar, Pronunciation, Vocab Building', body:
+      H('📖 Soal &amp; Vocab') +
+      OL(['Pilih <b>Mode Belajar → Soal &amp; Vocab</b>.',
+          'Pilih cara belajar: <b>📖 Latihan Soal</b> (kuis) atau <b>🃏 Mode Hafalan</b> (flashcard).',
+          'Pilih materi: <b>🗓 Per Hari</b> (Bulan 1, 2, atau 3, boleh tap beberapa hari sekaligus) atau <b>📊 Vocab per Level</b> (level A1 sampai C2, boleh digabung).',
+          'Untuk kuis, buka <b>⚙️ Atur soal</b>: pilih Pilihan Ganda, Penjodohan, Esai, atau Latihan Cerdas, dan pilih dengan waktu (10 detik) atau tanpa waktu.',
+          'Tap <b>Mulai Latihan →</b> atau <b>Mulai Menghafal →</b>.']) +
+      P('<b>Mode Hafalan:</b> kartu tampil dalam Bahasa Indonesia, tap kartunya untuk lihat jawaban Bahasa Inggris. Tidak ada nilai, jadi santai saja.') +
+      P('<b>Latihan Cerdas:</b> otomatis mendahulukan kata yang sering kamu salah dan yang belum pernah kamu coba.') +
+      P('<b>📋 Lihat Materi (Tabel):</b> baca daftar kosakatanya dulu sebelum latihan.') +
+      P('<b>📊 Perbandingan Level Vocab</b> (di dalam Vocab per Level): kata-kata yang artinya mirip tapi beda level, misalnya fat (A1) dan corpulent (C2). Ada tab <b>Pilihan</b> dan <b>Semua Kosakata</b>, plus kolom cari.') +
+      H('✍️ Materi &amp; Soal Grammar') +
+      UL(['<b>📘 Materi</b>: baca penjelasan grammar per kategori','<b>📖 Latihan Soal</b> dan <b>🃏 Mode Hafalan</b>: uji dan hafalkan rumusnya','<b>🎵 Hafalan dan Materi 16 Tenses</b>: hafalan lewat lagu dengan lirik yang ikut bergerak. Tombol 🔁 memutar lagu bergantian dua penyanyi. Tanpa 🔁, yang terputar penyanyi kedua. Ada juga <b>📖 Penjelasan 16 Tenses</b>.']) +
+      H('🗣️ Pronunciation') +
+      P('Pilih aksen <b>🇺🇸 American</b> atau <b>🇬🇧 British</b>, lalu buka materinya. Tap kata yang ada tanda 🔊 untuk mendengar cara bacanya.') +
+      H('🧩 Vocabulary Building') +
+      P('Materi tambahan seperti Collocation dan Idioms, dibaca per chapter.') },
+    { open:false, icon:'🎮', title:'Mode Game', sub:'Duel 1v1, Kuis Live, Ular Tangga', body:
+      H('⚔️ Duel 1v1 (Beta)') +
+      OL(['Atur <b>Jumlah Soal</b>, <b>Materi</b>, dan <b>Bentuk Soal</b>.','Tap <b>⚔️ Cari Lawan</b>. Kamu dipertemukan dengan peserta yang memilih setelan yang sama persis.','Skor lebih tinggi yang menang. Kalau seri, yang paling cepat menang.']) +
+      H('🎉 Kuis Live (ala Kahoot)') +
+      P('Satu orang (admin) jadi host dan membuat room dengan <b>PIN 6 digit</b>. Kamu tap <b>🙋 Gabung Pakai PIN</b>, masukkan PIN-nya, lalu jawab soal bareng-bareng secara langsung.') +
+      H('🐍🪜 Ular Tangga') +
+      P('Papan 100 kotak dan tiap kotak ada soalnya. Pilih main sendiri atau 2 sampai 4 orang. Yang duluan sampai atau melewati kotak 100 menang.') },
+    { open:false, icon:'✨', title:'Mode Lainnya', sub:'Kamus, panduan, dan tentang aplikasi', body:
+      UL(['<b>🔍 Kamus Kosakata</b>: ketik kata Indonesia atau Inggris, hasilnya dicari dari seluruh kosakata di aplikasi','<b>🎓 Persiapan IELTS &amp; TOEFL</b>: menu terkunci, lihat penjelasannya di bagian berikutnya','<b>📖 Panduan Pemula</b>: halaman ini','<b>💌 Tentang Saya</b>: cerita di balik aplikasi ini']) },
+    { open:false, icon:'🎓', title:'Persiapan IELTS &amp; TOEFL (perlu izin admin)', sub:'Menu terkunci, hanya untuk orang tertentu', body:
+      P('Menu ini dikunci supaya hanya orang tertentu yang bisa masuk. Caranya:') +
+      OL(['Buka <b>Mode Lainnya → 🎓 Persiapan IELTS &amp; TOEFL</b>.',
+          'Masukkan <b>kata sandi</b> yang diberikan admin atau pengajar, lalu tap <b>Kirim →</b>.',
+          'Kalau kata sandinya benar, muncul tulisan <b>"Mohon tunggu untuk beberapa waktu"</b>. Artinya permintaan aksesmu sudah masuk ke admin.',
+          'Tunggu sampai admin menyetujui. Halamannya <b>terbuka otomatis</b>, tidak perlu kirim ulang. Kamu boleh menutup halaman ini dulu dan kembali nanti.',
+          'Kalau permintaan ditolak, kamu bisa meminta lagi dengan memasukkan kata sandi sekali lagi.',
+          'Setelah terbuka, tap tombol <b>🚀 Latihan IELTS &amp; TOEFL di fluna.id</b> untuk mulai latihan soal.']) +
+      P('Setelah disetujui, kamu tidak perlu memasukkan kata sandi lagi sampai admin mencabut aksesmu. Kalau kata sandinya salah atau belum punya, tanyakan ke admin atau pengajar.') },
+    { open:false, icon:'🏆', title:'Leaderboard, level, dan lencana', sub:'Biar belajar makin seru', body:
+      UL(['Setiap jawaban yang <b>benar</b> menambah hitungan dan XP kamu.','Menu <b>🏆 Leaderboard</b> menampilkan peringkat. Makin rajin latihan, makin naik.','<b>⭐ Level &amp; XP</b> dan <b>🎖 Lencana</b> bisa dilihat di Profil. Lencana baru muncul otomatis saat kamu mencapainya.','<b>Streak ✨</b> menghitung berapa hari berturut-turut kamu belajar. Usahakan latihan tiap hari.']) },
+    { open:false, icon:'☰', title:'Menu tambahan', sub:'Grup, pesan admin, masukan, riwayat nilai', body:
+      P('Di halaman <b>Soal &amp; Vocab</b>, buka <b>☰ Menu lainnya</b>:') +
+      UL(['<b>👥 Grup Saya</b>: grup belajar kamu','<b>📩 Pesan Admin</b>: kirim pesan langsung ke admin','<b>📝 Kirim Masukan</b>: saran atau laporan masalah','<b>📊 Riwayat Nilai</b>: hasil latihan sebelumnya']) +
+      P('<b>🎓 Ujian Mandiri</b> hanya muncul kalau admin sedang membukanya.') },
+    { open:false, icon:'🌱', title:'Tips belajar untuk pemula', sub:'Urutan yang gampang diikuti', body:
+      OL(['Mulai dari <b>🃏 Mode Hafalan → Per Hari</b>, mulai dari Day yang paling awal.','Setelah hafal, uji dengan <b>📖 Latihan Soal</b> pada hari yang sama.','Pakai <b>Latihan Cerdas</b> untuk mengulang kata yang sering salah.','Belajar sedikit tapi tiap hari lebih efektif daripada sekali banyak.','Dengarkan <b>Pronunciation</b> dan lagu <b>16 Tenses</b> sambil santai.']) },
+    { open:false, icon:'❓', title:'Masalah yang sering terjadi', sub:'Kalau ada yang tidak jalan', body:
+      UL(['<b>Gagal daftar atau masuk:</b> cek koneksi internet, lalu refresh halaman dan coba lagi.','<b>"Nama ini sudah dipakai":</b> pakai nama lain, atau pindah ke tab Masuk kalau itu akunmu.','<b>Tampilan tidak berubah setelah ada pembaruan:</b> tutup aplikasi lalu buka lagi. Kalau masih sama, hapus data situs di pengaturan Chrome.','<b>Suara tidak keluar:</b> cek volume HP dan pastikan tidak dalam mode senyap.','<b>Lupa password:</b> hubungi admin.','<b>Mau hapus akun:</b> buka Profil lalu tap <b>🗑 Hapus Akun Saya</b>. Ini permanen.']) }
+  ];
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#0ea5e9;color:#fff;">📖 PANDUAN PEMULA</div>
+      <h1 class="intro-title" style="font-size:19px;">Cara Pakai Aplikasi</h1>
+      <p class="intro-desc" style="font-size:12px;">Panduan lengkap dari bikin akun sampai semua fitur. Tap judul untuk membuka.</p>
+      ${SECTIONS.map(s=>`
+        <details class="simple-fold" ${s.open ? 'open' : ''}>
+          <summary><span>${s.icon} ${s.title}<span class="fold-sub">${s.sub}</span></span></summary>
+          <div class="simple-fold-body">${s.body}</div>
+        </details>`).join('')}
+      <button class="btn ghost" id="guideBackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>`;
+  document.getElementById('guideBackBtn').onclick = ()=> onBack();
+}
+
+/* ---------------- PERSIAPAN IELTS & TOEFL (link latihan: fluna.id) ---------------- */
+const FLUNA_URL = 'https://fluna.id';
+/* ---------------- GERBANG AKSES IELTS & TOEFL (kata sandi + persetujuan admin) ----------------
+   Alur: peserta masukin kata sandi -> permintaan masuk ke Firebase (ieltsAccess/<nama>) berstatus
+   'pending' -> muncul "Mohon tunggu" -> admin setujui di panel admin -> halaman terbuka otomatis.
+   Admin yang login (isAdminBypass) langsung masuk tanpa kata sandi & tanpa persetujuan. */
+// Kata sandi TIDAK ditulis di kode: admin mengaturnya lewat panel admin (disimpan sebagai hash di
+// Firebase settings/ieltsPasswordHash). Fungsi hash ini harus sama persis dengan yang ada di panel admin.
+async function ieltsHash(text){
+  const buf = new TextEncoder().encode('ieltsAccess|' + String(text || '').trim());
+  const digest = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(digest)).map(b=> b.toString(16).padStart(2,'0')).join('');
+}
+let ieltsAccessRef = null;
+let ieltsAccessHandler = null;
+function ieltsStopWatch(){
+  if(ieltsAccessRef && ieltsAccessHandler){ try{ ieltsAccessRef.off('value', ieltsAccessHandler); }catch(e){} }
+  ieltsAccessRef = null;
+  ieltsAccessHandler = null;
+}
+function renderIeltsToefl(onBack){
+  clearTimer();
+  ieltsStopWatch();
+  statusVal.textContent = "IELTS & TOEFL";
+  setPresenceStatus('idle');
+  setPresenceMode('Persiapan IELTS & TOEFL');
+  if(isAdminBypass){ renderIeltsToeflContent(onBack); return; }
+  const name = getSavedName();
+  if(!name){ renderNameGate(); return; }
+  const key = sanitizeNameForKey(name);
+
+  function goBack(){ ieltsStopWatch(); onBack(); }
+
+  function showLoading(){
+    card.innerHTML = `
+      <div class="center-stack" id="ieltsGateRoot">
+        <div class="section-tag" style="background:#f97316;color:#fff;">🎓 IELTS &amp; TOEFL</div>
+        <p class="intro-desc">Memeriksa akses...</p>
+      </div>`;
+  }
+  function showPasswordForm(deniedNotice){
+    card.innerHTML = `
+      <div class="center-stack" id="ieltsGateRoot">
+        <div class="section-tag" style="background:#f97316;color:#fff;">🎓 IELTS &amp; TOEFL</div>
+        <h1 class="intro-title" style="font-size:19px;">Menu Terkunci 🔒</h1>
+        <p class="intro-desc" style="font-size:12px;">Menu Persiapan IELTS &amp; TOEFL hanya untuk orang tertentu. Masukkan kata sandi yang diberikan admin atau pengajar untuk meminta akses.</p>
+        ${deniedNotice ? `<p class="intro-desc" style="font-size:12px;color:var(--red);font-weight:800;">Permintaan aksesmu sebelumnya belum disetujui admin. Kamu bisa meminta lagi di bawah.</p>` : ''}
+        <input type="password" id="ieltsPassInput" class="name-gate-input" placeholder="Kata sandi..." autocomplete="off" inputmode="numeric" />
+        <div id="ieltsPassError" style="color:var(--red);font-size:12px;font-weight:700;min-height:16px;margin-top:6px;text-align:left;width:100%;"></div>
+        <button class="btn" id="ieltsPassBtn" type="button" style="margin-top:4px;">Kirim →</button>
+        <button class="btn ghost" id="ieltsGateBackBtn" type="button" style="margin-top:10px;">← Kembali</button>
+      </div>`;
+    const input = document.getElementById('ieltsPassInput');
+    const errEl = document.getElementById('ieltsPassError');
+    const btn = document.getElementById('ieltsPassBtn');
+    function fail(msg){
+      btn.disabled = false; btn.textContent = 'Kirim →';
+      errEl.textContent = msg;
+    }
+    function submit(){
+      errEl.textContent = '';
+      const typed = (input.value || '').trim();
+      if(!typed){ errEl.textContent = 'Masukkan kata sandinya dulu.'; input.focus(); return; }
+      btn.disabled = true; btn.textContent = 'Memeriksa...';
+      Promise.all([ ieltsHash(typed), db.ref('settings/ieltsPasswordHash').once('value') ]).then(([hash, snap])=>{
+        const stored = snap.val();
+        if(!stored){ fail('Kata sandi menu ini belum diatur oleh admin. Hubungi admin.'); return; }
+        if(hash !== stored){ fail('Kata sandi salah.'); input.value = ''; input.focus(); return; }
+        btn.textContent = 'Mengirim...';
+        // kalau berhasil, listener 'value' di bawah otomatis menampilkan layar "Mohon tunggu"
+        return ieltsAccessRef.set({ name: name, status: 'pending', requestedAt: firebase.database.ServerValue.TIMESTAMP });
+      }).catch((err)=>{
+        fail('Gagal memproses: ' + ((err && err.message) || 'coba lagi') + '. Cek koneksi atau hubungi admin.');
+      });
+    }
+    btn.onclick = submit;
+    input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); submit(); } });
+    document.getElementById('ieltsGateBackBtn').onclick = goBack;
+    input.focus();
+  }
+  function showWaiting(){
+    card.innerHTML = `
+      <div class="center-stack" id="ieltsGateRoot">
+        <div class="section-tag" style="background:#f97316;color:#fff;">🎓 IELTS &amp; TOEFL</div>
+        <div style="font-size:52px;margin:6px 0;">⏳</div>
+        <h1 class="intro-title" style="font-size:19px;text-align:center;">Mohon tunggu untuk beberapa waktu</h1>
+        <p class="intro-desc" style="text-align:center;font-size:12.5px;">Permintaan aksesmu sudah dikirim dan sedang menunggu persetujuan admin. Halaman ini akan terbuka otomatis setelah disetujui, jadi kamu tidak perlu mengirim ulang.</p>
+        <button class="btn ghost" id="ieltsWaitBackBtn" type="button" style="margin-top:14px;">← Kembali</button>
+      </div>`;
+    document.getElementById('ieltsWaitBackBtn').onclick = goBack;
+  }
+
+  showLoading();
+  ieltsAccessRef = db.ref('ieltsAccess/' + key);
+  ieltsAccessHandler = (snap)=>{
+    // Kalau layar gerbang sudah tidak tampil (peserta pindah halaman), berhenti memantau.
+    if(!document.getElementById('ieltsGateRoot')){ ieltsStopWatch(); return; }
+    const v = snap.val();
+    const st = v && v.status;
+    if(st === 'approved'){
+      ieltsStopWatch();
+      renderIeltsToeflContent(onBack);
+    } else if(st === 'pending'){
+      showWaiting();
+    } else {
+      showPasswordForm(st === 'denied');
+    }
+  };
+  ieltsAccessRef.on('value', ieltsAccessHandler, (err)=>{
+    ieltsStopWatch();
+    card.innerHTML = `
+      <div class="center-stack" id="ieltsGateRoot">
+        <div class="section-tag" style="background:#f97316;color:#fff;">🎓 IELTS &amp; TOEFL</div>
+        <p class="intro-desc" style="color:var(--red);font-weight:700;">Gagal memeriksa akses${err && err.message ? ' (' + escapeHtmlIdx(err.message) + ')' : ''}. Cek koneksi internet lalu coba lagi, atau hubungi admin.</p>
+        <button class="btn ghost" id="ieltsErrBackBtn" type="button">← Kembali</button>
+      </div>`;
+    document.getElementById('ieltsErrBackBtn').onclick = ()=> onBack();
+  });
+}
+
+function renderIeltsToeflContent(onBack){
+  clearTimer();
+  statusVal.textContent = "IELTS & TOEFL";
+  setPresenceStatus('idle');
+  setPresenceMode('Persiapan IELTS & TOEFL');
+  const P = t => `<p style="font-size:12.5px;line-height:1.6;margin:6px 0 0;text-align:left;">${t}</p>`;
+  const UL = items => `<ul style="margin:6px 0 0 18px;padding:0;font-size:12.5px;line-height:1.6;text-align:left;">${items.map(i=>`<li style="margin-bottom:4px;">${i}</li>`).join('')}</ul>`;
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#f97316;color:#fff;">🎓 IELTS &amp; TOEFL</div>
+      <h1 class="intro-title" style="font-size:19px;">Persiapan IELTS &amp; TOEFL</h1>
+      <p class="intro-desc" style="font-size:12px;">Tes kemampuan Bahasa Inggris yang sering dipakai untuk kuliah di luar negeri, beasiswa, dan melamar kerja.</p>
+
+      <button class="btn" id="flunaOpenBtn" type="button" style="background:#f97316;">🚀 Latihan IELTS &amp; TOEFL di fluna.id</button>
+      <p class="intro-desc" style="font-size:10.5px;opacity:0.75;margin-top:-4px;">Link akan terbuka di tab baru.</p>
+
+      <details class="simple-fold" open>
+        <summary><span>📘 Kenalan dengan IELTS<span class="fold-sub">International English Language Testing System</span></span></summary>
+        <div class="simple-fold-body">
+          ${P('Tes yang menilai 4 kemampuan:')}
+          ${UL(['<b>Listening</b>: mendengarkan rekaman lalu menjawab soal','<b>Reading</b>: membaca teks lalu menjawab soal','<b>Writing</b>: menulis esai dan deskripsi','<b>Speaking</b>: wawancara berbicara dengan penguji'])}
+          ${P('Hasilnya berupa skor <b>band 0 sampai 9</b>.')}
+        </div>
+      </details>
+
+      <details class="simple-fold">
+        <summary><span>📗 Kenalan dengan TOEFL<span class="fold-sub">Test of English as a Foreign Language</span></span></summary>
+        <div class="simple-fold-body">
+          ${P('Tes yang juga menilai kemampuan <b>Reading</b>, <b>Listening</b>, <b>Speaking</b>, dan <b>Writing</b>. TOEFL banyak dipakai untuk pendaftaran universitas dan beasiswa, terutama ke Amerika Serikat.')}
+          ${P('Format dan sistem skor tes bisa berubah dari waktu ke waktu, jadi cek informasi terbaru di situs resmi penyelenggara sebelum mendaftar.')}
+        </div>
+      </details>
+
+      <details class="simple-fold">
+        <summary><span>🧭 Cara mulai persiapan<span class="fold-sub">Urutan yang gampang diikuti</span></span></summary>
+        <div class="simple-fold-body">
+          ${UL(['Kuatkan dasar dulu: <b>vocab per level</b> dan <b>grammar</b> di aplikasi ini.','Latih <b>pronunciation</b> dan dengarkan audio supaya telinga terbiasa.','Kerjakan soal latihan IELTS dan TOEFL secara rutin di <b>fluna.id</b>.','Biasakan mengerjakan soal dengan batas waktu seperti tes yang sebenarnya.','Catat kata baru dan kesalahan yang sering muncul, lalu ulangi.'])}
+        </div>
+      </details>
+
+      <button class="btn ghost" id="ieltsBackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>`;
+  document.getElementById('flunaOpenBtn').onclick = ()=>{ window.open(FLUNA_URL, '_blank', 'noopener'); };
+  document.getElementById('ieltsBackBtn').onclick = ()=> onBack();
+}
 
 function spotifyParseUrlPeserta(url){
   const m = (url||'').match(/open\.spotify\.com\/(track|playlist|album|episode)\/([a-zA-Z0-9]+)/);
@@ -14509,7 +14781,11 @@ function renderSixteenTenses(){
     return m + ':' + String(ss).padStart(2,'0');
   }
 
-  function currentTimings(){ return (tensesActiveAudio === audioEl) ? TENSES_LYRICS : TENSES_LYRICS_2; }
+  // Timing lirik Penyanyi 2: pakai TENSES_LYRICS_2 kalau sudah diisi manual, kalau belum samakan dengan Penyanyi 1.
+  function currentTimings(){
+    if(tensesActiveAudio === audioEl) return TENSES_LYRICS;
+    return TENSES_LYRICS_2 || TENSES_LYRICS;
+  }
 
   function updateActiveLine(){
     const timings = currentTimings();
@@ -15021,8 +15297,10 @@ function renderNameGate(){
         </div>
         <div id="authFormBody" style="margin-top:12px;"></div>
       </div>
+      <button class="btn ghost" id="guideFromGateBtn" type="button" style="margin-top:14px;border-color:#0ea5e9;color:#0369a1;">📖 Baru di sini? Lihat Panduan Pemula</button>
     </div>
   `;
+  document.getElementById('guideFromGateBtn').onclick = ()=> renderBeginnerGuide(()=> renderNameGate());
 
   if(known.length){
     Promise.all(known.map(n => db.ref('profiles/' + sanitizeNameForKey(n)).once('value')))
