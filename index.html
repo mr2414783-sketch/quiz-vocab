@@ -14435,6 +14435,10 @@ const TENSES_LYRICS = [
   { t: 60, text: 'oh my tenses' },
 ];
 
+// Timing lirik untuk Penyanyi 2 (audio/16-tenses-song-2.mp3). Isi dengan format yang sama seperti TENSES_LYRICS
+// kalau sudah disinkronkan. Selama masih null, lagunya tetap muter tapi sorotan lirik tidak dijalankan (biar tidak meleset).
+const TENSES_LYRICS_2 = null;
+
 function renderSixteenTenses(){
   clearTimer();
   statusVal.textContent = "16 TENSES";
@@ -14484,7 +14488,7 @@ function renderSixteenTenses(){
   const audioEl = document.getElementById('tensesSongAudio');
   const audioEl2 = document.getElementById('tensesSongAudio2');
   let audioEl2Broken = false;
-  audioEl2.onerror = ()=>{ audioEl2Broken = true; };
+  audioEl2.onerror = ()=>{ audioEl2Broken = true; if(tensesActiveAudio === audioEl2 && audioEl2.paused) switchActiveAudio(audioEl); };
   const songBtn = document.getElementById('tensesSongBtn');
   const repeatBtn = document.getElementById('tensesRepeatBtn');
   const lyricsList = document.getElementById('tensesLyricsList');
@@ -14496,8 +14500,8 @@ function renderSixteenTenses(){
   tensesActiveIdx = -2;
   tensesRepeatOn = false;
   // Audio yang lagi "pegang kendali" tampilan (progress bar, waktu, tombol play/pause).
-  // Waktu mode ulang nyala, ini gantian antara audioEl (sound 1) dan audioEl2 (sound 2).
-  let tensesActiveAudio = audioEl;
+  // Tanpa tombol pengulangan: yang diputar Penyanyi 2 (audioEl2). Waktu mode ulang nyala, gantian Penyanyi 1 <-> Penyanyi 2.
+  let tensesActiveAudio = audioEl2;
 
   function fmtTime(s){
     if(isNaN(s) || s < 0) s = 0;
@@ -14505,13 +14509,24 @@ function renderSixteenTenses(){
     return m + ':' + String(ss).padStart(2,'0');
   }
 
+  function currentTimings(){ return (tensesActiveAudio === audioEl) ? TENSES_LYRICS : TENSES_LYRICS_2; }
+
   function updateActiveLine(){
-    const ct = audioEl.currentTime;
+    const timings = currentTimings();
+    const lines = lyricsList.querySelectorAll('.tenses-lyrics-line');
+    if(!timings){
+      // Belum ada timing untuk audio ini: matikan sorotan lirik.
+      if(tensesActiveIdx !== -1){
+        tensesActiveIdx = -1;
+        lines.forEach(el=>{ el.classList.remove('active','done'); });
+      }
+      return;
+    }
+    const ct = tensesActiveAudio.currentTime;
     let idx = -1;
-    for(let i=0;i<TENSES_LYRICS.length;i++){ if(ct >= TENSES_LYRICS[i].t) idx = i; else break; }
+    for(let i=0;i<timings.length;i++){ if(ct >= timings[i].t) idx = i; else break; }
     if(idx !== tensesActiveIdx){
       tensesActiveIdx = idx;
-      const lines = lyricsList.querySelectorAll('.tenses-lyrics-line');
       lines.forEach((el,i)=>{
         el.classList.toggle('active', i===idx);
         el.classList.toggle('done', idx>=0 && i<idx);
@@ -14526,12 +14541,14 @@ function renderSixteenTenses(){
   lyricsList.querySelectorAll('.tenses-lyrics-line').forEach(el=>{
     el.onclick = ()=>{
       const i = parseInt(el.dataset.idx,10);
-      audioEl.currentTime = TENSES_LYRICS[i].t;
-      if(audioEl.paused) audioEl.play().catch(()=>{});
+      const timings = currentTimings();
+      if(timings && timings[i]) tensesActiveAudio.currentTime = timings[i].t;
+      if(tensesActiveAudio.paused) tensesActiveAudio.play().catch(()=>{});
     };
   });
 
   songBtn.onclick = ()=>{
+    if(audioEl2Broken && tensesActiveAudio === audioEl2) switchActiveAudio(audioEl);
     if(tensesActiveAudio.paused){
       tensesActiveAudio.play().catch(()=>{});
     } else {
@@ -14556,7 +14573,7 @@ function renderSixteenTenses(){
     const nowPlayingEl = document.getElementById('tensesNowPlaying');
     if(tensesRepeatOn){
       nowPlayingEl.style.display = 'block';
-      nowPlayingEl.textContent = audioEl2Broken ? '🔁 Mode ulang aktif' : ((tensesActiveAudio === audioEl) ? '🔁 Sedang muter: Sound 1' : '🔁 Sedang muter: Sound 2');
+      nowPlayingEl.textContent = audioEl2Broken ? '🔁 Mode ulang aktif' : ((tensesActiveAudio === audioEl) ? '🔁 Sedang menyanyi: Penyanyi 1' : '🔁 Sedang menyanyi: Penyanyi 2');
     } else {
       nowPlayingEl.style.display = 'none';
     }
@@ -14576,15 +14593,13 @@ function renderSixteenTenses(){
     timeCur.textContent = fmtTime(el.currentTime);
     const dur = el.duration;
     progressFill.style.width = (dur && !isNaN(dur)) ? (el.currentTime/dur*100) + '%' : '0%';
-    // Lirik cuma disinkron ke sound 1; pas sound 2 lagi jalan, non-aktifkan sorotan liriknya.
-    if(el !== audioEl){
-      tensesActiveIdx = -1;
-      lyricsList.querySelectorAll('.tenses-lyrics-line').forEach(l=>{ l.classList.remove('active','done'); });
-    }
-    // Tampilkan label "Sound 1/2" cuma kalau mode ulang aktif, biar jelas lagi gantian yang mana.
+    // Sorotan lirik mengikuti timing milik audio yang aktif (paksa hitung ulang).
+    tensesActiveIdx = -2;
+    updateActiveLine();
+    // Tampilkan label "Penyanyi 1/2" cuma kalau mode ulang aktif, biar jelas lagi gantian yang mana.
     if(tensesRepeatOn){
       nowPlayingEl.style.display = 'block';
-      nowPlayingEl.textContent = audioEl2Broken ? '🔁 Mode ulang aktif' : ((el === audioEl) ? '🔁 Sedang muter: Sound 1' : '🔁 Sedang muter: Sound 2');
+      nowPlayingEl.textContent = audioEl2Broken ? '🔁 Mode ulang aktif' : ((el === audioEl) ? '🔁 Sedang menyanyi: Penyanyi 1' : '🔁 Sedang menyanyi: Penyanyi 2');
     } else {
       nowPlayingEl.style.display = 'none';
     }
@@ -14619,7 +14634,10 @@ function renderSixteenTenses(){
         });
       } else {
         tensesSongPlaying = false; songBtn.classList.remove('playing'); songBtn.textContent = '▶️';
-        if(el === audioEl){ tensesActiveIdx = -1; updateActiveLine(); }
+        el.currentTime = 0;
+        // Setelah selesai tanpa pengulangan, putaran berikutnya kembali ke Penyanyi 2 (kalau filenya ada).
+        if(!audioEl2Broken && el !== audioEl2){ switchActiveAudio(audioEl2); }
+        else { tensesActiveIdx = -2; updateActiveLine(); }
       }
     };
     el.onloadedmetadata = ()=>{ if(tensesActiveAudio === el) timeDur.textContent = fmtTime(el.duration); };
@@ -14628,7 +14646,7 @@ function renderSixteenTenses(){
       timeCur.textContent = fmtTime(el.currentTime);
       const dur = el.duration;
       if(dur && !isNaN(dur)) progressFill.style.width = (el.currentTime/dur*100) + '%';
-      if(el === audioEl) updateActiveLine();
+      updateActiveLine();
     };
   }
   bindAudioHandlers(audioEl, audioEl2);
