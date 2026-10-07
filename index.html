@@ -9653,7 +9653,8 @@ const MODE_META = {
   standard: { icon:'📚', label:'Mode Standar', sub:'Latihan dan hafalan Vocab, Verb, dan latihan Grammar' },
   practice: { icon:'📖', label:'Soal & Vocab', sub:'Kuis, penjodohan, esai, & flashcard' },
   grammar: { icon:'✍️', label:'Materi & Soal Grammar', sub:'Mode Hafalan Rumus & Latihan Soal Grammar' },
-  pronunciation: { icon:'🗣️', label:'Pronunciation', sub:'Materi American vs British, kata bisa didengarkan' }
+  pronunciation: { icon:'🗣️', label:'Pronunciation', sub:'Materi American vs British, kata bisa didengarkan' },
+  vocabbuilding: { icon:'🧩', label:'Vocabulary Building', sub:'Collocation, Idioms, dan materi vocab lainnya' }
 };
 
 function modeTileHtml(key, statusKey){
@@ -9740,6 +9741,9 @@ function renderBelajarSubmenu(){
       <div class="big-mode-row">
         ${modeTileHtml('pronunciation')}
       </div>
+      <div class="big-mode-row">
+        ${modeTileHtml('vocabbuilding')}
+      </div>
 
       <button class="btn ghost" id="backToModeSelectBtn" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -9755,6 +9759,12 @@ function renderBelajarSubmenu(){
         if(!savedName){ renderNameGate(); return; }
         if(!myPresenceRef){ startPresence(savedName); }
         renderGrammarIntro();
+      } else if(chosen === 'vocabbuilding'){
+        modeChosenThisSession = true;
+        const savedName = getSavedName();
+        if(!savedName){ renderNameGate(); return; }
+        if(!myPresenceRef){ startPresence(savedName); }
+        renderVocabBuildingList();
       } else if(chosen === 'pronunciation'){
         modeChosenThisSession = true;
         const savedName = getSavedName();
@@ -17655,6 +17665,182 @@ function renderPronunciationDetail(accent, chapterId){
   });
 }
 
+
+
+/* ============================================================
+   MODE BELAJAR — VOCABULARY BUILDING MODULE (Fourth Month)
+   File materi terpisah. Cara nambah materi baru:
+   tinggal tambah 1 objek { id, title, sections:[...] } ke array
+   VOCABBUILD_CHAPTERS di bawah (urut chapter). Gak perlu ubah index.html.
+   Helper: vbSec(judul, html) | vbTable(header[], rows[][]) | vbEx(html)
+   ============================================================ */
+
+function vbSec(title, body){ return { title, body }; }
+function vbTable(head, rows){
+  return `<div style="overflow-x:auto;"><table class="vb-table"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${
+    rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+const VOCABBUILD_CHAPTERS = [
+{
+  id:'vb-ch1', title:'Chapter 1 — Collocation',
+  sections:[
+    vbSec('Apa itu Collocation?', `<b>Collocation</b> adalah pasangan atau kelompok kata yang sering dipakai bersama. Contoh: kita bilang <b>fast cars</b>, bukan <s>quick cars</s>. Collocation bisa dibentuk dari <mark>verb, noun, adverb, dan adjective</mark>. Kombinasi ini terdengar natural bagi native speaker, tapi pelajar harus berusaha menghafalnya karena <b>tidak ada aturan khusus</b> dalam membentuknya.` + vbTable(['We say …','We don\'t say …'],[['fast cars<br>fast food','quick cars<br>quick food'],['a quick glance<br>a quick meal','a fast glance<br>a fast meal']])),
+    vbSec('Weak vs Strong (Fixed) Collocation', `Ada 2 tipe collocation:<br>• <b>Weak collocation</b> — bisa pakai beberapa kata berbeda dengan arti mirip. Contoh: <b>keep to the rules</b> = <b>stick to the rules</b>.<br>• <b>Strong (fixed) collocation</b> — tidak ada pasangan kata lain yang artinya sama. Contoh: <b>take a photo</b> (tidak ada kata lain yang bisa berpasangan dengan <i>photo</i>).`),
+    vbSec('Salah Tapi Dimengerti', `Kadang pasangan kata tidak sepenuhnya salah dan orang tetap paham, tapi tidak natural. Contoh: <s>I did a few mistakes</s> (dipahami), tapi penutur fasih akan bilang <b>I made a few mistakes</b>.`),
+    vbSec('A. Types of Collocations (7 tipe)', `
+<b>1. noun + noun</b>` + vbTable(['Collocation','Example'],[
+['Comfort zone','We need to step out of our <b>comfort zones</b> to have other experiences.'],
+['Call center','John has been working in a <b>call center</b> for five years.'],
+['Beauty salon','My office is just close to one of the best <b>beauty salon</b> in the city.']]) + `
+<b>2. adjective + noun</b>` + vbTable(['Collocation','Example'],[
+['Strong smell','Durian has <b>strong smell</b> and not all of people love it.'],
+['Big surprise','My parents give me a <b>big surprise</b> for my great achievement.'],
+['Heavy traffic','It\'s rush hour and I\'m stuck in <b>heavy traffic</b>. I must be late to my office.']]) + `
+<b>3. noun + verb</b>` + vbTable(['Collocation','Example'],[
+['Lion roars','<b>Lion roars</b> loudly and it scares me.'],
+['Dog barks','I don\'t know why my neighbor\'s <b>dog</b> keeps <b>barking</b>.'],
+['Cats purr','<b>Cats purr</b> to express their happiness and contentment.']]) + `
+<b>4. verb + noun</b>` + vbTable(['Collocation','Example'],[
+['Pay a bill','William and I had dinner at restaurant last night and he decided to <b>pay our bill</b>.'],
+['Make an appointment','I <b>made an appointment</b> with my doctor yesterday.'],
+['Take a test','I will <b>take a test</b> this Friday to get the scholarship.']]) + `
+<b>5. adverb + adjective</b>` + vbTable(['Collocation','Example'],[
+['Bitterly cold','It\'s <b>bitterly cold</b> and I need to wear coat and shawl.'],
+['Fully aware','Is he <b>fully aware</b> of his health condition?'],
+['Completely satisfied','My supervisor is <b>completely satisfied</b> with my work.']]) + `
+<b>6. adverb + verb / verb + adverb</b>` + vbTable(['Collocation','Example'],[
+['Greatly admire','I <b>greatly admire</b> my parents.'],
+['Scream loudly','She is afraid of cockroaches, and she <b>screams loudly</b> when they fly to her.'],
+['Strictly prohibited','It\'s <b>strictly prohibited</b> to build a tent here.']]) + `
+<b>7. verb + preposition (phrasal verb)</b>` + vbTable(['Collocation','Example'],[
+['Escape from','He <b>escapes from</b> the responsibility given by his supervisor.'],
+['Driven to madness','The boss is <b>driven to madness</b> when he sees this mess.'],
+['Filled with joy','Her heart is always <b>filled with joy</b> every time she meets her husband.']])),
+    vbSec('B. Register', `<b>Register</b> adalah cara penutur memakai bahasa dalam situasi yang berbeda. Collocation juga dipakai sesuai situasi, misalnya <mark>spoken English</mark> dan <mark>formal English</mark>. Contoh: <b>pretty</b> yang berarti "fairly" terdengar informal saat dipakai dengan adjective negatif (<i>pretty awful, pretty dreadful, pretty dull</i>) dan biasanya dipakai dalam spoken English.`),
+    vbSec('B.1 Spoken English', `Beberapa collocation yang umum dipakai dalam percakapan sehari-hari:` + vbTable(['Collocation','Arti / Catatan'],[
+['I\'m <b>bored stiff</b> in this lesson!','bored stiff = <i>extremely bored</i>'],
+['You <b>badly need</b> a haircut.','badly need = sangat butuh'],
+['I\'ll <b>have a think</b> about it and let you know.','have a think = <i>think about it</i>'],
+['<b>Give me a ring</b> when you get home.','give me a ring = <i>give me a phone call</i>']])),
+    vbSec('B.2 Formal English', `Beberapa collocation khas formal English, paling sering ditemukan dalam konteks resmi/legal, misalnya pada pengumuman (notices):` + vbTable(['Collocation (di notice)','Makna'],[
+['Passengers must not <b>alight from</b> the bus whilst it is in motion.','alight from = <i>get off</i> the bus'],
+['Cyclists must <b>dismount</b>…','dismount = <i>get off their bicycles</i>'],
+['People who go onto someone\'s land or enter their building without permission will be <b>taken to court</b>.','taken to court = dibawa ke pengadilan'],
+['Please <b>dispose of</b> unwanted items in the receptacle provided.','dispose of = <i>throw away</i>; receptacle = <i>container used for storing or putting objects in</i>']])),
+    vbSec('C. Grammatical Aspects of Collocations', `Dalam collocation ada juga aspek grammar, yaitu cara mengungkapkan <b>"highly, utterly, bitterly, dan deeply"</b>, yang dikenal sebagai <b>intensifying adverb</b>: adverb yang dipakai untuk menyatakan tingkat/level dalam sebuah kalimat.`),
+    vbSec('C.1 Highly', `<b>Highly</b> + (un)likely, unusual, successful, competitive, profitable, effective, controversial, recommended.<br><br><b>NOTE:</b> <i>Highly</i> dipakai dengan kata-kata probabilitas (<i>likely, unusual</i>). Dengan pengecualian <i>highly controversial</i>, biasanya dikombinasikan dengan kata yang sangat positif. <i>Extremely</i> juga bisa dipakai dengan semua adjective di atas kecuali <i>recommended</i>.<br><br><b>Example:</b><br>• It is <b>highly unlikely</b> that I\'ll finish my work on time.<br>• Julia\'s <b>highly unusual</b> behavior began to worry her parents.`),
+    vbSec('C.2 Absolutely, Utterly', `<b>Absolutely, utterly</b> + ridiculous, stupid, impossible, wrong, alone, appalled, convinced, devastated, miserable.<br><br><b>NOTE:</b> <i>Absolutely</i> dan (sedikit lebih formal) <i>utterly</i> dikombinasikan dengan adjective yang maknanya sudah sangat ekstrem, yang tidak bisa dipakai dengan <i>very</i>. Contoh: kita bilang <b>"absolutely/utterly exhausted"</b>, bukan <s>very exhausted</s>; sedangkan kita bilang <b>"very tired"</b>, bukan <s>absolutely/utterly tired</s>. Sering (tapi tidak selalu) kata-kata ini bermakna negatif.<br><br><b>Example:</b><br>• It was an <b>absolutely stupid</b> comment to make.<br>• The whole area was <b>utterly devastated</b> after the earthquake.`)
+  ]
+},
+{
+  id:'vb-ch2', title:'Chapter 2 — Idioms',
+  sections:[
+    vbSec('Apa itu Idiom?', `<b>Idioms</b> adalah ungkapan yang punya makna <mark>kiasan dan tidak harfiah</mark> dari kata-katanya. Contoh: <i>"I see him once in blue moon"</i> tidak bisa diterjemahkan kata per kata. Artinya: <b>I rarely see him</b>.<br><br>• I'm going to <b>hit the hay</b> = go to bed<br>• I have <b>a lot on my plate</b>, so I can't talk to you now. = a lot to do`),
+    vbSec('Bentuk & Penggunaan', `Idiom biasanya berbentuk kalimat/ungkapan atau <b>phrasal verb</b> yang bermakna idiomatis. Keduanya umum dipakai dalam percakapan sehari-hari dan lebih sering muncul di percakapan informal, tapi tetap bisa dipakai dalam diskusi formal.<br><br>Idiom sulit dipahami kalau diterjemahkan kata per kata. Untuk membantu, pakai kamus online atau cari di internet.`),
+    vbSec('A. Idioms about Happiness', vbTable(['No','Idiom','Meaning','Example'],[
+['1','be thrilled to bits<br>be / feel on top of the world<br>be on cloud nine<br>be over the moon<br>be in seventh heaven','be extremely happy','I\'m thrilled to bits.<br>I\'m / feel on top of the world.<br>I\'m on cloud nine.<br>I\'m over the moon.<br>I\'m in the seventh heaven.'],
+['2','get a (real) kick out of something','very much enjoy doing something (informal)','I get a (real) kick out of going for a run first thing in the morning before anyone else is up.'],
+['3','(do something) for kicks','do something because it is exciting, usually something dangerous (informal)','Sandra is keen to have a go at bungee jumping—just for kicks.'],
+['4','jump for joy','be very happy and excited about something that has happened','Ron jumped for joy when he heard that he\'d won the first prize.'],
+['5','be floating / walking on air','be very happy about something good that has happened','I\'ve been walking on air ever since James and I started going out together.'],
+['6','makes your day','something makes you feel very happy','It\'s great to hear from you. It\'s really made my day.'],
+['7','took my breath away','feel so happy','Seeing his smile took my breath away.']])),
+    vbSec('A. Happiness — Phrasal Verbs', vbTable(['No','Phrasal verb','Meaning','Example'],[
+['1','break up','to laugh very hard','The clown breaks me up.'],
+['2','burst out laughing','to suddenly start laughing','Brad bursts out laughing when he is watching a comedy film.'],
+['3','cheer up','to make someone happier','Ken gives a car to his daughter to cheer her up.'],
+['4','crack up','to laugh out loud','Cracking up a lot can reduce stress level.'],
+['5','crease up','to start laughing','His funny accent creased me up.'],
+['6','fall about','to laugh a lot','The audience fall about laughing.'],
+['7','grow on (for someone)','start to like more and more','I didn\'t like golf at first, but then it grew on me.'],
+['8','light up','to show happiness or excitement','Seeing my parents lights me up.'],
+['9','perk (someone) up','to make somebody more cheerful and lively','The teacher tried to perk his students up.'],
+['10','tear up','to cry because of happiness (or sadness)','Rose tears up after she knew she was accepted at Oxford University.']])),
+    vbSec('B. Idioms about Sadness', `Seperti happiness, ada ratusan idiom untuk mengekspresikan kesedihan. Berikut beberapa contoh untuk memperkaya percakapanmu.` + vbTable(['No','Idiom','Meaning','Example'],[
+['1','at the end of my tether','being worried, tired, and unhappy because of your problems that you cannot cope with','I just don\'t know what to do about the problem. I\'m at the end of my tether.'],
+['2','down in the mouth','unhappy','Bob did not pass the exam, so he felt down in the mouth for a day.'],
+['3','feeling blue','to feel sad','I have told Elsa to move on, but she is still feeling blue.'],
+['4','had my fill of','to fed up or annoyed','I\'ve had my fill of exams. I hope I never do another one for the rest of my life.'],
+['5','on edge all day','feeling nervous','She\'s been on edge all day.'],
+['6','reduce to tears','to make someone feel unhappy and about to cry','Mr. James is a strict teacher. He often reduces his students to tears.'],
+['7','sick and tired of','thoroughly worn, bored, or annoyed','I\'m sick and tired of studying. I just want to get a job and earn money.']])),
+    vbSec('B. Sadness — Phrasal Verbs', vbTable(['No','Phrasal verb','Meaning','Example'],[
+['1','Bottle up','to hide a feeling or emotion','Sometimes, it\'s better to bottle up emotion than express it.'],
+['2','Bring (someone) down','to make someone unhappy','Billy is a public enemy because his hobby is bringing someone down.'],
+['3','Cast down','to make someone sad or disappointed','Jane cast down after she was fired from her job.'],
+['4','Choke up','to have trouble talking because of crying or strong emotions','Islan choked up when she heard this terrible news.'],
+['5','Cry out','to shout or make loud voice because of pain or fear','Dodi cried out when he was drowning in the ocean.'],
+['6','Fall apart','becoming emotionally disturbed and being unable to think calmly or deal with the difficult or unpleasant situation','Hearing her husband\'s affair, Mira begins to fall apart.'],
+['7','Get (someone) down','to get someone unhappy','Jennie feels sad when her own family breaks her heart and gets her down.'],
+['8','Mope around','to move around a place in a sad slow way because you feel unhappy','Life can be hard but don\'t mope around for days.'],
+['9','Wallow in','to allow someone to enjoy something','I don\'t get why people can wallow in their sadness.'],
+['10','Well up','to start crying','Laura welled up after she was caught by police.']]))
+  ]
+}
+/* ← tambah Chapter 3, 4, dst. di sini (pakai koma setelah objek sebelumnya) */
+];
+
+/* ---------- Style (disuntik sekali, gak ngubah CSS lama) ---------- */
+(function(){
+  if(document.getElementById('vbStyle')) return;
+  const st = document.createElement('style'); st.id = 'vbStyle';
+  st.textContent = `
+  .vb-table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 12px;}
+  .vb-table th{text-align:left;padding:6px;background:rgba(0,0,0,0.05);font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:0.03em;color:rgba(38,38,38,0.6);white-space:nowrap;}
+  .vb-table td{padding:7px 6px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5;}
+  .vb-body mark{background:rgba(255,235,59,0.55);color:var(--ink);border-radius:3px;padding:0 2px;font-weight:800;}`;
+  document.head.appendChild(st);
+})();
+
+/* ---------- Render ---------- */
+function renderVocabBuildingList(){
+  clearTimer();
+  statusVal.textContent = "VOCABULARY BUILDING";
+  setPresenceStatus('idle');
+  setPresenceMode('Materi Vocabulary Building (menu)');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#f59e0b;color:#fff;">🧩 VOCABULARY BUILDING</div>
+      <h1 class="intro-title" style="font-size:19px;">Vocabulary Building Module</h1>
+      <p class="intro-desc" style="font-size:12px;">Fourth Month — pilih chapter di bawah buat mulai baca.</p>
+      <div class="day-grid">
+        ${VOCABBUILD_CHAPTERS.map(c=>`
+          <button class="day-btn" data-vbid="${escapeHtmlIdx(c.id)}" type="button">
+            <div class="dnum">CHAPTER</div>
+            <div class="dtitle">${escapeHtmlIdx(c.title.replace(/^Chapter \d+\s—\s/,''))}</div>
+          </button>`).join('')}
+      </div>
+      <button class="btn ghost" id="vbBackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>`;
+  document.getElementById('vbBackBtn').onclick = ()=> renderBelajarSubmenu();
+  document.querySelectorAll('[data-vbid]').forEach(btn=>{
+    btn.onclick = ()=> renderVocabBuildingDetail(btn.dataset.vbid);
+  });
+}
+
+function renderVocabBuildingDetail(chapterId){
+  clearTimer();
+  const ch = VOCABBUILD_CHAPTERS.find(c=>c.id === chapterId);
+  if(!ch){ renderVocabBuildingList(); return; }
+  statusVal.textContent = "VOCABULARY BUILDING";
+  setPresenceStatus('idle');
+  setPresenceMode('Membaca Vocabulary Building: ' + ch.title);
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#f59e0b;color:#fff;">🧩 VOCABULARY BUILDING</div>
+      <h1 class="intro-title" style="font-size:18px;">${escapeHtmlIdx(ch.title)}</h1>
+      <div style="width:100%;display:flex;flex-direction:column;gap:12px;margin-top:4px;max-height:66vh;overflow-y:auto;padding-right:2px;">
+        ${ch.sections.map(s=>`
+          <div style="padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;">
+            <div style="font-weight:800;font-size:13.5px;margin-bottom:6px;color:var(--ink);">${escapeHtmlIdx(s.title)}</div>
+            <div class="vb-body" style="font-size:12.5px;line-height:1.75;opacity:0.95;">${s.body}</div>
+          </div>`).join('')}
+      </div>
+      <button class="btn ghost" id="vbDetailBackBtn" style="margin-top:14px;">← Kembali ke Daftar Chapter</button>
+    </div>`;
+  document.getElementById('vbDetailBackBtn').onclick = ()=> renderVocabBuildingList();
+}
 
 </script>
 </body>
