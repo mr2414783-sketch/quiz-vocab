@@ -15784,7 +15784,7 @@ function renderVocabTable(onBack, filter){
         html += `<h3 style="font-size:12px;font-weight:800;margin:10px 0 4px;color:var(--blue,#2E6FD9);">Level ${lv} (${items.length} kata)</h3>`;
         html += `<table class="pron-sym-table"><tr><th style="width:26px;">#</th><th>Bahasa Indonesia</th><th>English</th></tr>`;
         items.forEach((it, i)=>{
-          html += `<tr><td style="opacity:0.55;">${i+1}</td><td>${escapeHtmlIdx(it.id)}</td><td style="font-weight:700;color:var(--blue,#2E6FD9);">${escapeHtmlIdx(it.en)}</td></tr>`;
+          html += `<tr><td style="opacity:0.55;">${i+1}</td><td>${escapeHtmlIdx(it.id)}</td><td style="font-weight:700;color:var(--blue,#2E6FD9);">${escapeHtmlIdx(it.en)}<button type="button" class="pron-sym-speak-btn vt-speak" data-say="${escapeHtmlIdx(it.en)}" aria-label="Putar suara ${escapeHtmlIdx(it.en)}">🔊</button></td></tr>`;
         });
         html += `</table>`;
       });
@@ -15810,7 +15810,7 @@ function renderVocabTable(onBack, filter){
         html += `<h3 style="font-size:12px;font-weight:800;margin:10px 0 4px;color:var(--blue,#2E6FD9);">Day ${d} — ${escapeHtmlIdx(topicTitle)} (${items.length} kata)</h3>`;
         html += `<table class="pron-sym-table"><tr><th style="width:26px;">#</th><th>Bahasa Indonesia</th><th>English</th></tr>`;
         items.forEach((it, i)=>{
-          html += `<tr><td style="opacity:0.55;">${i+1}</td><td>${escapeHtmlIdx(it.id)}</td><td style="font-weight:700;color:var(--blue,#2E6FD9);">${escapeHtmlIdx(it.en)}</td></tr>`;
+          html += `<tr><td style="opacity:0.55;">${i+1}</td><td>${escapeHtmlIdx(it.id)}</td><td style="font-weight:700;color:var(--blue,#2E6FD9);">${escapeHtmlIdx(it.en)}<button type="button" class="pron-sym-speak-btn vt-speak" data-say="${escapeHtmlIdx(it.en)}" aria-label="Putar suara ${escapeHtmlIdx(it.en)}">🔊</button></td></tr>`;
         });
         html += `</table>`;
       });
@@ -15834,6 +15834,10 @@ function renderVocabTable(onBack, filter){
     </div>
   `;
   document.getElementById('vocabTableBackBtn').onclick = onBack;
+  document.getElementById('vocabTableWrap').addEventListener('click', e=>{
+    const btn = e.target.closest && e.target.closest('.vt-speak');
+    if(btn) speakFlashWord(btn.getAttribute('data-say'), btn);
+  });
   const searchInput = document.getElementById('vocabTableSearch');
   searchInput.addEventListener('input', ()=>{
     tableSearch = searchInput.value;
