@@ -285,6 +285,7 @@
     <button class="nav-menu-item" data-target="ularBankSection">🐍 Bank Soal (Ular Tangga)</button>
     <button class="nav-menu-item" data-target="participantSection">🚫 Kelola Peserta (Ban)</button>
     <button class="nav-menu-item" data-target="ieltsAccessSection">🎓 Akses IELTS &amp; TOEFL</button>
+    <button class="nav-menu-item" data-target="vocabLevelAccessSection">📊 Akses Vocab per Level</button>
     <button class="nav-menu-item" data-target="spotifySection">🎵 Musik (Spotify)</button>
     <button class="nav-menu-item" data-target="dangerZoneSection" style="color:var(--red-dim);">⚠️ Zona Berbahaya</button>
     <button class="nav-menu-item" id="navMenuFeedbackLink">💬 Lihat Masukan Peserta<span id="navFeedbackBadge" class="nav-menu-item-dot"></span></button>
@@ -867,6 +868,21 @@
         <div id="ieltsAccessList"><div class="history-empty">Memuat permintaan akses...</div></div>
       </div>
 
+      <div class="section-card" id="vocabLevelAccessSection" style="border-top:1px dashed var(--line);">
+        <div class="section-title">🎓 Akses Vocab per Level</div>
+        <p style="font-size:11.5px;margin:0 0 12px;">Atur kata sandi menu Vocab per Level di bawah. Peserta harus memasukkan kata sandi yang sama persis, lalu muncul di daftar ini dengan status <b>Menunggu</b>. Setujui supaya menunya terbuka untuk mereka. Admin yang login tidak perlu kata sandi maupun persetujuan.</p>
+        <div style="font-weight:800;font-size:12.5px;margin-bottom:6px;">🔑 Kata Sandi Menu</div>
+        <div id="vocabLevelPassState" style="font-size:11.5px;margin-bottom:6px;opacity:0.8;">Memuat...</div>
+        <input type="text" id="vocabLevelPassInput" class="plain-input" placeholder="Ketik kata sandi baru (min. 4 karakter)..." autocomplete="off" style="margin-bottom:8px;">
+        <div style="display:flex;gap:6px;">
+          <button class="save-exam-btn" id="vocabLevelPassSaveBtn" style="margin-top:0;flex:1;">Simpan Kata Sandi</button>
+          <button class="save-exam-btn" id="vocabLevelPassClearBtn" style="margin-top:0;flex:1;background:var(--red);">Hapus</button>
+        </div>
+        <p style="font-size:10.5px;opacity:0.7;margin:6px 0 14px;">Kata sandi tidak bisa dilihat lagi setelah disimpan. Kalau lupa, tinggal buat yang baru. Mengganti atau menghapus kata sandi tidak mencabut akses peserta yang sudah disetujui.</p>
+        <div style="font-weight:800;font-size:12.5px;margin-bottom:6px;">📋 Permintaan Akses</div>
+        <div id="vocabLevelAccessList"><div class="history-empty">Memuat permintaan akses...</div></div>
+      </div>
+
       <div class="section-card" id="spotifySection" style="border-top:1px dashed var(--line);">
         <div class="section-title">🎵 Musik (Spotify)</div>
         <p style="font-size:11.5px;margin:0 0 10px;">Tempel link share Spotify (lagu, playlist, atau album) di sini. Peserta akan lihat pemutar Spotify resmi di menu "Dengarkan Musik". Peserta yang gratisan cuma bisa dengar preview 30 detik; yang Spotify Premium & lagi login di HP-nya bisa dengar full lagu. Ini bukan pemutaran serentak/sinkron — tiap peserta muter sendiri-sendiri di device masing-masing.</p>
@@ -899,7 +915,7 @@
     `;
 
     /* ---------------- PAGE SWITCHER (menu pojok kiri atas, bukan scroll) ---------------- */
-    const ADMIN_SECTION_IDS = ['examSection','pesertaListSection','classChatSection','groupsSection','peerMonitorSection','leaderboardSection','activityLeaderboardSection','xpManageSection','historySection','modeStatusSection','scheduleSection','accentSection','statsSection','exportSection','vocabBankSection','ularBankSection','participantSection','ieltsAccessSection','dangerZoneSection','spotifySection'];
+    const ADMIN_SECTION_IDS = ['examSection','pesertaListSection','classChatSection','groupsSection','peerMonitorSection','leaderboardSection','activityLeaderboardSection','xpManageSection','historySection','modeStatusSection','scheduleSection','accentSection','statsSection','exportSection','vocabBankSection','ularBankSection','participantSection','ieltsAccessSection','vocabLevelAccessSection','dangerZoneSection','spotifySection'];
     window.showAdminSection = function(id){
       ADMIN_SECTION_IDS.forEach(sid=>{
         const el = document.getElementById(sid);
@@ -2401,6 +2417,81 @@
         });
       }, (err)=>{
         listEl.innerHTML = '<div class="history-empty">Gagal memuat (cek Firebase Rules untuk path "ieltsAccess"): ' + escapeHtml(err.message || '') + '</div>';
+      });
+    })();
+
+    /* ---------------- AKSES VOCAB PER LEVEL (persetujuan admin) ---------------- */
+    (function initVocabLevelAccess(){
+      const listEl = document.getElementById('vocabLevelAccessList');
+      if(!listEl) return;
+      // Hash harus sama persis dengan fungsi ieltsHash di halaman peserta (index.html).
+      async function ieltsHash(text){
+        const buf = new TextEncoder().encode('ieltsAccess|' + String(text || '').trim());
+        const digest = await crypto.subtle.digest('SHA-256', buf);
+        return Array.from(new Uint8Array(digest)).map(b=> b.toString(16).padStart(2,'0')).join('');
+      }
+      const passState = document.getElementById('vocabLevelPassState');
+      const passInput = document.getElementById('vocabLevelPassInput');
+      const passSaveBtn = document.getElementById('vocabLevelPassSaveBtn');
+      const passClearBtn = document.getElementById('vocabLevelPassClearBtn');
+      db.ref('settings/vocabLevelPasswordHash').on('value', (snap)=>{
+        passState.innerHTML = snap.val() ? '✅ Kata sandi <b>sudah diatur</b>.' : '⚠️ Kata sandi <b>belum diatur</b>. Peserta belum bisa mengirim permintaan akses.';
+      }, ()=>{ passState.textContent = 'Gagal memuat status kata sandi.'; });
+      passSaveBtn.onclick = ()=>{
+        const val = (passInput.value || '').trim();
+        if(val.length < 4){ alert('Kata sandi minimal 4 karakter.'); passInput.focus(); return; }
+        passSaveBtn.disabled = true;
+        ieltsHash(val).then(h=> db.ref('settings/vocabLevelPasswordHash').set(h)).then(()=>{
+          passInput.value = '';
+          alert('Kata sandi tersimpan. Berikan kata sandi ini ke peserta yang boleh mengakses.');
+        }).catch((err)=>{
+          alert('Gagal menyimpan kata sandi: ' + err.message);
+        }).finally(()=>{ passSaveBtn.disabled = false; });
+      };
+      passClearBtn.onclick = ()=>{
+        if(!confirm('Hapus kata sandi? Peserta baru tidak bisa mengirim permintaan akses sampai kamu membuat yang baru.')) return;
+        db.ref('settings/vocabLevelPasswordHash').remove().catch((err)=> alert('Gagal menghapus: ' + err.message));
+      };
+      function fmtDate(ts){
+        if(!ts) return '';
+        try{ return new Date(ts).toLocaleString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }); }catch(e){ return ''; }
+      }
+      function setStatus(key, name, status, btn){
+        if(btn) btn.disabled = true;
+        db.ref('vocabLevelAccess/' + key).update({ name: name, status: status, decidedAt: firebase.database.ServerValue.TIMESTAMP })
+          .catch((err)=>{
+            alert('Gagal menyimpan (kemungkinan Firebase Rules belum mengizinkan path "vocabLevelAccess"): ' + err.message);
+            if(btn) btn.disabled = false;
+          });
+      }
+      db.ref('vocabLevelAccess').on('value', (snapshot)=>{
+        const data = snapshot.val() || {};
+        const order = { pending:0, approved:1, denied:2 };
+        const rows = Object.keys(data).map(k=> Object.assign({ key:k }, data[k])).filter(r=> r && r.status)
+          .sort((a,b)=> ((order[a.status] ?? 3) - (order[b.status] ?? 3)) || ((b.requestedAt||0) - (a.requestedAt||0)));
+        if(rows.length === 0){
+          listEl.innerHTML = '<div class="history-empty">Belum ada permintaan akses.</div>';
+          return;
+        }
+        const label = { pending:'⏳ Menunggu', approved:'✅ Disetujui', denied:'🚫 Ditolak' };
+        listEl.innerHTML = rows.map(r=>{
+          const nm = escapeHtml(r.name || r.key);
+          const when = fmtDate(r.requestedAt);
+          let btns = '';
+          if(r.status === 'pending'){
+            btns = `<button class="small-btn unban" data-key="${escapeHtml(r.key)}" data-name="${nm}" data-set="approved">Setujui</button><button class="small-btn ban" data-key="${escapeHtml(r.key)}" data-name="${nm}" data-set="denied">Tolak</button>`;
+          } else if(r.status === 'approved'){
+            btns = `<button class="small-btn ban" data-key="${escapeHtml(r.key)}" data-name="${nm}" data-set="denied">Cabut Akses</button>`;
+          } else {
+            btns = `<button class="small-btn unban" data-key="${escapeHtml(r.key)}" data-name="${nm}" data-set="approved">Setujui</button>`;
+          }
+          return `<div class="banned-item" style="flex-wrap:wrap;gap:6px;"><span style="flex:1;min-width:120px;"><b>${nm}</b><br><span style="font-size:11px;opacity:0.7;">${label[r.status] || r.status}${when ? ' · ' + when : ''}</span></span>${btns}</div>`;
+        }).join('');
+        listEl.querySelectorAll('.small-btn').forEach(btn=>{
+          btn.onclick = ()=> setStatus(btn.dataset.key, btn.dataset.name, btn.dataset.set, btn);
+        });
+      }, (err)=>{
+        listEl.innerHTML = '<div class="history-empty">Gagal memuat (cek Firebase Rules untuk path "vocabLevelAccess"): ' + escapeHtml(err.message || '') + '</div>';
       });
     })();
 

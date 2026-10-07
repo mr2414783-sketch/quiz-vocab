@@ -10019,7 +10019,7 @@ function renderBeginnerGuide(onBack){
       H('📖 Soal &amp; Vocab') +
       OL(['Pilih <b>Mode Belajar → Soal &amp; Vocab</b>.',
           'Pilih cara belajar: <b>📖 Latihan Soal</b> (kuis) atau <b>🃏 Mode Hafalan</b> (flashcard).',
-          'Pilih materi: <b>🗓 Per Hari</b> (Bulan 1, 2, atau 3, boleh tap beberapa hari sekaligus) atau <b>📊 Vocab per Level</b> (level A1 sampai C2, boleh digabung).',
+          'Pilih materi: <b>🗓 Per Hari</b> (Bulan 1, 2, atau 3, boleh tap beberapa hari sekaligus) atau <b>📊 Vocab per Level</b> (level A1 sampai C2, boleh digabung; menu ini terkunci dan perlu izin admin, caranya sama seperti menu Persiapan IELTS &amp; TOEFL).',
           'Untuk kuis, buka <b>⚙️ Atur soal</b>: pilih Pilihan Ganda, Penjodohan, Esai, atau Latihan Cerdas, dan pilih dengan waktu (10 detik) atau tanpa waktu.',
           'Tap <b>Mulai Latihan →</b> atau <b>Mulai Menghafal →</b>.']) +
       P('<b>Mode Hafalan:</b> kartu tampil dalam Bahasa Indonesia, tap kartunya untuk lihat jawaban Bahasa Inggris. Tidak ada nilai, jadi santai saja.') +
@@ -15880,6 +15880,112 @@ function renderVocabTable(onBack, filter){
   });
 }
 
+/* ---------------- GERBANG AKSES VOCAB PER LEVEL (kata sandi + persetujuan admin) ----------------
+   Sistemnya sama dengan menu IELTS & TOEFL, tapi node Firebase-nya terpisah:
+   - permintaan akses : vocabLevelAccess/<nama>  (status: pending | approved | denied)
+   - hash kata sandi  : settings/vocabLevelPasswordHash  (hash-nya pakai ieltsHash() yang sama)
+   Admin yang login (isAdminBypass) langsung masuk. */
+let levelAccessGranted = false; // cache selama sesi, biar gak cek ulang tiap tap tombolnya
+let levelAccessRef = null;
+let levelAccessHandler = null;
+function levelStopWatch(){
+  if(levelAccessRef && levelAccessHandler){ try{ levelAccessRef.off('value', levelAccessHandler); }catch(e){} }
+  levelAccessRef = null;
+  levelAccessHandler = null;
+}
+function openVocabLevelScope(){
+  const enter = ()=>{ levelStopWatch(); scope = 'other'; renderIntro(); };
+  if(isAdminBypass || levelAccessGranted || scope === 'other'){ enter(); return; }
+  const name = getSavedName();
+  if(!name){ renderNameGate(); return; }
+  const key = sanitizeNameForKey(name);
+  clearTimer();
+  levelStopWatch();
+  statusVal.textContent = "VOCAB PER LEVEL";
+  setPresenceStatus('idle');
+  const TAG = `<div class="section-tag" style="background:#6366f1;color:#fff;">📊 VOCAB PER LEVEL</div>`;
+  const goBack = ()=>{ levelStopWatch(); renderIntro(); };
+
+  function showLoading(){
+    card.innerHTML = `<div class="center-stack" id="levelGateRoot">${TAG}<p class="intro-desc">Memeriksa akses...</p></div>`;
+  }
+  function showPasswordForm(deniedNotice){
+    card.innerHTML = `
+      <div class="center-stack" id="levelGateRoot">
+        ${TAG}
+        <h1 class="intro-title" style="font-size:19px;">Menu Terkunci 🔒</h1>
+        <p class="intro-desc" style="font-size:12px;">Menu Vocab per Level hanya untuk orang tertentu. Masukkan kata sandi yang diberikan admin atau pengajar untuk meminta akses.</p>
+        ${deniedNotice ? `<p class="intro-desc" style="font-size:12px;color:var(--red);font-weight:800;">Permintaan aksesmu sebelumnya belum disetujui admin. Kamu bisa meminta lagi di bawah.</p>` : ''}
+        <input type="password" id="levelPassInput" class="name-gate-input" placeholder="Kata sandi..." autocomplete="off" inputmode="numeric" />
+        <div id="levelPassError" style="color:var(--red);font-size:12px;font-weight:700;min-height:16px;margin-top:6px;text-align:left;width:100%;"></div>
+        <button class="btn" id="levelPassBtn" type="button" style="margin-top:4px;">Kirim →</button>
+        <button class="btn ghost" id="levelGateBackBtn" type="button" style="margin-top:10px;">← Kembali</button>
+      </div>`;
+    const input = document.getElementById('levelPassInput');
+    const errEl = document.getElementById('levelPassError');
+    const btn = document.getElementById('levelPassBtn');
+    function fail(msg){ btn.disabled = false; btn.textContent = 'Kirim →'; errEl.textContent = msg; }
+    function submit(){
+      errEl.textContent = '';
+      const typed = (input.value || '').trim();
+      if(!typed){ errEl.textContent = 'Masukkan kata sandinya dulu.'; input.focus(); return; }
+      btn.disabled = true; btn.textContent = 'Memeriksa...';
+      Promise.all([ ieltsHash(typed), db.ref('settings/vocabLevelPasswordHash').once('value') ]).then(([hash, snap])=>{
+        const stored = snap.val();
+        if(!stored){ fail('Kata sandi menu ini belum diatur oleh admin. Hubungi admin.'); return; }
+        if(hash !== stored){ fail('Kata sandi salah.'); input.value = ''; input.focus(); return; }
+        btn.textContent = 'Mengirim...';
+        // kalau berhasil, listener 'value' di bawah otomatis menampilkan layar "Mohon tunggu"
+        return levelAccessRef.set({ name: name, status: 'pending', requestedAt: firebase.database.ServerValue.TIMESTAMP });
+      }).catch((err)=>{
+        fail('Gagal memproses: ' + ((err && err.message) || 'coba lagi') + '. Cek koneksi atau hubungi admin.');
+      });
+    }
+    btn.onclick = submit;
+    input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); submit(); } });
+    document.getElementById('levelGateBackBtn').onclick = goBack;
+    input.focus();
+  }
+  function showWaiting(){
+    card.innerHTML = `
+      <div class="center-stack" id="levelGateRoot">
+        ${TAG}
+        <div style="font-size:52px;margin:6px 0;">⏳</div>
+        <h1 class="intro-title" style="font-size:19px;text-align:center;">Mohon tunggu untuk beberapa waktu</h1>
+        <p class="intro-desc" style="text-align:center;font-size:12.5px;">Permintaan aksesmu sudah dikirim dan sedang menunggu persetujuan admin. Halaman ini akan terbuka otomatis setelah disetujui, jadi kamu tidak perlu mengirim ulang.</p>
+        <button class="btn ghost" id="levelWaitBackBtn" type="button" style="margin-top:14px;">← Kembali</button>
+      </div>`;
+    document.getElementById('levelWaitBackBtn').onclick = goBack;
+  }
+
+  showLoading();
+  levelAccessRef = db.ref('vocabLevelAccess/' + key);
+  levelAccessHandler = (snap)=>{
+    // Kalau layar gerbang sudah tidak tampil (peserta pindah halaman), berhenti memantau.
+    if(!document.getElementById('levelGateRoot')){ levelStopWatch(); return; }
+    const v = snap.val();
+    const st = v && v.status;
+    if(st === 'approved'){
+      levelAccessGranted = true;
+      enter();
+    } else if(st === 'pending'){
+      showWaiting();
+    } else {
+      showPasswordForm(st === 'denied');
+    }
+  };
+  levelAccessRef.on('value', levelAccessHandler, (err)=>{
+    levelStopWatch();
+    card.innerHTML = `
+      <div class="center-stack" id="levelGateRoot">
+        ${TAG}
+        <p class="intro-desc" style="color:var(--red);font-weight:700;">Gagal memeriksa akses${err && err.message ? ' (' + escapeHtmlIdx(err.message) + ')' : ''}. Cek koneksi internet lalu coba lagi, atau hubungi admin.</p>
+        <button class="btn ghost" id="levelErrBackBtn" type="button">← Kembali</button>
+      </div>`;
+    document.getElementById('levelErrBackBtn').onclick = ()=> renderIntro();
+  });
+}
+
 function renderIntro(){
   statusVal.textContent = "OPEN BOOK";
   setPresenceStatus('idle');
@@ -16059,7 +16165,7 @@ function renderIntro(){
   renderStreakChip();
 
   document.getElementById('scopeDayBtn').onclick = ()=>{ scope = 'day'; renderIntro(); };
-  document.getElementById('scopeOtherBtn').onclick = ()=>{ scope = 'other'; renderIntro(); };
+  document.getElementById('scopeOtherBtn').onclick = ()=> openVocabLevelScope();
 
   document.getElementById('subQuizBtn').onclick = ()=>{ primaryMode = 'quiz'; renderIntro(); };
   document.getElementById('subFlashBtn').onclick = ()=>{ primaryMode = 'flashcard'; renderIntro(); };
