@@ -18475,7 +18475,10 @@ function lcBuildPilihan(){
     if(covered) return;
     out.push({ title:g.title, words:aw });
   });
-  return out;
+  // Tab Pilihan cuma menampilkan kata ber-level A1-C2 (kata Bulan 1-3 tanpa level dibuang)
+  return out
+    .map(o=>({ title:o.title, words:o.words.filter(w=> w.level && LC_ORDER.indexOf(w.level) > -1) }))
+    .filter(o=> o.words.length >= 2);
 }
 
 let lcTab = 'pilihan'; // 'pilihan' | 'semua'
@@ -18516,11 +18519,12 @@ function renderLevelCompare(onBack){
     return `<div style="padding:11px 13px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;">
       <div style="font-weight:800;font-size:13.5px;margin-bottom:6px;color:var(--ink);">${escapeHtmlIdx(title)}</div>${rowsHtml}</div>`;
   }
-  function row(level, label, en, sub){
+  function row(level, label, en, sub, withSpeak){
+    const spk = withSpeak ? `<button type="button" class="pron-sym-speak-btn lc-speak" data-say="${escapeHtmlIdx(en)}" aria-label="Putar suara ${escapeHtmlIdx(en)}" style="margin-left:auto;flex-shrink:0;">🔊</button>` : '';
     return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);">
       ${badge(level,label)}
       <div style="min-width:0;"><div style="font-weight:800;font-size:13px;">${escapeHtmlIdx(en)}</div>
-      <div style="font-size:11px;opacity:0.6;">${escapeHtmlIdx(sub)}</div></div></div>`;
+      <div style="font-size:11px;opacity:0.6;">${escapeHtmlIdx(sub)}</div></div>${spk}</div>`;
   }
   function draw(){
     const q = input.value.trim().toLowerCase();
@@ -18530,9 +18534,9 @@ function renderLevelCompare(onBack){
         return g.title.toLowerCase().includes(q) || g.words.some(w=> w.en.toLowerCase().includes(q) || String(w.sub||'').toLowerCase().includes(q) || (w.level && w.level.toLowerCase()===q));
       });
       countEl.textContent = shown.length
-        ? shown.length + ' kelompok kata' + (shown.length > LIMIT ? ' (menampilkan ' + LIMIT + ' teratas, ketik untuk mencari)' : '') + '. Badge abu-abu = kata dari Bulan 1-3 (belum punya level CEFR).'
+        ? shown.length + ' kelompok kata' + (shown.length > LIMIT ? ' (menampilkan ' + LIMIT + ' teratas, ketik untuk mencari)' : '') + '.'
         : 'Tidak ada yang cocok.';
-      listEl.innerHTML = shown.slice(0, LIMIT).map(g=> lcCard(g.title, g.words.map(w=> row(w.level, w.level || 'Bln', w.en, w.sub)).join(''))).join('');
+      listEl.innerHTML = shown.slice(0, LIMIT).map(g=> lcCard(g.title, g.words.map(w=> row(w.level, w.level, w.en, w.sub, true)).join(''))).join('');
     } else {
       const shown = lcSemuaCache.filter(g=>{
         if(!q) return true;
@@ -18544,6 +18548,10 @@ function renderLevelCompare(onBack){
       listEl.innerHTML = shown.slice(0, LIMIT).map(g=> lcCard(g.title, g.words.map(w=> row(w.level, w.level || 'Bln', w.en, w.src)).join(''))).join('');
     }
   }
+  listEl.addEventListener('click', e=>{
+    const btn = e.target.closest && e.target.closest('.lc-speak');
+    if(btn) speakFlashWord(btn.getAttribute('data-say'), btn);
+  });
   input.addEventListener('input', draw);
   draw();
 }
