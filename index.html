@@ -14804,16 +14804,20 @@ function purgeLevelData(){
 }
 function loadVocabLevelData(name){
   if(levelDataLoaded) return Promise.resolve();
-  const uid = dbAuth.currentUser && dbAuth.currentUser.uid;
-  const readData = ()=> db.ref('vocabLevelData').once('value').then(snap=>{
+  const readFrom = (database)=> database.ref('vocabLevelData').once('value').then(snap=>{
     const v = snap.val();
     if(!v) throw new Error('Data kosakata level belum diunggah admin.');
     applyLevelRows(v);
     if(!levelDataLoaded) throw new Error('Data kosakata level kosong.');
   });
-  if(isAdminBypass || !uid) return readData();
+  // Admin: baca lewat koneksi yang login sebagai admin (bukan koneksi anonim peserta, yang gak punya izin baca).
+  if(isAdminBypass) return readFrom(adminCheckApp.database());
+  const uid = dbAuth.currentUser && dbAuth.currentUser.uid;
+  if(!uid) return Promise.reject(new Error('Belum terhubung ke server. Coba lagi sebentar.'));
   // daftarkan perangkat ini ke permintaan yang sudah disetujui (dicek Rules: uid harus sama dengan uid saat meminta)
-  return db.ref('vocabLevelGrant/' + uid).set({ key: sanitizeNameForKey(name) }).then(readData);
+  return db.ref('vocabLevelGrant/' + uid).set({ key: sanitizeNameForKey(name) })
+    .catch(()=>{ throw new Error('perangkat ini belum terdaftar di akses yang disetujui. Minta admin menekan Cabut Akses untuk namamu, lalu ajukan permintaan lagi'); })
+    .then(()=> readFrom(db));
 }
 let levelAccessGranted = false; // cache selama sesi, biar gak cek ulang tiap tap tombolnya
 let levelAccessName = '';       // akun yang punya cache di atas (biar gak kebawa kalau ganti akun)
