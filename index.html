@@ -18150,6 +18150,38 @@ function lcBuildAutoGroups(){
   return out;
 }
 
+let lcPilihanCache = null;
+let lcSemuaCache = null;
+/* Pilihan = kelompok manual + kelompok otomatis (dari Bulan 1-3 + level) yang punya kata ber-level.
+   Semua Kosakata = sisanya (kelompok yang sama sekali belum punya level CEFR). */
+function lcBuildPilihan(){
+  const key = x=> String(x||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const rank = w=> w.level ? LC_ORDER.indexOf(w.level) : 99;
+  const out = LEVEL_COMPARE_GROUPS.map(g=>({ title:g[0], words:g[1].map(w=>({ en:w[0], level:w[1], sub:w[2] })) }));
+  const byTitle = {};
+  out.forEach(o=>{ byTitle[key(o.title)] = o; });
+  lcAutoCache.filter(g=>g.hasLevel).forEach(g=>{
+    const aw = g.words.map(w=>({ en:w.en, level:w.level, sub:w.src }));
+    const same = byTitle[key(g.title)];
+    if(same){
+      const have = {};
+      same.words.forEach(w=>{ have[key(w.en)] = 1; });
+      let added = false;
+      aw.forEach(w=>{ if(!have[key(w.en)]){ same.words.push(w); have[key(w.en)] = 1; added = true; } });
+      if(added) same.words.sort((a,b)=> rank(a) - rank(b));
+      return;
+    }
+    const covered = out.some(o=>{
+      const h = {};
+      o.words.forEach(w=>{ h[key(w.en)] = 1; });
+      return aw.every(w=> h[key(w.en)]);
+    });
+    if(covered) return;
+    out.push({ title:g.title, words:aw });
+  });
+  return out;
+}
+
 let lcTab = 'pilihan'; // 'pilihan' | 'semua'
 function renderLevelCompare(onBack){
   clearTimer();
@@ -18157,14 +18189,16 @@ function renderLevelCompare(onBack){
   setPresenceStatus('idle');
   setPresenceMode('Perbandingan Level Vocab');
   if(!lcAutoCache) lcAutoCache = lcBuildAutoGroups();
+  if(!lcPilihanCache) lcPilihanCache = lcBuildPilihan();
+  if(!lcSemuaCache) lcSemuaCache = lcAutoCache.filter(g=>!g.hasLevel);
   card.innerHTML = `
     <div class="center-stack" style="align-items:stretch;">
       <div class="section-tag" style="background:#6366f1;color:#fff;">📊 PERBANDINGAN LEVEL VOCAB</div>
       <h1 class="intro-title" style="font-size:19px;">Kata Sama Arti, Beda Level</h1>
       <p class="intro-desc" style="font-size:12px;">Kata-kata dengan arti yang mirip tapi tingkat kesulitannya beda (A1 → C2). Makin tinggi levelnya, biasanya makin formal/jarang dipakai sehari-hari.</p>
       <div class="pron-sym-tabs">
-        <button type="button" class="pron-sym-tab ${lcTab==='pilihan'?'active':''}" id="lcTabPilihan">⭐ Pilihan (${LEVEL_COMPARE_GROUPS.length})</button>
-        <button type="button" class="pron-sym-tab ${lcTab==='semua'?'active':''}" id="lcTabSemua">📚 Semua Kosakata (${lcAutoCache.length})</button>
+        <button type="button" class="pron-sym-tab ${lcTab==='pilihan'?'active':''}" id="lcTabPilihan">⭐ Pilihan (${lcPilihanCache.length})</button>
+        <button type="button" class="pron-sym-tab ${lcTab==='semua'?'active':''}" id="lcTabSemua">📚 Semua Kosakata (${lcSemuaCache.length})</button>
       </div>
       <input type="text" id="lcSearchInput" class="name-gate-input" style="text-align:left;" placeholder="Cari kata atau arti... (contoh: begin / memulai)" autocomplete="off">
       <div id="lcCount" style="font-size:11px;opacity:0.7;margin-top:6px;width:100%;text-align:left;"></div>
@@ -18195,19 +18229,21 @@ function renderLevelCompare(onBack){
   function draw(){
     const q = input.value.trim().toLowerCase();
     if(lcTab === 'pilihan'){
-      const shown = LEVEL_COMPARE_GROUPS.filter(g=>{
+      const shown = lcPilihanCache.filter(g=>{
         if(!q) return true;
-        return g[0].toLowerCase().includes(q) || g[1].some(w=> w[0].toLowerCase().includes(q) || w[2].toLowerCase().includes(q) || w[1].toLowerCase()===q);
+        return g.title.toLowerCase().includes(q) || g.words.some(w=> w.en.toLowerCase().includes(q) || String(w.sub||'').toLowerCase().includes(q) || (w.level && w.level.toLowerCase()===q));
       });
-      countEl.textContent = shown.length ? shown.length + ' kelompok kata.' : 'Tidak ada yang cocok.';
-      listEl.innerHTML = shown.map(g=> lcCard(g[0], g[1].map(w=> row(w[1], w[1], w[0], w[2])).join(''))).join('');
+      countEl.textContent = shown.length
+        ? shown.length + ' kelompok kata' + (shown.length > LIMIT ? ' (menampilkan ' + LIMIT + ' teratas, ketik untuk mencari)' : '') + '. Badge abu-abu = kata dari Bulan 1-3 (belum punya level CEFR).'
+        : 'Tidak ada yang cocok.';
+      listEl.innerHTML = shown.slice(0, LIMIT).map(g=> lcCard(g.title, g.words.map(w=> row(w.level, w.level || 'Bln', w.en, w.sub)).join(''))).join('');
     } else {
-      const shown = lcAutoCache.filter(g=>{
+      const shown = lcSemuaCache.filter(g=>{
         if(!q) return true;
         return g.title.toLowerCase().includes(q) || g.words.some(w=> w.en.toLowerCase().includes(q) || (w.level && w.level.toLowerCase()===q));
       });
       countEl.textContent = shown.length
-        ? shown.length + ' kelompok dari seluruh kosakata' + (shown.length > LIMIT ? ' (menampilkan ' + LIMIT + ' teratas, ketik untuk mencari)' : '') + '. Badge abu-abu = kata dari Bulan 1-3 (belum punya level CEFR).'
+        ? shown.length + ' kelompok kata dari Bulan 1-3 yang belum punya level CEFR' + (shown.length > LIMIT ? ' (menampilkan ' + LIMIT + ' teratas, ketik untuk mencari)' : '') + '.'
         : 'Tidak ada yang cocok.';
       listEl.innerHTML = shown.slice(0, LIMIT).map(g=> lcCard(g.title, g.words.map(w=> row(w.level, w.level || 'Bln', w.en, w.src)).join(''))).join('');
     }
