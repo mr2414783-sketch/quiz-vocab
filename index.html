@@ -10171,13 +10171,18 @@ function renderIeltsToefl(onBack){
   showLoading();
   ieltsAccessRef = db.ref('ieltsAccess/' + key);
   ieltsAccessHandler = (snap)=>{
-    // Kalau layar gerbang sudah tidak tampil (peserta pindah halaman), berhenti memantau.
-    if(!document.getElementById('ieltsGateRoot')){ ieltsStopWatch(); return; }
+    // Pantau terus selama layar gerbang ATAU isi menu masih tampil, supaya pencabutan akses oleh admin langsung berlaku.
+    const gateShown = !!document.getElementById('ieltsGateRoot');
+    const contentShown = !!document.getElementById('latihanOpenBtn');
+    if(!gateShown && !contentShown){ ieltsStopWatch(); return; }
     const v = snap.val();
     const st = v && v.status;
     if(st === 'approved'){
-      ieltsStopWatch();
-      renderIeltsToeflContent(onBack);
+      if(!contentShown) renderIeltsToeflContent(onBack);
+    } else if(contentShown){
+      // Akses dicabut admin saat peserta sedang membuka menu -> kunci lagi sekarang juga.
+      alert('Akses menu Persiapan IELTS & TOEFL dicabut oleh admin.');
+      renderIeltsToefl(onBack);
     } else if(st === 'pending'){
       showWaiting();
     } else {
@@ -10239,7 +10244,7 @@ function renderIeltsToeflContent(onBack){
       <button class="btn ghost" id="ieltsBackBtn" style="margin-top:14px;">← Kembali</button>
     </div>`;
   document.getElementById('latihanOpenBtn').onclick = ()=>{ window.open(LATIHAN_URL, '_blank', 'noopener,noreferrer'); };
-  document.getElementById('ieltsBackBtn').onclick = ()=> onBack();
+  document.getElementById('ieltsBackBtn').onclick = ()=>{ ieltsStopWatch(); onBack(); };
 }
 
 function spotifyParseUrlPeserta(url){
@@ -15244,6 +15249,7 @@ function isProfileComplete(p){
 }
 
 function finishLogin(name){
+  if(typeof levelAccessName !== 'undefined' && levelAccessName !== name){ levelAccessGranted = false; levelStopLive(); }
   checkBanAndProceed(name, ()=>{
     localStorage.setItem('quizUserName', name);
     addKnownAccount(name);
@@ -15886,6 +15892,32 @@ function renderVocabTable(onBack, filter){
    - hash kata sandi  : settings/vocabLevelPasswordHash  (hash-nya pakai ieltsHash() yang sama)
    Admin yang login (isAdminBypass) langsung masuk. */
 let levelAccessGranted = false; // cache selama sesi, biar gak cek ulang tiap tap tombolnya
+let levelAccessName = '';       // akun yang punya cache di atas (biar gak kebawa kalau ganti akun)
+let levelLiveRef = null;
+let levelLiveHandler = null;
+function levelStopLive(){
+  if(levelLiveRef && levelLiveHandler){ try{ levelLiveRef.off('value', levelLiveHandler); }catch(e){} }
+  levelLiveRef = null;
+  levelLiveHandler = null;
+}
+// Setelah disetujui, terus pantau statusnya. Kalau admin mencabut akses, menu langsung terkunci lagi.
+function levelStartLive(name){
+  levelStopLive();
+  levelAccessName = name;
+  levelLiveRef = db.ref('vocabLevelAccess/' + sanitizeNameForKey(name) + '/status');
+  levelLiveHandler = (snap)=>{
+    if(snap.val() === 'approved') return;
+    levelAccessGranted = false;
+    levelStopLive();
+    if(scope === 'other'){
+      scope = 'day';
+      try{ clearTimer(); }catch(e){}
+      alert('Akses menu Vocab per Level dicabut oleh admin.');
+      renderIntro();
+    }
+  };
+  levelLiveRef.on('value', levelLiveHandler, ()=>{});
+}
 let levelAccessRef = null;
 let levelAccessHandler = null;
 function levelStopWatch(){
@@ -15895,8 +15927,8 @@ function levelStopWatch(){
 }
 function openVocabLevelScope(){
   const enter = ()=>{ levelStopWatch(); scope = 'other'; renderIntro(); };
-  if(isAdminBypass || levelAccessGranted || scope === 'other'){ enter(); return; }
   const name = getSavedName();
+  if(isAdminBypass || (levelAccessGranted && levelAccessName === name)){ enter(); return; }
   if(!name){ renderNameGate(); return; }
   const key = sanitizeNameForKey(name);
   clearTimer();
@@ -15967,6 +15999,7 @@ function openVocabLevelScope(){
     const st = v && v.status;
     if(st === 'approved'){
       levelAccessGranted = true;
+      levelStartLive(name);
       enter();
     } else if(st === 'pending'){
       showWaiting();
@@ -16126,7 +16159,7 @@ function renderIntro(){
     </div>
   `;
 
-  document.getElementById('changeModeBadge').onclick = ()=> renderModeSelect();
+  document.getElementById('changeModeBadge').onclick = ()=>{ scope = 'day'; renderModeSelect(); };
   wireMenuFold();
   document.getElementById('introProfileChip').onclick = ()=> renderProfileEdit(renderIntro);
   document.getElementById('feedbackBadge').onclick = ()=> renderFeedbackForm(renderIntro);
