@@ -9649,7 +9649,7 @@ function deleteOwnAccount(){
 const MODE_META = {
   belajar: { icon:'📚', label:'Mode Belajar', sub:'Soal & Vocab, dan Materi & Grammar' },
   game: { icon:'🎮', label:'Mode Game', sub:'Duel 1v1, Kuis Live (Kahoot), & Ular Tangga' },
-  lainnya: { icon:'✨', label:'Mode Lainnya', sub:'Kamus Kosakata, Musik, & Tentang Kami' },
+  lainnya: { icon:'✨', label:'Mode Lainnya', sub:'Kamus Kosakata & Tentang Kami' },
   standard: { icon:'📚', label:'Mode Standar', sub:'Latihan dan hafalan Vocab, Verb, dan latihan Grammar' },
   practice: { icon:'📖', label:'Soal & Vocab', sub:'Kuis, penjodohan, esai, & flashcard' },
   grammar: { icon:'✍️', label:'Materi & Soal Grammar', sub:'Mode Hafalan Rumus & Latihan Soal Grammar' },
@@ -9821,7 +9821,6 @@ function renderLainnyaSubmenu(onBack){
       <p class="intro-desc">Beberapa hal seru di luar belajar & game.</p>
 
       <button class="btn ghost" id="lainnyaKamusBtn" style="margin-top:2px;border-color:#0ea5e9;color:#0369a1;">🔍 Kamus Kosakata</button>
-      <button class="btn ghost" id="lainnyaMusicBtn" style="border-color:#1DB954;color:#1a9c47;">🎵 Dengarkan Musik</button>
       <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Saya</button>
 
       <button class="btn ghost" id="backToModeSelectBtnLainnya" style="margin-top:14px;">← Kembali</button>
@@ -9834,7 +9833,6 @@ function renderLainnyaSubmenu(onBack){
     if(!myPresenceRef){ startPresence(savedName); }
     renderDictionarySearch(()=> renderLainnyaSubmenu(onBack));
   };
-  document.getElementById('lainnyaMusicBtn').onclick = ()=> renderMusicPlayer(()=> renderLainnyaSubmenu(onBack));
   document.getElementById('lainnyaAboutBtn').onclick = ()=> renderTentangKami(()=> renderLainnyaSubmenu(onBack));
 }
 
@@ -9872,132 +9870,7 @@ function spotifyParseUrlPeserta(url){
   if(!m) return null;
   return { type: m[1], id: m[2] };
 }
-function youtubeParseUrlPeserta(url){
-  const u = (url||'').trim();
-  let m = u.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
-  if(m) return { id: m[1] };
-  return null;
-}
-let musicPlaylistRef = null;
-function renderMusicPlayer(onBack){
-  clearTimer();
-  statusVal.textContent = "MUSIK";
-  setPresenceStatus('idle');
-  if(musicPlaylistRef){ musicPlaylistRef.off(); musicPlaylistRef = null; }
-  card.innerHTML = `
-    <div class="center-stack">
-      <div class="section-tag" style="background:#1DB954;color:#fff;">🎵 MUSIK</div>
-      <h1 class="intro-title">Dengarkan Musik</h1>
-      <p class="intro-desc" style="font-size:11px;">Pilih lagu di bawah — bisa diputar sambil ngerjain soal atau buka halaman lain, muterannya jalan terus.</p>
-      <div id="musicPlaylistWrap" style="width:100%;display:flex;flex-direction:column;gap:6px;"><div class="lb-empty-light">Memuat daftar lagu...</div></div>
-      <div id="musicPlayerWrap" style="width:100%;margin-top:14px;"></div>
-      <p class="intro-desc" id="musicPlayerNote" style="font-size:11px;opacity:0.7;margin-top:10px;"></p>
 
-      <div style="width:100%;border-top:1px dashed var(--line);margin-top:18px;padding-top:14px;text-align:left;">
-        <div style="font-weight:800;font-size:13px;margin-bottom:4px;">🙋 Request Lagu</div>
-        <p class="intro-desc" style="font-size:11px;margin:0 0 10px;">Mau usul lagu buat ditambahin admin? Isi kolom di bawah. <b>Syarat: lagunya gak boleh mengandung unsur SARA.</b></p>
-        <input type="text" id="musicReqTitleInput" class="name-gate-input" style="text-align:left;margin-bottom:8px;" placeholder="1. Nama lagu" autocomplete="off">
-        <input type="text" id="musicReqSingerInput" class="name-gate-input" style="text-align:left;margin-bottom:8px;" placeholder="2. Nama penyanyi" autocomplete="off">
-        <button class="btn ghost" id="musicReqSubmitBtn" style="width:100%;">Kirim Request →</button>
-        <div id="musicReqStatusMsg" style="font-size:11px;margin-top:8px;"></div>
-      </div>
-
-      <button class="btn ghost" id="musicBackBtn" style="margin-top:14px;">← Kembali</button>
-    </div>
-  `;
-  document.getElementById('musicBackBtn').onclick = ()=>{ if(musicPlaylistRef){ musicPlaylistRef.off(); musicPlaylistRef = null; } onBack(); };
-
-  document.getElementById('musicReqSubmitBtn').onclick = ()=>{
-    const titleInput = document.getElementById('musicReqTitleInput');
-    const singerInput = document.getElementById('musicReqSingerInput');
-    const statusMsg = document.getElementById('musicReqStatusMsg');
-    const judul = titleInput.value.trim();
-    const penyanyi = singerInput.value.trim();
-    if(!judul || !penyanyi){
-      statusMsg.style.color = 'var(--red-dim)';
-      statusMsg.textContent = 'Nama lagu & penyanyi wajib diisi.';
-      if(!judul) titleInput.focus(); else singerInput.focus();
-      return;
-    }
-    const btn = document.getElementById('musicReqSubmitBtn');
-    btn.disabled = true; btn.textContent = 'Mengirim...';
-    db.ref('feedback').push({
-      name: getSavedName() || 'Anonim',
-      message: `🎵 Request Lagu\nJudul: ${judul}\nPenyanyi: ${penyanyi}`,
-      read: false,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    }).then(()=>{
-      titleInput.value = ''; singerInput.value = '';
-      statusMsg.style.color = 'var(--green)';
-      statusMsg.textContent = '✓ Request terkirim ke admin. Makasih!';
-    }).catch((err)=>{
-      statusMsg.style.color = 'var(--red-dim)';
-      statusMsg.textContent = 'Gagal mengirim: ' + (err && err.message ? err.message : err);
-    }).finally(()=>{
-      btn.disabled = false; btn.textContent = 'Kirim Request →';
-    });
-  };
-
-  musicPlaylistRef = db.ref('settings/musicPlaylist');
-  musicPlaylistRef.on('value', (snap)=>{
-    const wrap = document.getElementById('musicPlaylistWrap');
-    if(!wrap) return;
-    const val = snap.val() || {};
-    bgMusicQueue = Object.entries(val).map(([id, s])=> ({ id, title: s.title || 'Tanpa judul', youtubeId: s.youtubeId }));
-    if(bgMusicQueue.length === 0){
-      wrap.innerHTML = '<div class="lb-empty-light">Admin belum menambahkan lagu.</div>';
-      return;
-    }
-    wrap.innerHTML = bgMusicQueue.map(s => `
-      <div class="music-song-item${bgMusicCurrent && bgMusicCurrent.id === s.id ? ' playing' : ''}" data-song-id="${escapeHtmlIdx(s.id)}">
-        <img class="music-song-thumb" src="https://img.youtube.com/vi/${escapeHtmlIdx(s.youtubeId)}/mqdefault.jpg" alt="">
-        <span class="music-song-title">${escapeHtmlIdx(s.title)}</span>
-        <span class="music-song-play-ic">${bgMusicCurrent && bgMusicCurrent.id === s.id && bgMusicIsPlaying ? '⏸️' : '▶️'}</span>
-      </div>
-    `).join('');
-    wrap.querySelectorAll('.music-song-item').forEach(el=>{
-      el.onclick = ()=>{
-        const song = bgMusicQueue.find(s => s.id === el.dataset.songId);
-        if(!song) return;
-        if(bgMusicCurrent && bgMusicCurrent.id === song.id){
-          bgMusicToggle();
-        } else {
-          bgMusicPlaySong(song);
-        }
-      };
-    });
-  });
-
-  db.ref('settings/spotifyEmbed').once('value').then((snap)=>{
-    const cfg = snap.val();
-    const wrap = document.getElementById('musicPlayerWrap');
-    const note = document.getElementById('musicPlayerNote');
-    if(!wrap) return;
-    const yt = cfg && youtubeParseUrlPeserta(cfg.url);
-    const sp = !yt && cfg && spotifyParseUrlPeserta(cfg.url);
-    if(!yt && !sp){
-      wrap.innerHTML = '<div class="lb-empty-light">Belum ada musik yang diatur admin.</div>';
-      if(note) note.textContent = '';
-      return;
-    }
-    if(yt){
-      wrap.innerHTML = `
-        ${cfg.title ? `<div style="font-weight:800;font-size:14px;margin-bottom:8px;">${escapeHtmlIdx(cfg.title)}</div>` : ''}
-        <iframe width="100%" height="200" src="https://www.youtube.com/embed/${yt.id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:14px;"></iframe>
-      `;
-      if(note) note.textContent = 'Pemutar dari YouTube. Bisa diputar penuh, gratis, gak perlu login apapun.';
-    } else {
-      wrap.innerHTML = `
-        ${cfg.title ? `<div style="font-weight:800;font-size:14px;margin-bottom:8px;">${escapeHtmlIdx(cfg.title)}</div>` : ''}
-        <iframe src="https://open.spotify.com/embed/${sp.type}/${sp.id}" width="100%" height="${sp.type==='track' ? 152 : 352}" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="border-radius:14px;"></iframe>
-      `;
-      if(note) note.textContent = 'Pemutar dari Spotify. Kalau kamu belum login Spotify Premium, cuma bisa dengar preview 30 detik.';
-    }
-  }).catch(()=>{
-    const wrap = document.getElementById('musicPlayerWrap');
-    if(wrap) wrap.innerHTML = '<div class="lb-empty-light">Gagal memuat musik.</div>';
-  });
-}
 
 /* ---------------- KAMUS KOSAKATA (search) ---------------- */
 function renderDictionarySearch(onBack){
@@ -17697,13 +17570,6 @@ function renderPronunciationIntro(){
       <div class="section-tag" style="background:#0ea5e9;color:#fff;">🗣️ PRONUNCIATION</div>
       <h1 class="intro-title">Mau belajar aksen yang mana?</h1>
       <p class="intro-desc">Materi cara baca & lafal Bahasa Inggris, dipisah menurut aksen. Tap kata yang ada tanda 🔊 buat dengar cara bacanya langsung dari HP-mu.</p>
-      <button type="button" class="pron-sym-cat-btn" id="pronSymEntryBtn" style="margin-top:2px;border-color:#0ea5e9;">
-        <span class="pron-sym-cat-emoji">🃏</span>
-        <span>
-          <div class="pron-sym-cat-title">1. Hafalan Simbol Pronunciation</div>
-          <div class="pron-sym-cat-sub">Tabel Diphthongs, Monophthongs, Voiceless & Voiced (American & British)</div>
-        </span>
-      </button>
       <div class="pron-accent-row">
         <button type="button" class="pron-accent-tile american" data-accent="american">
           <span class="pa-flag">🇺🇸</span>
@@ -17721,7 +17587,6 @@ function renderPronunciationIntro(){
     </div>
   `;
   document.getElementById('pronBackBtn').onclick = ()=> renderBelajarSubmenu();
-  document.getElementById('pronSymEntryBtn').onclick = ()=> renderPronunSymbolHafalan();
   document.querySelectorAll('[data-accent]').forEach(btn=>{
     btn.onclick = ()=>{ pronAccent = btn.dataset.accent; renderPronunciationList(); };
   });
@@ -17790,140 +17655,6 @@ function renderPronunciationDetail(accent, chapterId){
   });
 }
 
-/* ============================================================
-   MODE HAFALAN — SIMBOL PRONUNCIATION
-   (Monophthongs, Diphthongs, Voiceless & Voiced Consonants)
-   American & British — cuma buat dihafal, gak ada nilai/soal.
-   ============================================================ */
-const PRONUN_SYM_DATA = {
-  monophthongs: {
-    american: [
-      ['i','see','si','eat'],['ɪ','sit','sɪt','it'],['ɛ','bed','bɛd','end'],['æ','cat','kæt','at'],
-      ['ʌ','cup','kʌp','up'],['ɑ','stop','stɑp','odd'],['ɔ','law','lɔ','all'],['u','food','fud','ooze'],
-      ['ʊ','book','bʊk','put'],['ə','about','əˈbaʊt','uh'],['ɚ','bird','bɚd','er']
-    ],
-    british: [
-      ['iː','see','siː','eat'],['ɪ','sit','sɪt','it'],['e','bed','bed','end'],['æ','cat','kæt','at'],
-      ['ʌ','cup','kʌp','up'],['ɑː','glass','glɑːs','arm'],['ɒ','lot','lɒt','odd'],['ɔː','chalk','tʃɔːk','all'],
-      ['ʊ','book','bʊk','put'],['uː','food','fuːd','ooze'],['ɜː','bird','bɜːd','earn'],['ə','better','ˈbetə','uh']
-    ]
-  },
-  diphthongs: {
-    american: [
-      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','eye'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],['oʊ','go','goʊ','oh']
-    ],
-    british: [
-      ['eɪ','day','deɪ','ay'],['aɪ','eye','aɪ','eye'],['ɔɪ','boy','bɔɪ','oy'],['aʊ','now','naʊ','ow'],
-      ['əʊ','go','gəʊ','oh'],['ɪə','here','hɪə','ear'],['eə','hair','heə','air'],['ʊə','tour','tʊə','poor']
-    ]
-  },
-  voiceless: [
-    ['p','pen','pɛn','pen'],['t','tea','tiː','tea'],['k','cat','kæt','cat'],['f','fish','fɪʃ','fish'],['θ','think','θɪŋk','thin'],
-    ['s','see','siː','see'],['ʃ','shape','ʃeɪp','shape'],['tʃ','chair','tʃɛr','chair'],['h','hat','hæt','hat']
-  ],
-  voiced: [
-    ['b','book','bʊk','book'],['d','dog','dɒg','dog'],['g','go','goʊ','go'],['v','van','væn','van'],['ð','this','ðɪs','that'],
-    ['z','zoo','zuː','zoo'],['ʒ','vision','ˈvɪʒən','vision'],['dʒ','jump','dʒʌmp','jump'],['m','man','mæn','man'],['n','no','noʊ','no'],
-    ['ŋ','sing','sɪŋ','sing'],['l','leg','lɛg','leg'],['r','red','rɛd','red'],['w','we','wiː','we'],['j','yes','jɛs','yes']
-  ]
-};
-
-const PRONUN_SYM_CATS = [
-  { id:'monophthongs', emoji:'🔵', title:'1. Monophthongs (Vokal Tunggal)', sub:'11 simbol American, 12 simbol British', hasAccent:true },
-  { id:'diphthongs', emoji:'🔀', title:'2. Diphthongs (Vokal Rangkap)', sub:'5 simbol American, 8 simbol British', hasAccent:true },
-  { id:'voiceless', emoji:'🌬️', title:'3. Voiceless Consonants', sub:'9 simbol — sama buat American & British', hasAccent:false },
-  { id:'voiced', emoji:'🎤', title:'4. Voiced Consonants', sub:'15 simbol — sama buat American & British', hasAccent:false }
-];
-
-let pronSymAccent = 'american';
-
-function pronunFindSymCat(id){ return PRONUN_SYM_CATS.find(c=> c.id === id); }
-
-function renderPronunSymbolHafalan(){
-  clearTimer();
-  statusVal.textContent = "PRONUNCIATION";
-  setPresenceStatus('idle');
-  setPresenceMode('Hafalan Simbol Pronunciation (menu)');
-  card.innerHTML = `
-    <div class="center-stack" style="align-items:stretch;">
-      <div class="section-tag" style="background:#0ea5e9;color:#fff;">🃏 HAFALAN SIMBOL</div>
-      <h1 class="intro-title" style="font-size:19px;">Hafalan Simbol Pronunciation</h1>
-      <p class="intro-desc" style="font-size:12px;">Tabel simbol fonetik IPA buat dihafal — Monophthongs, Diphthongs, Voiceless & Voiced Consonants (American & British). Gak ada nilai, tap kata buat dengar cara bacanya.</p>
-      <div style="width:100%;margin-top:4px;">
-        ${PRONUN_SYM_CATS.map(c=>`
-          <button type="button" class="pron-sym-cat-btn" data-symcat="${c.id}">
-            <span class="pron-sym-cat-emoji">${c.emoji}</span>
-            <span>
-              <div class="pron-sym-cat-title">${escapeHtmlIdx(c.title)}</div>
-              <div class="pron-sym-cat-sub">${escapeHtmlIdx(c.sub)}</div>
-            </span>
-          </button>
-        `).join('')}
-      </div>
-      <button class="btn ghost" id="pronSymBackBtn" style="margin-top:6px;">← Kembali</button>
-    </div>
-  `;
-  document.getElementById('pronSymBackBtn').onclick = ()=> renderPronunciationIntro();
-  document.querySelectorAll('[data-symcat]').forEach(btn=>{
-    btn.onclick = ()=> renderPronunSymbolTable(btn.dataset.symcat);
-  });
-}
-
-function pronSymTableHtml(rows){
-  return `
-    <table class="pron-sym-table">
-      <tr><th style="width:30%;">Simbol</th><th>Contoh Kata</th></tr>
-      ${rows.map((r,i)=>`
-        <tr>
-          <td class="pron-sym-cell">
-            /${escapeHtmlIdx(r[0])}/
-            <button type="button" class="pron-sym-speak-btn" data-sound="${escapeHtmlIdx(r[3])}" title="Dengar bunyi simbolnya">🔊</button>
-          </td>
-          <td>${pronChip(r[1], r[2])}</td>
-        </tr>
-      `).join('')}
-    </table>
-  `;
-}
-
-function renderPronunSymbolTable(catId){
-  clearTimer();
-  const cat = pronunFindSymCat(catId);
-  if(!cat){ renderPronunSymbolHafalan(); return; }
-  statusVal.textContent = "PRONUNCIATION";
-  setPresenceStatus('idle');
-  setPresenceMode('Hafalan Simbol: ' + cat.title);
-  const accent = pronSymAccent;
-  const rows = cat.hasAccent ? PRONUN_SYM_DATA[catId][accent] : PRONUN_SYM_DATA[catId];
-  const tabLabels = cat.hasAccent
-    ? ['🇺🇸 American','🇬🇧 British']
-    : ['🇺🇸 Dengar American','🇬🇧 Dengar British'];
-  card.innerHTML = `
-    <div class="center-stack" style="align-items:stretch;">
-      <div class="section-tag" style="background:#0ea5e9;color:#fff;">🃏 HAFALAN SIMBOL</div>
-      <h1 class="intro-title" style="font-size:17px;">${escapeHtmlIdx(cat.title)}</h1>
-      <p class="intro-desc" style="font-size:11.5px;">${cat.hasAccent ? 'Simbolnya beda antar aksen — pilih aksen buat ganti tabelnya.' : 'Simbolnya sama buat American & British, cuma beda gaya baca aja.'} Tap tombol 🔊 di kolom Simbol buat dengar perkiraan bunyi simbolnya sendiri, atau tap kata di kolom Contoh Kata buat dengar cara baca full katanya.</p>
-      <div style="width:100%;max-height:56vh;overflow-y:auto;padding-right:2px;">
-        <div class="pron-sym-tabs">
-          <button type="button" class="pron-sym-tab ${accent==='american'?'active':''}" data-symaccent="american">${tabLabels[0]}</button>
-          <button type="button" class="pron-sym-tab ${accent==='british'?'active':''}" data-symaccent="british">${tabLabels[1]}</button>
-        </div>
-        ${pronSymTableHtml(rows)}
-      </div>
-      <button class="btn ghost" id="pronSymTableBackBtn" style="margin-top:12px;">← Kembali ke Kategori</button>
-    </div>
-  `;
-  document.getElementById('pronSymTableBackBtn').onclick = ()=> renderPronunSymbolHafalan();
-  document.querySelectorAll('[data-symaccent]').forEach(btn=>{
-    btn.onclick = ()=>{ pronSymAccent = btn.dataset.symaccent; renderPronunSymbolTable(catId); };
-  });
-  document.querySelectorAll('.pron-chip').forEach(btn=>{
-    btn.onclick = ()=> speakPronunWord(btn.dataset.word, pronSymAccent, btn);
-  });
-  document.querySelectorAll('.pron-sym-speak-btn').forEach(btn=>{
-    btn.onclick = ()=> speakPronunWord(btn.dataset.sound, pronSymAccent, btn);
-  });
-}
 
 </script>
 </body>
