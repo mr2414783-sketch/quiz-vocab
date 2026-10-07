@@ -15386,6 +15386,40 @@ function setAuthError(msg){
   if(el) el.textContent = msg;
 }
 
+const ADMIN_IG_HANDLE = 'rifkimaulana701';
+/* Langkah wajib setelah daftar akun: arahkan peserta ke profil IG admin dulu, baru boleh lanjut masuk aplikasi.
+   (Follow-nya sendiri gak bisa dicek dari aplikasi, jadi tombol Lanjut aktif setelah tombol IG ditekan.) */
+function renderFollowIgStep(name){
+  statusVal.textContent = "FOLLOW IG";
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag">AKUN BERHASIL DIBUAT 🎉</div>
+      <h1 class="intro-title">Satu langkah lagi!</h1>
+      <p class="intro-desc">Halo, <b>${escapeHtmlIdx(name)}</b>! Sebelum mulai belajar, yuk follow Instagram admin dulu supaya nggak ketinggalan info dan update terbaru.</p>
+      <div class="credit-box" style="border-top:1px dashed var(--line);margin-top:8px;padding-top:16px;">
+        <img class="credit-avatar" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Admin">
+        <div class="credit-text">
+          <div class="credit-name">Follow admin dulu 👋</div>
+          <div class="credit-ig">📷 @${ADMIN_IG_HANDLE}</div>
+        </div>
+      </div>
+      <button class="btn" id="followIgBtn" type="button" style="background:#e1306c;">📷 Buka Instagram & Follow</button>
+      <p class="intro-desc" id="followIgHint" style="font-size:11px;opacity:0.75;">Tap tombol di atas, tekan <b>Follow</b> di profilnya, lalu balik ke sini.</p>
+      <button class="btn" id="followIgNextBtn" type="button" disabled style="opacity:0.45;">Lanjut →</button>
+    </div>`;
+  const nextBtn = document.getElementById('followIgNextBtn');
+  document.getElementById('followIgBtn').onclick = ()=>{
+    window.open('https://instagram.com/' + ADMIN_IG_HANDLE, '_blank', 'noopener');
+    nextBtn.disabled = false;
+    nextBtn.style.opacity = '1';
+    document.getElementById('followIgHint').innerHTML = 'Sudah follow? Tap <b>Lanjut →</b> untuk mulai.';
+  };
+  nextBtn.onclick = ()=>{
+    nextBtn.disabled = true; nextBtn.textContent = 'Masuk...';
+    loginAsName(name);
+  };
+}
+
 function submitRegisterAccount(){
   const nameInput = document.getElementById('authNameInput');
   const name = (nameInput.value || '').trim();
@@ -15408,7 +15442,7 @@ function submitRegisterAccount(){
       return;
     }
     setAccountPassword(name, pass).then(()=>{
-      loginAsName(name);
+      renderFollowIgStep(name);
     }).catch((err)=>{
       btn.disabled = false; btn.textContent = 'Daftar & Mulai →';
       setAuthError('Gagal mendaftar: ' + err.message);
