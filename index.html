@@ -4408,18 +4408,6 @@ const otherVocabRaw = [
   ["penting, berarti", "matter", "B2", "/ˈmætər/"],
   ["terdiri dari", "consist of", "C1", "/kənˈsɪst ʌv/"],
   ["mengandung", "contain", "B2", "/kənˈteɪn/"],
-  ["menguap", "evaporate", "B2", "/ɪˈvæpəreɪt/"],
-  ["meledak", "explode", "B2", "/ɪkˈsploʊd/"],
-  ["mencair", "melt", "B1", "/mɛlt/"],
-  ["memudar", "fade", "B2", "/feɪd/"],
-  ["retak", "crack", "B2", "/kræk/"],
-  ["mereda, surut", "subside", "C1", "/səbˈsaɪd/"],
-  ["meregang", "stretch", "B1", "/strɛtʃ/"],
-  ["bergoyang, goyah", "wobble", "C1", "/ˈwɑbəl/"],
-  ["membeku, menggumpal", "congeal", "C2", "/kənˈdʒil/"],
-  ["mengapung", "float", "B1", "/floʊt/"],
-  ["berputar mengelilingi", "revolve", "C1", "/rɪˈvɑlv/"],
-  ["membeku", "freeze", "B1", "/friz/"],
 ];
 
 /* ================= COMBINE ================= */
@@ -16159,7 +16147,6 @@ function renderIntro(){
             <button class="mode-btn" id="otherLevelResetBtn" type="button">↺ Kosongkan Pilihan</button>
           </div>
           <button class="btn ghost" id="levelCompareBtn" type="button" style="border-color:#6366f1;color:#4338ca;margin-bottom:6px;">📊 Perbandingan Level Vocab</button>
-          <button class="btn ghost" id="vocabBuildingLevelBtn" type="button" style="border-color:#f59e0b;color:#b45309;margin-bottom:6px;">🧩 Vocabulary Building</button>
         ` : ''}
         <p class="intro-desc" style="font-size:12px;">${scopeDesc}</p>
         ${(scope==='day' && sortedDays.length > 0) ? `<button class="btn ghost" id="vocabTableDayBtn" style="margin-bottom:6px;">📋 Lihat Materi Hari Ini (Tabel)</button>` : ''}
@@ -16308,8 +16295,6 @@ function renderIntro(){
   }
   const levelCompareBtn = document.getElementById('levelCompareBtn');
   if(levelCompareBtn) levelCompareBtn.onclick = ()=> renderLevelCompare(renderIntro);
-  const vocabBuildingLevelBtn = document.getElementById('vocabBuildingLevelBtn');
-  if(vocabBuildingLevelBtn) vocabBuildingLevelBtn.onclick = ()=> renderVocabBuildingList(renderIntro);
   const vocabTableOtherBtn = document.getElementById('vocabTableOtherBtn');
   if(vocabTableOtherBtn){
     vocabTableOtherBtn.onclick = ()=> renderVocabTable(renderIntro, { month: OTHER_MONTH, levels: selectedOtherLevels.slice() });
