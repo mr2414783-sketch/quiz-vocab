@@ -18370,7 +18370,7 @@ const VOCABBUILD_CHAPTERS = [
     vbSec('Apa itu Idiom?', `<b>Idioms</b> adalah ungkapan yang punya makna <mark>kiasan dan tidak harfiah</mark> dari kata-katanya. Contoh: <i>"I see him once in blue moon"</i> tidak bisa diterjemahkan kata per kata. Artinya: <b>I rarely see him</b>.<br><br>• I'm going to <b>hit the hay</b> = go to bed<br>• I have <b>a lot on my plate</b>, so I can't talk to you now. = a lot to do`),
     vbSec('Bentuk & Penggunaan', `Idiom biasanya berbentuk kalimat/ungkapan atau <b>phrasal verb</b> yang bermakna idiomatis. Keduanya umum dipakai dalam percakapan sehari-hari dan lebih sering muncul di percakapan informal, tapi tetap bisa dipakai dalam diskusi formal.<br><br>Idiom sulit dipahami kalau diterjemahkan kata per kata. Untuk membantu, pakai kamus online atau cari di internet.`),
     vbSec('A. Idioms about Happiness', vbTable(['No','Idiom','Meaning','Example'],[
-['1','be thrilled to bits<br>be / feel on top of the world<br>be on cloud nine<br>be over the moon<br>be in seventh heaven','be extremely happy','I\'m thrilled to bits.<br>I\'m / feel on top of the world.<br>I\'m on cloud nine.<br>I\'m over the moon.<br>I\'m in the seventh heaven.'],
+['1','• <b>be thrilled to bits</b><br>&nbsp;&nbsp;→ sangat senang sekali<br>• <b>be / feel on top of the world</b><br>&nbsp;&nbsp;→ sangat bahagia, serasa di puncak dunia<br>• <b>be on cloud nine</b><br>&nbsp;&nbsp;→ sangat bahagia, serasa melayang<br>• <b>be over the moon</b><br>&nbsp;&nbsp;→ sangat gembira<br>• <b>be in seventh heaven</b><br>&nbsp;&nbsp;→ sangat bahagia, serasa di surga','be extremely happy','I\'m thrilled to bits.<br>I\'m / feel on top of the world.<br>I\'m on cloud nine.<br>I\'m over the moon.<br>I\'m in the seventh heaven.'],
 ['2','get a (real) kick out of something','very much enjoy doing something (informal)','I get a (real) kick out of going for a run first thing in the morning before anyone else is up.'],
 ['3','(do something) for kicks','do something because it is exciting, usually something dangerous (informal)','Sandra is keen to have a go at bungee jumping—just for kicks.'],
 ['4','jump for joy','be very happy and excited about something that has happened','Ron jumped for joy when he heard that he\'d won the first prize.'],
@@ -18500,7 +18500,7 @@ function renderVocabBuildingDetail(chapterId){
    ============================================================ */
 // [ungkapan benar, kata benar, kata salah (pengecoh), arti, label]
 const VB_PRACTICE_IDIOMS = [
- ["be thrilled to bits","bits","pieces","sangat senang sekali","Happiness idiom"],
+ ["be thrilled to bits","bits","pieces","sangat bahagia","Happiness idiom"],
  ["be on top of the world","world","earth","sangat bahagia","Happiness idiom"],
  ["be on cloud nine","nine","ten","sangat bahagia","Happiness idiom"],
  ["be over the moon","moon","sun","sangat bahagia","Happiness idiom"],
@@ -18539,6 +18539,46 @@ const VB_PRACTICE_IDIOMS = [
  ["wallow in","in","at","larut dalam (kesedihan)","Sadness phrasal verb"],
  ["well up","up","down","mulai menangis","Sadness phrasal verb"]
 ];
+const VB_IDIOM_EN = {
+ "be thrilled to bits":"be extremely happy",
+ "be on top of the world":"be extremely happy",
+ "be on cloud nine":"be extremely happy",
+ "be over the moon":"be extremely happy",
+ "be in seventh heaven":"be extremely happy",
+ "get a (real) kick out of something":"very much enjoy doing something (informal)",
+ "do something for kicks":"do something because it is exciting, usually something dangerous (informal)",
+ "jump for joy":"be very happy and excited about something that has happened",
+ "be walking on air":"be very happy about something good that has happened",
+ "make your day":"something makes you feel very happy",
+ "took my breath away":"feel so happy",
+ "break up":"to laugh very hard",
+ "burst out laughing":"to suddenly start laughing",
+ "cheer up":"to make someone happier",
+ "crack up":"to laugh out loud",
+ "crease up":"to start laughing",
+ "fall about":"to laugh a lot",
+ "grow on":"start to like more and more",
+ "light up":"to show happiness or excitement",
+ "perk (someone) up":"to make somebody more cheerful and lively",
+ "tear up":"to cry because of happiness (or sadness)",
+ "at the end of my tether":"being worried, tired, and unhappy because of your problems that you cannot cope with",
+ "down in the mouth":"unhappy",
+ "feeling blue":"to feel sad",
+ "had my fill of":"to be fed up or annoyed",
+ "on edge all day":"feeling nervous",
+ "reduce to tears":"to make someone feel unhappy and about to cry",
+ "sick and tired of":"thoroughly worn, bored, or annoyed",
+ "bottle up":"to hide a feeling or emotion",
+ "bring (someone) down":"to make someone unhappy",
+ "cast down":"to make someone sad or disappointed",
+ "choke up":"to have trouble talking because of crying or strong emotions",
+ "cry out":"to shout or make a loud voice because of pain or fear",
+ "fall apart":"becoming emotionally disturbed and unable to think calmly or deal with a difficult situation",
+ "get (someone) down":"to make someone unhappy",
+ "mope around":"to move around a place in a sad, slow way because you feel unhappy",
+ "wallow in":"to indulge in a feeling, especially sadness",
+ "well up":"to start crying"
+};
 const VB_PRACTICE_COLLOC = [
  ["comfort zone","zone","area","noun + noun"],
  ["call center","center","office","noun + noun"],
@@ -18622,12 +18662,16 @@ function vbPrBuild(setId){
     const shown=a[0].replace(re,a[2]);
     return {kind:'fix',shown,answer:a[0],word:a[1],wrong:a[2],label,hint};
   };
-  if(setId==='idiom') VB_PRACTICE_IDIOMS.forEach(a=>out.push(mkFix(a,a[4],'Arti: '+a[3])));
+  if(setId==='idiom') VB_PRACTICE_IDIOMS.forEach(a=>{ const m=a[3]+(VB_IDIOM_EN[a[0]]?' ('+VB_IDIOM_EN[a[0]]+')':''); const q=mkFix(a,a[4],'Arti: '+m); q.meaning=m; out.push(q); });
   else if(setId==='mood') VB_PRACTICE_IDIOMS.forEach(a=>{
-    const happy = a[4].indexOf('Happiness')===0;
-    out.push({kind:'choice',label:'Idiom: '+(a[4].indexOf('phrasal')>-1?'phrasal verb':'idiom'),prompt:'“'+escapeHtmlIdx(a[0])+'”',ask:'Ungkapan ini dipakai untuk perasaan apa?',
+    const happy=a[4].indexOf('Happiness')===0;
+    const en=VB_IDIOM_EN[a[0]];
+    const m=a[3]+(en?' ('+en+')':'');
+    out.push({kind:'choice',label:'Idiom: '+(a[4].indexOf('phrasal')>-1?'phrasal verb':'idiom'),
+      prompt:'“'+escapeHtmlIdx(a[0])+'”',
+      ask:'Ungkapan ini dipakai untuk perasaan apa?',
       options:[['H','😊 Happy'],['S','😢 Sad']],answer:happy?'H':'S',
-      explain:escapeHtmlIdx(a[0])+' = '+escapeHtmlIdx(a[3])+' → '+(happy?'Happiness (senang)':'Sadness (sedih)')});
+      explain:escapeHtmlIdx(a[0])+' = '+escapeHtmlIdx(m)+' → '+(happy?'Happiness (senang)':'Sadness (sedih)')});
   });
   else if(setId==='colloc') VB_PRACTICE_COLLOC.forEach(a=>out.push(mkFix(a,'Collocation · '+a[3],'')));
   else {
@@ -18641,7 +18685,7 @@ function vbPrBuild(setId){
 }
 const VB_PRACTICE_SETS = [
  {id:'idiom', icon:'😊', title:'Idioms', sub:'Happiness & Sadness', n:()=>VB_PRACTICE_IDIOMS.length},
- {id:'mood', icon:'🎭', title:'Happy or Sad?', sub:'Tebak idiom: senang atau sedih', n:()=>VB_PRACTICE_IDIOMS.length},
+ {id:'mood', icon:'🎭', title:'Happy or Sad?', sub:'Tebak idiom: senang atau sedih', n:()=>vbPrBuild('mood').length},
  {id:'colloc', icon:'🔗', title:'Collocation', sub:'Tebak pasangan kata', n:()=>VB_PRACTICE_COLLOC.length},
  {id:'verb', icon:'🏃', title:'Action Verbs', sub:'Action/Stative & Transitive/Intransitive', n:()=>VB_PRACTICE_VERBS_AS.length+VB_PRACTICE_VERBS_TI.length}
 ];
@@ -18749,7 +18793,7 @@ function renderVbQuestion(){
       if(st.answered) return;
       const v=inp.value; if(!v.trim()){ inp.focus(); return; }
       const ok=vbCheckFix(q,v);
-      finish(ok, `Jawaban benar: <b>${escapeHtmlIdx(q.answer)}</b><br>Kata yang salah: <s>${escapeHtmlIdx(q.wrong)}</s> → <b>${escapeHtmlIdx(q.word)}</b>`);
+      finish(ok, `Jawaban benar: <b>${escapeHtmlIdx(q.answer)}</b><br>Kata yang salah: <s>${escapeHtmlIdx(q.wrong)}</s> → <b>${escapeHtmlIdx(q.word)}</b>${q.meaning?'<br>Arti: '+escapeHtmlIdx(q.meaning):''}`);
     };
     document.getElementById('vbCheckBtn').onclick=doCheck;
     inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); doCheck(); } });
