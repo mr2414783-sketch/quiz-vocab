@@ -18458,8 +18458,10 @@ function renderVocabBuildingList(onBack){
             <div class="dtitle">${escapeHtmlIdx(c.title.replace(/^Chapter \d+\s—\s/,''))}</div>
           </button>`).join('')}
       </div>
-      <button class="btn ghost" id="vbBackBtn" style="margin-top:14px;">← Kembali</button>
+      <button class="btn" id="vbPracticeBtn" style="margin-top:14px;background:#f59e0b;border-color:#f59e0b;color:#fff;">📝 Latihan Soal</button>
+      <button class="btn ghost" id="vbBackBtn" style="margin-top:10px;">← Kembali</button>
     </div>`;
+  document.getElementById('vbPracticeBtn').onclick = ()=> renderVbPracticeMenu();
   document.getElementById('vbBackBtn').onclick = ()=> (vbBackTarget ? vbBackTarget() : renderBelajarSubmenu());
   document.querySelectorAll('[data-vbid]').forEach(btn=>{
     btn.onclick = ()=> renderVocabBuildingDetail(btn.dataset.vbid);
@@ -18487,6 +18489,304 @@ function renderVocabBuildingDetail(chapterId){
       <button class="btn ghost" id="vbDetailBackBtn" style="margin-top:14px;">← Kembali ke Daftar Chapter</button>
     </div>`;
   document.getElementById('vbDetailBackBtn').onclick = ()=> renderVocabBuildingList(vbBackTarget);
+}
+
+
+/* ============================================================
+   LATIHAN SOAL — VOCABULARY BUILDING
+   3 set: Idioms (Happiness & Sadness), Collocation, Action Verbs.
+   Soal "fix": ditampilkan ungkapan yang ada 1 kata salah → ketik versi benarnya.
+   Mau nambah soal? tambah baris di array VB_PRACTICE_* di bawah.
+   ============================================================ */
+// [ungkapan benar, kata benar, kata salah (pengecoh), arti, label]
+const VB_PRACTICE_IDIOMS = [
+ ["be thrilled to bits","bits","pieces","sangat senang sekali","Happiness idiom"],
+ ["be on top of the world","world","earth","sangat bahagia","Happiness idiom"],
+ ["be on cloud nine","nine","ten","sangat bahagia","Happiness idiom"],
+ ["be over the moon","moon","sun","sangat bahagia","Happiness idiom"],
+ ["be in seventh heaven","heaven","sky","sangat bahagia","Happiness idiom"],
+ ["get a (real) kick out of something","kick","punch","sangat menikmati sesuatu (informal)","Happiness idiom"],
+ ["do something for kicks","kicks","thrills","melakukan sesuatu karena seru/menegangkan (informal)","Happiness idiom"],
+ ["jump for joy","joy","fun","sangat senang dan bersemangat","Happiness idiom"],
+ ["be walking on air","air","wind","sangat senang karena sesuatu yang bagus terjadi","Happiness idiom"],
+ ["make your day","day","night","membuatmu sangat senang","Happiness idiom"],
+ ["took my breath away","away","off","merasa sangat bahagia / takjub","Happiness idiom"],
+ ["break up","up","down","tertawa sangat keras","Happiness phrasal verb"],
+ ["burst out laughing","out","in","tiba-tiba tertawa","Happiness phrasal verb"],
+ ["cheer up","up","down","membuat seseorang lebih bahagia","Happiness phrasal verb"],
+ ["crack up","up","down","tertawa terbahak-bahak","Happiness phrasal verb"],
+ ["crease up","crease","crumple","mulai tertawa","Happiness phrasal verb"],
+ ["fall about","about","around","tertawa banyak","Happiness phrasal verb"],
+ ["grow on","on","in","makin lama makin suka","Happiness phrasal verb"],
+ ["light up","up","off","menunjukkan kebahagiaan / antusias","Happiness phrasal verb"],
+ ["perk (someone) up","up","out","membuat seseorang lebih ceria dan bersemangat","Happiness phrasal verb"],
+ ["tear up","up","down","menangis karena bahagia (atau sedih)","Happiness phrasal verb"],
+ ["at the end of my tether","tether","string","khawatir, lelah, dan sedih sampai tidak sanggup menghadapi masalah","Sadness idiom"],
+ ["down in the mouth","mouth","face","sedih","Sadness idiom"],
+ ["feeling blue","blue","green","merasa sedih","Sadness idiom"],
+ ["had my fill of","fill","full","muak / jengkel","Sadness idiom"],
+ ["on edge all day","edge","corner","merasa gugup seharian","Sadness idiom"],
+ ["reduce to tears","tears","cries","membuat seseorang sedih dan hampir menangis","Sadness idiom"],
+ ["sick and tired of","tired","bored","sudah sangat bosan / jengkel","Sadness idiom"],
+ ["bottle up","up","down","menyembunyikan perasaan / emosi","Sadness phrasal verb"],
+ ["bring (someone) down","down","off","membuat seseorang tidak bahagia","Sadness phrasal verb"],
+ ["cast down","cast","throw","membuat seseorang sedih atau kecewa","Sadness phrasal verb"],
+ ["choke up","up","in","sulit bicara karena menangis / emosi kuat","Sadness phrasal verb"],
+ ["cry out","out","in","berteriak karena sakit atau takut","Sadness phrasal verb"],
+ ["fall apart","apart","aside","hancur secara emosional, tidak bisa berpikir tenang","Sadness phrasal verb"],
+ ["get (someone) down","down","under","membuat seseorang tidak bahagia","Sadness phrasal verb"],
+ ["mope around","around","across","bergerak lesu dan sedih karena tidak bahagia","Sadness phrasal verb"],
+ ["wallow in","in","at","larut dalam (kesedihan)","Sadness phrasal verb"],
+ ["well up","up","down","mulai menangis","Sadness phrasal verb"]
+];
+const VB_PRACTICE_COLLOC = [
+ ["comfort zone","zone","area","noun + noun"],
+ ["call center","center","office","noun + noun"],
+ ["beauty salon","beauty","beautiful","noun + noun"],
+ ["strong smell","strong","heavy","adjective + noun"],
+ ["big surprise","big","large","adjective + noun"],
+ ["heavy traffic","heavy","strong","adjective + noun"],
+ ["lion roars","roars","barks","noun + verb"],
+ ["dog barks","barks","roars","noun + verb"],
+ ["cats purr","purr","hum","noun + verb"],
+ ["pay a bill","pay","give","verb + noun"],
+ ["make an appointment","make","do","verb + noun"],
+ ["take a test","take","make","verb + noun"],
+ ["bitterly cold","bitterly","strongly","adverb + adjective"],
+ ["fully aware","fully","greatly","adverb + adjective"],
+ ["completely satisfied","completely","bitterly","adverb + adjective"],
+ ["greatly admire","greatly","heavily","adverb + verb"],
+ ["scream loudly","loudly","strongly","verb + adverb"],
+ ["strictly prohibited","strictly","tightly","adverb + adjective"],
+ ["escape from","from","of","verb + preposition"],
+ ["driven to madness","to","in","verb + preposition"],
+ ["filled with joy","with","by","verb + preposition"],
+ ["bored stiff","stiff","hard","spoken English"],
+ ["badly need","badly","poorly","spoken English"],
+ ["have a think","have","make","spoken English"],
+ ["give me a ring","ring","circle","spoken English (= give me a phone call)"],
+ ["alight from","from","off","formal English (= get off)"],
+ ["taken to court","court","judge","formal English"],
+ ["dispose of","of","off","formal English (= throw away)"],
+ ["highly unlikely","highly","strongly","highly + ..."],
+ ["highly unusual","highly","heavily","highly + ..."],
+ ["highly competitive","highly","deeply","highly + ..."],
+ ["highly profitable","highly","deeply","highly + ..."],
+ ["highly effective","highly","bitterly","highly + ..."],
+ ["absolutely stupid","absolutely","highly","absolutely / utterly + ..."],
+ ["utterly impossible","utterly","highly","absolutely / utterly + ..."],
+ ["utterly devastated","utterly","highly","absolutely / utterly + ..."],
+ ["bitterly disappointed","bitterly","heavily","bitterly / deeply / ridiculously / strongly"],
+ ["deeply committed","deeply","bitterly","bitterly / deeply / ridiculously / strongly"],
+ ["ridiculously expensive","ridiculously","deeply","bitterly / deeply / ridiculously / strongly"],
+ ["strongly recommend","strongly","deeply","bitterly / deeply / ridiculously / strongly"]
+];
+// [kalimat, kunci, penjelasan]  AV/SV = action/stative ; T/I = transitive/intransitive
+const VB_PRACTICE_VERBS_AS = [
+ ["She <b>runs</b> in the park every morning.","AV","runs = aksi fisik → action verb"],
+ ["I <b>believe</b> you.","SV","believe = mental state → stative verb"],
+ ["The children <b>are dancing</b> on the stage.","AV","dance = aksi fisik → action verb"],
+ ["He <b>owns</b> three houses in Bali.","SV","own = possession → stative verb"],
+ ["My brother <b>kicked</b> the ball into the net.","AV","kick = aksi fisik → action verb"],
+ ["They <b>love</b> their grandmother very much.","SV","love = emotional state → stative verb"],
+ ["The soup <b>smells</b> delicious.","SV","smell = senses → stative verb"],
+ ["Maria <b>reads</b> a novel every night.","AV","read = aksi fisik → action verb"],
+ ["This bag <b>belongs</b> to my sister.","SV","belong = possession → stative verb"],
+ ["We <b>jumped</b> over the small stream.","AV","jump = aksi fisik → action verb"],
+ ["I don't <b>understand</b> this question.","SV","understand = mental state → stative verb"],
+ ["The students <b>played</b> football after school.","AV","play = aksi fisik → action verb"],
+ ["She <b>wants</b> a new phone.","SV","want = mental state → stative verb"],
+ ["The teacher <b>teaches</b> English at LC.","AV","teach = aksi → action verb"],
+ ["The box <b>contains</b> old photos.","SV","contain = other existing states → stative verb"],
+ ["Dina <b>appears</b> tired today.","SV","appear = other existing states → stative verb"]
+];
+const VB_PRACTICE_VERBS_TI = [
+ ["She <b>ate</b> an apple.","T","ate butuh objek langsung (an apple) → transitive"],
+ ["The birds <b>sing</b> beautifully.","I","sing tidak butuh objek langsung → intransitive"],
+ ["He <b>kicked</b> the ball.","T","kicked butuh objek (the ball) → transitive"],
+ ["The baby <b>slept</b> all afternoon.","I","slept tidak butuh objek → intransitive"],
+ ["My mother <b>cooks</b> dinner every day.","T","cooks butuh objek (dinner) → transitive"],
+ ["They <b>arrived</b> late.","I","arrived tidak butuh objek → intransitive"],
+ ["She <b>wrote</b> a letter to her friend.","T","wrote butuh objek (a letter) → transitive"],
+ ["The sun <b>rises</b> in the east.","I","rises tidak butuh objek → intransitive"],
+ ["I <b>bought</b> a new laptop.","T","bought butuh objek (a new laptop) → transitive"],
+ ["The children <b>laughed</b> loudly.","I","laughed tidak butuh objek → intransitive"],
+ ["He <b>opened</b> the window.","T","opened butuh objek (the window) → transitive"],
+ ["The train <b>stopped</b> suddenly.","I","stopped di sini tidak butuh objek → intransitive"]
+];
+
+function vbPrBuild(setId){
+  const out=[];
+  const mkFix=(a,label,hint)=>{
+    const re=new RegExp('\\b'+a[1]+'\\b');
+    const shown=a[0].replace(re,a[2]);
+    return {kind:'fix',shown,answer:a[0],word:a[1],wrong:a[2],label,hint};
+  };
+  if(setId==='idiom') VB_PRACTICE_IDIOMS.forEach(a=>out.push(mkFix(a,a[4],'Arti: '+a[3])));
+  else if(setId==='mood') VB_PRACTICE_IDIOMS.forEach(a=>{
+    const happy = a[4].indexOf('Happiness')===0;
+    out.push({kind:'choice',label:'Idiom: '+(a[4].indexOf('phrasal')>-1?'phrasal verb':'idiom'),prompt:'“'+escapeHtmlIdx(a[0])+'”',ask:'Ungkapan ini dipakai untuk perasaan apa?',
+      options:[['H','😊 Happy'],['S','😢 Sad']],answer:happy?'H':'S',
+      explain:escapeHtmlIdx(a[0])+' = '+escapeHtmlIdx(a[3])+' → '+(happy?'Happiness (senang)':'Sadness (sedih)')});
+  });
+  else if(setId==='colloc') VB_PRACTICE_COLLOC.forEach(a=>out.push(mkFix(a,'Collocation · '+a[3],'')));
+  else {
+    VB_PRACTICE_VERBS_AS.forEach(a=>out.push({kind:'choice',label:'Action vs Stative',prompt:a[0],ask:'Verb yang ditebalkan itu termasuk apa?',
+      options:[['AV','Action verb'],['SV','Stative verb']],answer:a[1],explain:a[2]}));
+    VB_PRACTICE_VERBS_TI.forEach(a=>out.push({kind:'choice',label:'Transitive vs Intransitive',prompt:a[0],ask:'Verb yang ditebalkan itu termasuk apa?',
+      options:[['T','Transitive'],['I','Intransitive']],answer:a[1],explain:a[2]}));
+  }
+  for(let i=out.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [out[i],out[j]]=[out[j],out[i]]; }
+  return out;
+}
+const VB_PRACTICE_SETS = [
+ {id:'idiom', icon:'😊', title:'Idioms', sub:'Happiness & Sadness', n:()=>VB_PRACTICE_IDIOMS.length},
+ {id:'mood', icon:'🎭', title:'Happy or Sad?', sub:'Tebak idiom: senang atau sedih', n:()=>VB_PRACTICE_IDIOMS.length},
+ {id:'colloc', icon:'🔗', title:'Collocation', sub:'Tebak pasangan kata', n:()=>VB_PRACTICE_COLLOC.length},
+ {id:'verb', icon:'🏃', title:'Action Verbs', sub:'Action/Stative & Transitive/Intransitive', n:()=>VB_PRACTICE_VERBS_AS.length+VB_PRACTICE_VERBS_TI.length}
+];
+
+function vbNorm(x){ return String(x).toLowerCase().replace(/\([^)]*\)/g,' ').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim(); }
+function vbNormKeep(x){ return String(x).toLowerCase().replace(/[()]/g,' ').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim(); }
+function vbStripSome(x){ return x.replace(/\b(something|someone|somebody)\b/g,' ').replace(/\s+/g,' ').trim(); }
+function vbCheckFix(q,input){
+  const acc=new Set();
+  [vbNorm(q.answer),vbNormKeep(q.answer)].forEach(f=>{
+    acc.add(f); const st=vbStripSome(f); acc.add(st);
+    acc.add(f.replace(/^be /,'')); acc.add(st.replace(/^be /,''));
+  });
+  acc.add(vbNorm(q.word));
+  const u=vbNorm(input); if(!u) return false;
+  return acc.has(u) || acc.has(vbStripSome(u));
+}
+
+let vbPr = null;
+function renderVbPracticeMenu(){
+  clearTimer();
+  statusVal.textContent = "LATIHAN";
+  setPresenceStatus('idle');
+  setPresenceMode('Latihan Vocabulary Building (menu)');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#f59e0b;color:#fff;">📝 LATIHAN SOAL</div>
+      <h1 class="intro-title" style="font-size:19px;">Latihan Vocabulary Building</h1>
+      <p class="intro-desc" style="font-size:12px;">Pilih latihan. Untuk Idioms &amp; Collocation: ada 1 kata yang salah di ungkapan, tebak lalu ketik versi yang benar.</p>
+      <div class="day-grid">
+        ${VB_PRACTICE_SETS.map(x=>`
+          <button class="day-btn" data-vbpr="${x.id}" type="button">
+            <div class="dnum">${x.icon} ${x.n()} SOAL</div>
+            <div class="dtitle">${x.title}<br><span style="font-size:10.5px;font-weight:600;opacity:.75;">${x.sub}</span></div>
+          </button>`).join('')}
+      </div>
+      <button class="btn ghost" id="vbPrBackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>`;
+  document.getElementById('vbPrBackBtn').onclick = ()=> renderVocabBuildingList(vbBackTarget);
+  document.querySelectorAll('[data-vbpr]').forEach(b=> b.onclick = ()=> vbStartPractice(b.dataset.vbpr));
+}
+function vbStartPractice(setId, qs){
+  const meta = VB_PRACTICE_SETS.find(x=>x.id===setId);
+  vbPr = { setId, meta, qs: qs || vbPrBuild(setId), i:0, score:0, wrong:[], answered:false };
+  renderVbQuestion();
+}
+function renderVbQuestion(){
+  clearTimer();
+  const st=vbPr, q=st.qs[st.i];
+  if(!q){ renderVbResult(); return; }
+  statusVal.textContent = "LATIHAN";
+  setPresenceMode('Latihan Vocabulary Building: ' + st.meta.title);
+  st.answered=false;
+  const head = `
+      <div class="section-tag" style="background:#f59e0b;color:#fff;">📝 ${escapeHtmlIdx(st.meta.title.toUpperCase())}</div>
+      <div style="font-size:12px;font-weight:700;opacity:.7;margin:2px 0 8px;">Soal ${st.i+1} / ${st.qs.length} · Benar ${st.score}</div>
+      <div style="font-size:11px;font-weight:700;opacity:.65;margin-bottom:6px;">${escapeHtmlIdx(q.label)}</div>`;
+  let body='';
+  if(q.kind==='fix'){
+    body = `
+      <div style="padding:16px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:center;">
+        <div style="font-size:11px;opacity:.65;margin-bottom:6px;">Ada 1 kata yang salah. Ketik yang benar:</div>
+        <div style="font-size:21px;font-weight:800;color:var(--ink);line-height:1.4;">“${escapeHtmlIdx(q.shown)}”</div>
+        ${q.hint?`<div style="font-size:12px;margin-top:8px;opacity:.8;">${escapeHtmlIdx(q.hint)}</div>`:''}
+      </div>
+      <input id="vbAns" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ketik ungkapan yang benar..." style="width:100%;margin-top:12px;padding:12px;border-radius:12px;border:1.5px solid var(--line);font-size:15px;box-sizing:border-box;">
+      <div id="vbFb" style="margin-top:10px;font-size:13px;line-height:1.6;"></div>
+      <button class="btn" id="vbCheckBtn" style="margin-top:10px;">Cek Jawaban</button>`;
+  } else {
+    body = `
+      <div style="padding:16px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:center;">
+        <div style="font-size:18px;font-weight:600;color:var(--ink);line-height:1.5;">${q.prompt}</div>
+        <div style="font-size:12px;margin-top:8px;opacity:.75;">${q.ask}</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        ${q.options.map(o=>`<button class="btn ghost" data-vbopt="${o[0]}" style="flex:1;">${o[1]}</button>`).join('')}
+      </div>
+      <div id="vbFb" style="margin-top:10px;font-size:13px;line-height:1.6;"></div>
+      <div id="vbNextWrap"></div>`;
+  }
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      ${head}${body}
+      <button class="btn ghost" id="vbPrQuitBtn" style="margin-top:12px;">← Keluar Latihan</button>
+    </div>`;
+  document.getElementById('vbPrQuitBtn').onclick = ()=> renderVbPracticeMenu();
+  const finish=(ok,msgHtml)=>{
+    st.answered=true;
+    if(ok) st.score++; else st.wrong.push(q);
+    const fb=document.getElementById('vbFb');
+    fb.innerHTML = `<div style="padding:10px 12px;border-radius:12px;background:${ok?'#dcfce7':'#fee2e2'};color:${ok?'#166534':'#991b1b'};">${ok?'✅ Benar!':'❌ Belum tepat.'}<br>${msgHtml}</div>`;
+    const last = st.i+1>=st.qs.length;
+    const nb=document.createElement('button');
+    nb.className='btn'; nb.style.marginTop='10px'; nb.id='vbNextBtn';
+    nb.textContent = last ? 'Lihat Hasil →' : 'Soal Berikutnya →';
+    nb.onclick=()=>{ st.i++; renderVbQuestion(); };
+    const wrap=document.getElementById('vbNextWrap')||document.getElementById('vbCheckBtn').parentNode;
+    if(q.kind==='fix'){ const cb=document.getElementById('vbCheckBtn'); cb.replaceWith(nb); document.getElementById('vbAns').disabled=true; }
+    else { wrap.appendChild(nb); }
+    nb.focus && nb.focus();
+  };
+  if(q.kind==='fix'){
+    const inp=document.getElementById('vbAns');
+    const doCheck=()=>{
+      if(st.answered) return;
+      const v=inp.value; if(!v.trim()){ inp.focus(); return; }
+      const ok=vbCheckFix(q,v);
+      finish(ok, `Jawaban benar: <b>${escapeHtmlIdx(q.answer)}</b><br>Kata yang salah: <s>${escapeHtmlIdx(q.wrong)}</s> → <b>${escapeHtmlIdx(q.word)}</b>`);
+    };
+    document.getElementById('vbCheckBtn').onclick=doCheck;
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); doCheck(); } });
+    setTimeout(()=>{ try{ inp.focus(); }catch(e){} },50);
+  } else {
+    document.querySelectorAll('[data-vbopt]').forEach(b=>{
+      b.onclick=()=>{
+        if(st.answered) return;
+        const ok = b.dataset.vbopt===q.answer;
+        document.querySelectorAll('[data-vbopt]').forEach(x=>{ x.disabled=true; if(x.dataset.vbopt===q.answer) x.style.borderColor='#16a34a'; });
+        finish(ok, escapeHtmlIdx(q.explain));
+      };
+    });
+  }
+}
+function renderVbResult(){
+  clearTimer();
+  const st=vbPr, total=st.qs.length, pct=Math.round(st.score/total*100);
+  statusVal.textContent = "LATIHAN";
+  setPresenceMode('Hasil Latihan Vocabulary Building');
+  const wrongList = st.wrong.map(q=> q.kind==='fix'
+      ? `<li><b>${escapeHtmlIdx(q.answer)}</b> <span style="opacity:.65;">(bukan <s>${escapeHtmlIdx(q.wrong)}</s>)</span></li>`
+      : `<li>${q.prompt} → <b>${escapeHtmlIdx(q.options.find(o=>o[0]===q.answer)[1])}</b></li>`).join('');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#f59e0b;color:#fff;">📝 HASIL LATIHAN</div>
+      <h1 class="intro-title" style="font-size:22px;">${st.score} / ${total} benar (${pct}%)</h1>
+      <p class="intro-desc" style="font-size:12.5px;">${pct>=90?'Mantap, hafalanmu sudah kuat! 🔥':pct>=60?'Bagus, tinggal ulangi yang masih salah.':'Ayo ulangi lagi, pelan-pelan pasti hafal.'}</p>
+      ${st.wrong.length?`<div style="padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;max-height:34vh;overflow-y:auto;"><div style="font-weight:800;font-size:13px;margin-bottom:6px;">Yang masih salah:</div><ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8;">${wrongList}</ul></div>`:''}
+      ${st.wrong.length?`<button class="btn" id="vbRetryWrongBtn" style="margin-top:12px;">Ulangi yang Salah (${st.wrong.length})</button>`:''}
+      <button class="btn ghost" id="vbRetryAllBtn" style="margin-top:8px;">Main Lagi (acak)</button>
+      <button class="btn ghost" id="vbResMenuBtn" style="margin-top:8px;">← Menu Latihan</button>
+    </div>`;
+  const rw=document.getElementById('vbRetryWrongBtn');
+  if(rw) rw.onclick=()=>{ const qs=st.wrong.slice(); for(let i=qs.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[qs[i],qs[j]]=[qs[j],qs[i]];} vbStartPractice(st.setId,qs); };
+  document.getElementById('vbRetryAllBtn').onclick=()=> vbStartPractice(st.setId);
+  document.getElementById('vbResMenuBtn').onclick=()=> renderVbPracticeMenu();
 }
 
 
