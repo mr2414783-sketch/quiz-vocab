@@ -14807,8 +14807,8 @@ function renderSixteenTenses(){
         <button type="button" class="tenses-seek-btn" id="tensesFwdBtn10">⏩</button>
         <button type="button" class="tenses-repeat-btn" id="tensesRepeatBtn" title="Ulangi lagu">🔁</button>
       </div>
-      <audio id="tensesSongAudio" src="audio/16-tenses-song.mp3" preload="metadata"></audio>
-      <audio id="tensesSongAudio2" src="audio/16-tenses-song-2.mp3" preload="metadata"></audio>
+      <audio id="tensesSongAudio" src="audio/16-tenses-song.mp3" preload="auto"></audio>
+      <audio id="tensesSongAudio2" src="audio/16-tenses-song-2.mp3" preload="auto"></audio>
     </div>
     <div style="display:flex;gap:8px;width:100%;margin-top:14px;">
       <button class="btn ghost" id="tensesBackBtn" style="flex:1;">← Kembali</button>
@@ -14822,6 +14822,24 @@ function renderSixteenTenses(){
   const audioEl = document.getElementById('tensesSongAudio');
   const audioEl2 = document.getElementById('tensesSongAudio2');
   let audioEl2Broken = false;
+  // Pemanasan audio cadangan: dimainkan muted sekejap saat user klik (izin autoplay HP aktif + file langsung termuat),
+  // jadi waktu giliran pindah Penyanyi 2 -> 1 tidak ada jeda/buffering beberapa detik.
+  let tensesWarming = false;
+  function primeAudio(a){
+    if(!a || a.__primed) return;
+    a.__primed = true;
+    const wasMuted = a.muted;
+    a.muted = true; tensesWarming = true;
+    const finish = ()=>{
+      try{ a.pause(); }catch(e){}
+      try{ a.currentTime = 0; }catch(e){}
+      a.muted = wasMuted; tensesWarming = false;
+    };
+    let pr;
+    try{ pr = a.play(); }catch(e){ a.muted = wasMuted; tensesWarming = false; a.__primed = false; return; }
+    if(pr && pr.then){ pr.then(finish).catch(()=>{ a.muted = wasMuted; tensesWarming = false; a.__primed = false; }); }
+    else finish();
+  }
   audioEl2.onerror = ()=>{ audioEl2Broken = true; if(tensesActiveAudio === audioEl2 && audioEl2.paused) switchActiveAudio(audioEl); };
   const songBtn = document.getElementById('tensesSongBtn');
   const repeatBtn = document.getElementById('tensesRepeatBtn');
@@ -14887,6 +14905,7 @@ function renderSixteenTenses(){
 
   songBtn.onclick = ()=>{
     if(audioEl2Broken && tensesActiveAudio === audioEl2) switchActiveAudio(audioEl);
+    primeAudio(tensesActiveAudio === audioEl ? audioEl2 : audioEl);
     if(tensesActiveAudio.paused){
       tensesActiveAudio.play().catch(()=>{});
     } else {
@@ -14905,6 +14924,7 @@ function renderSixteenTenses(){
   repeatBtn.onclick = ()=>{
     tensesRepeatOn = !tensesRepeatOn;
     repeatBtn.classList.toggle('on', tensesRepeatOn);
+    if(tensesRepeatOn) primeAudio(tensesActiveAudio === audioEl ? audioEl2 : audioEl);
     // audio.loop dimatikan total karena pengulangan sekarang ditangani manual (gantian 2 sound) lewat onended.
     audioEl.loop = false;
     audioEl2.loop = false;
@@ -14945,10 +14965,12 @@ function renderSixteenTenses(){
 
   function bindAudioHandlers(el, otherEl){
     el.onplay = ()=>{
+      if(tensesWarming && tensesActiveAudio !== el) return;
       if(tensesActiveAudio !== el) switchActiveAudio(el);
       tensesSongPlaying = true; songBtn.classList.add('playing'); songBtn.textContent = '⏸️';
     };
     el.onpause = ()=>{
+      if(tensesWarming) return;
       if(tensesActiveAudio === el){ tensesSongPlaying = false; songBtn.classList.remove('playing'); songBtn.textContent = '▶️'; }
     };
     el.onended = ()=>{
@@ -14960,10 +14982,11 @@ function renderSixteenTenses(){
           return;
         }
         // Gantian ke audio yang satunya, ulang dari awal, terus main.
-        el.currentTime = 0;
-        otherEl.currentTime = 0;
+        if(otherEl.currentTime > 0.05) otherEl.currentTime = 0;
         switchActiveAudio(otherEl);
-        otherEl.play().catch(()=>{
+        const nextPlay = otherEl.play();
+        try{ el.currentTime = 0; }catch(e){}
+        (nextPlay && nextPlay.catch ? nextPlay : Promise.resolve()).catch(()=>{
           // Jaga-jaga: kalau ternyata gagal play meski file kedeteksi ada, jangan diam saja — balik ke sound ini.
           audioEl2Broken = true;
           switchActiveAudio(el);
