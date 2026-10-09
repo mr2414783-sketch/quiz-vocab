@@ -19123,9 +19123,11 @@ function renderLevelCompare(onBack){
       <input type="text" id="lcSearchInput" class="name-gate-input" style="text-align:left;" placeholder="Cari kata atau arti... (contoh: begin / memulai)" autocomplete="off">
       <div id="lcCount" style="font-size:11px;opacity:0.7;margin-top:6px;width:100%;text-align:left;"></div>
       <div id="lcList" style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px;max-height:56vh;overflow-y:auto;"></div>
-      <button class="btn ghost" id="lcBackBtn" style="margin-top:12px;">← Kembali</button>
+      <button class="btn" id="lcPracticeBtn" type="button" style="margin-top:12px;background:#6366f1;border-color:#6366f1;color:#fff;">📝 Latihan Level Vocab</button>
+      <button class="btn ghost" id="lcBackBtn" style="margin-top:8px;">← Kembali</button>
     </div>`;
   document.getElementById('lcBackBtn').onclick = onBack;
+  document.getElementById('lcPracticeBtn').onclick = ()=> renderLcqSetup(onBack);
   document.getElementById('lcTabPilihan').onclick = ()=>{ lcTab='pilihan'; renderLevelCompare(onBack); };
   document.getElementById('lcTabSemua').onclick = ()=>{ lcTab='semua'; renderLevelCompare(onBack); };
   const input = document.getElementById('lcSearchInput');
@@ -19175,6 +19177,175 @@ function renderLevelCompare(onBack){
   });
   input.addEventListener('input', draw);
   draw();
+}
+
+
+/* ============================================================
+   LATIHAN PERBANDINGAN LEVEL VOCAB
+   Soal: "Tebak vocab lain yang artinya sama dengan <kata> (level)".
+   • Kelompok 2 kata  → 1 jawaban (pilih 1)
+   • Kelompok 3+ kata → jawaban = kata lainnya (pilih 2, maksimal 3)
+   Pilihan lain (pengecoh) diambil dari kelompok yang berbeda arti.
+   ============================================================ */
+let lcq = null;
+function lcqKey(x){ return String(x||'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function lcqBadge(level){
+  const col = level ? ((typeof LC_LEVEL_COLOR!=='undefined' && LC_LEVEL_COLOR[level]) || '#666') : '#94a3b8';
+  return `<span style="flex-shrink:0;min-width:30px;text-align:center;font-weight:900;font-size:10.5px;color:#fff;background:${col};border-radius:8px;padding:2px 6px;">${escapeHtmlIdx(level||'-')}</span>`;
+}
+function lcqGroups(){
+  if(!lcAutoCache) lcAutoCache = lcBuildAutoGroups();
+  if(!lcPilihanCache) lcPilihanCache = lcBuildPilihan();
+  return lcPilihanCache.filter(g=> g.words && g.words.length >= 2);
+}
+function lcqBuild(count){
+  const groups = lcqGroups();
+  const wordGroups = {}, allWords = {};
+  groups.forEach((g,gi)=> g.words.forEach(w=>{
+    const k = lcqKey(w.en);
+    (wordGroups[k] = wordGroups[k] || new Set()).add(gi);
+    if(!allWords[k]) allWords[k] = w;
+  }));
+  const qs = [];
+  shuffle(groups.slice()).forEach(g=>{
+    const qw = g.words[Math.floor(Math.random()*g.words.length)];
+    const qk = lcqKey(qw.en);
+    const related = new Set([qk]);
+    wordGroups[qk].forEach(gi=> groups[gi].words.forEach(w=> related.add(lcqKey(w.en))));
+    const seen = {}; 
+    let ans = g.words.filter(w=>{ const k=lcqKey(w.en); if(k===qk || seen[k]) return false; seen[k]=1; return true; });
+    if(!ans.length) return;
+    const k = Math.min(ans.length, 3);
+    ans = shuffle(ans.slice()).slice(0,k);
+    const pool = Object.keys(allWords).filter(x=> !related.has(x)).map(x=> allWords[x]);
+    const dis = shuffle(pool.slice()).slice(0,3);
+    const options = shuffle(ans.concat(dis).map(w=>({ en:w.en, level:w.level, sub:w.sub })));
+    qs.push({ title:g.title, group:g, qw, k, answers: ans.map(a=>lcqKey(a.en)), options });
+  });
+  return count ? qs.slice(0,count) : qs;
+}
+function renderLcqSetup(onBack){
+  clearTimer();
+  statusVal.textContent = "LATIHAN LEVEL";
+  setPresenceStatus('idle');
+  setPresenceMode('Latihan Perbandingan Level Vocab (menu)');
+  const total = lcqGroups().length;
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#6366f1;color:#fff;">📝 LATIHAN LEVEL VOCAB</div>
+      <h1 class="intro-title" style="font-size:19px;">Tebak Vocab Beda Level</h1>
+      <p class="intro-desc" style="font-size:12px;">Kamu diberi satu kata beserta levelnya, lalu pilih kata lain yang artinya sama tapi beda level.<br>Kelompok 2 kata → pilih <b>1</b> jawaban. Kelompok 3 kata atau lebih → pilih <b>2</b> jawaban (atau lebih sesuai petunjuk di soal).</p>
+      <div style="font-size:12px;opacity:.7;margin:4px 0 10px;">Tersedia ${total} kelompok kata.</div>
+      <button class="btn" data-lcqn="10" type="button">10 Soal</button>
+      <button class="btn ghost" data-lcqn="20" type="button" style="margin-top:8px;">20 Soal</button>
+      <button class="btn ghost" data-lcqn="0" type="button" style="margin-top:8px;">Semua Soal (${total})</button>
+      <button class="btn ghost" id="lcqBackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>`;
+  document.getElementById('lcqBackBtn').onclick = ()=> renderLevelCompare(onBack);
+  document.querySelectorAll('[data-lcqn]').forEach(b=> b.onclick = ()=> lcqStart(onBack, parseInt(b.dataset.lcqn,10)||0));
+}
+function lcqStart(onBack, count, qs){
+  lcq = { onBack, count, qs: qs || lcqBuild(count), i:0, score:0, wrong:[], sel:new Set(), answered:false };
+  renderLcqQuestion();
+}
+function renderLcqQuestion(){
+  clearTimer();
+  const st = lcq, q = st.qs[st.i];
+  if(!q){ renderLcqResult(); return; }
+  statusVal.textContent = "LATIHAN LEVEL";
+  setPresenceMode('Latihan Perbandingan Level Vocab');
+  st.sel = new Set(); st.answered = false;
+  const hint = st.k>1 ? '' : '';
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#6366f1;color:#fff;">📝 LATIHAN LEVEL VOCAB</div>
+      <div style="font-size:12px;font-weight:700;opacity:.7;margin:2px 0 8px;">Soal ${st.i+1} / ${st.qs.length} · Benar ${st.score}</div>
+      <div style="padding:16px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:center;">
+        <div style="font-size:12px;opacity:.7;margin-bottom:6px;">Tebak apa vocab lain dari</div>
+        <div style="font-size:24px;font-weight:900;color:var(--ink);">${escapeHtmlIdx(q.qw.en)} ${lcqBadge(q.qw.level)}</div>
+        ${q.qw.sub?`<div style="font-size:12px;margin-top:6px;opacity:.65;">${escapeHtmlIdx(q.qw.sub)}</div>`:''}
+        <div style="font-size:13px;font-weight:800;margin-top:10px;color:#4338ca;">Pilih ${q.k} jawaban</div>
+      </div>
+      <div id="lcqOpts" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+        ${q.options.map(o=>`<button type="button" class="btn ghost lcq-opt" data-k="${escapeHtmlIdx(lcqKey(o.en))}" style="text-align:left;display:flex;align-items:center;gap:8px;">
+          <span class="lcq-main" style="flex:1;font-weight:800;">${escapeHtmlIdx(o.en)}</span><span class="lcq-extra"></span></button>`).join('')}
+      </div>
+      <div id="lcqFb" style="margin-top:10px;font-size:13px;line-height:1.6;"></div>
+      <button class="btn" id="lcqCheckBtn" type="button" style="margin-top:10px;opacity:.5;" disabled>Cek Jawaban</button>
+      <button class="btn ghost" id="lcqQuitBtn" type="button" style="margin-top:10px;">← Keluar Latihan</button>
+    </div>`;
+  document.getElementById('lcqQuitBtn').onclick = ()=> renderLcqSetup(st.onBack);
+  const checkBtn = document.getElementById('lcqCheckBtn');
+  const optBtns = Array.from(document.querySelectorAll('.lcq-opt'));
+  const paint = ()=>{
+    optBtns.forEach(b=>{
+      const on = st.sel.has(b.dataset.k);
+      b.style.borderColor = on ? '#6366f1' : '';
+      b.style.background = on ? 'rgba(99,102,241,0.12)' : '';
+    });
+    const ready = st.sel.size === q.k;
+    checkBtn.disabled = !ready; checkBtn.style.opacity = ready ? '1' : '.5';
+    checkBtn.textContent = ready ? 'Cek Jawaban' : `Cek Jawaban (${st.sel.size}/${q.k} dipilih)`;
+  };
+  optBtns.forEach(b=> b.onclick = ()=>{
+    if(st.answered) return;
+    const k = b.dataset.k;
+    if(q.k === 1){ st.sel = new Set([k]); }
+    else if(st.sel.has(k)) st.sel.delete(k);
+    else if(st.sel.size < q.k) st.sel.add(k);
+    paint();
+  });
+  paint();
+  checkBtn.onclick = ()=>{
+    if(st.answered || st.sel.size !== q.k) return;
+    st.answered = true;
+    const correctSet = new Set(q.answers);
+    const ok = q.answers.every(a=> st.sel.has(a)) && st.sel.size === correctSet.size;
+    if(ok) st.score++; else st.wrong.push(q);
+    optBtns.forEach(b=>{
+      b.disabled = true;
+      const k = b.dataset.k, picked = st.sel.has(k), right = correctSet.has(k);
+      const o = q.options.find(x=> lcqKey(x.en)===k);
+      b.style.background = right ? '#dcfce7' : (picked ? '#fee2e2' : '');
+      b.style.borderColor = right ? '#16a34a' : (picked ? '#dc2626' : '');
+      b.style.opacity = 1;
+      b.querySelector('.lcq-extra').innerHTML = `${lcqBadge(o.level)} ${right?'✅':(picked?'❌':'')}`;
+    });
+    const all = q.group.words.map(w=> `${escapeHtmlIdx(w.en)} (${escapeHtmlIdx(w.level||'-')})`).join(' · ');
+    document.getElementById('lcqFb').innerHTML = `<div style="padding:10px 12px;border-radius:12px;background:${ok?'#dcfce7':'#fee2e2'};color:${ok?'#166534':'#991b1b'};">${ok?'✅ Benar!':'❌ Belum tepat.'}<br>Kelompok <b>${escapeHtmlIdx(q.title)}</b>: ${all}</div>`;
+    const last = st.i+1 >= st.qs.length;
+    const nb = document.createElement('button');
+    nb.className='btn'; nb.type='button'; nb.style.marginTop='10px';
+    nb.textContent = last ? 'Lihat Hasil →' : 'Soal Berikutnya →';
+    nb.onclick = ()=>{ st.i++; renderLcqQuestion(); };
+    checkBtn.replaceWith(nb);
+  };
+}
+function renderLcqResult(){
+  clearTimer();
+  const st = lcq, total = st.qs.length, pct = total ? Math.round(st.score/total*100) : 0;
+  statusVal.textContent = "LATIHAN LEVEL";
+  setPresenceMode('Hasil Latihan Perbandingan Level Vocab');
+  const wl = st.wrong.map(q=> `<li><b>${escapeHtmlIdx(q.qw.en)}</b> (${escapeHtmlIdx(q.qw.level||'-')}) → ${q.group.words.filter(w=>lcqKey(w.en)!==lcqKey(q.qw.en)).map(w=>escapeHtmlIdx(w.en)+' ('+escapeHtmlIdx(w.level||'-')+')').join(', ')}</li>`).join('');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#6366f1;color:#fff;">📝 HASIL LATIHAN</div>
+      <h1 class="intro-title" style="font-size:22px;">${st.score} / ${total} benar (${pct}%)</h1>
+      <p class="intro-desc" style="font-size:12.5px;">${pct>=90?'Mantap, kamu paham beda levelnya! 🔥':pct>=60?'Bagus, tinggal ulangi yang masih salah.':'Ayo ulangi lagi, pelan-pelan pasti hafal.'}</p>
+      ${st.wrong.length?`<div style="padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;max-height:34vh;overflow-y:auto;"><div style="font-weight:800;font-size:13px;margin-bottom:6px;">Yang masih salah:</div><ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.8;">${wl}</ul></div>`:''}
+      ${st.wrong.length?`<button class="btn" id="lcqRetryWrongBtn" type="button" style="margin-top:12px;">Ulangi yang Salah (${st.wrong.length})</button>`:''}
+      <button class="btn ghost" id="lcqAgainBtn" type="button" style="margin-top:8px;">Main Lagi (acak)</button>
+      <button class="btn ghost" id="lcqMenuBtn" type="button" style="margin-top:8px;">← Perbandingan Level Vocab</button>
+    </div>`;
+  const rw = document.getElementById('lcqRetryWrongBtn');
+  if(rw) rw.onclick = ()=>{
+    const qs = st.wrong.map(q=>{
+      const o = shuffle(q.options.slice()); return Object.assign({}, q, { options:o });
+    });
+    lcqStart(st.onBack, st.count, shuffle(qs));
+  };
+  document.getElementById('lcqAgainBtn').onclick = ()=> lcqStart(st.onBack, st.count);
+  document.getElementById('lcqMenuBtn').onclick = ()=> renderLevelCompare(st.onBack);
 }
 
 </script>
