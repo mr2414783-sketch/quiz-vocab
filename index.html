@@ -947,7 +947,6 @@
 <div class="board">
   <div class="header">
     <div class="brand">
-      <div class="eyebrow">LC Language Center · Basic Camp</div>
       <div class="app-logo">
         <div class="app-logo-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -18302,6 +18301,8 @@ function renderPronunciationDetail(accent, chapterId){
    ============================================================ */
 
 function vbSec(title, body){ return { title, body }; }
+// tombol 🔊 untuk memutar suara idiom (pakai TTS bawaan HP)
+function vbSay(btn){ try{ speakFlashWord(btn.getAttribute('data-say'), btn); }catch(e){} }
 function vbTable(head, rows){
   return `<div style="overflow-x:auto;"><table class="vb-table"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${
     rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -18370,43 +18371,43 @@ const VOCABBUILD_CHAPTERS = [
     vbSec('Apa itu Idiom?', `<b>Idioms</b> adalah ungkapan yang punya makna <mark>kiasan dan tidak harfiah</mark> dari kata-katanya. Contoh: <i>"I see him once in blue moon"</i> tidak bisa diterjemahkan kata per kata. Artinya: <b>I rarely see him</b>.<br><br>• I'm going to <b>hit the hay</b> = go to bed<br>• I have <b>a lot on my plate</b>, so I can't talk to you now. = a lot to do`),
     vbSec('Bentuk & Penggunaan', `Idiom biasanya berbentuk kalimat/ungkapan atau <b>phrasal verb</b> yang bermakna idiomatis. Keduanya umum dipakai dalam percakapan sehari-hari dan lebih sering muncul di percakapan informal, tapi tetap bisa dipakai dalam diskusi formal.<br><br>Idiom sulit dipahami kalau diterjemahkan kata per kata. Untuk membantu, pakai kamus online atau cari di internet.`),
     vbSec('A. Idioms about Happiness', vbTable(['No','Idiom','Meaning','Example'],[
-['1','• <b>be thrilled to bits</b><br>&nbsp;&nbsp;→ sangat senang sekali<br>• <b>be / feel on top of the world</b><br>&nbsp;&nbsp;→ sangat bahagia, serasa di puncak dunia<br>• <b>be on cloud nine</b><br>&nbsp;&nbsp;→ sangat bahagia, serasa melayang<br>• <b>be over the moon</b><br>&nbsp;&nbsp;→ sangat gembira<br>• <b>be in seventh heaven</b><br>&nbsp;&nbsp;→ sangat bahagia, serasa di surga','be extremely happy','I\'m thrilled to bits.<br>I\'m / feel on top of the world.<br>I\'m on cloud nine.<br>I\'m over the moon.<br>I\'m in the seventh heaven.'],
-['2','<b>get a (real) kick out of something</b><br>&nbsp;&nbsp;→ <i>sangat menikmati / senang sekali melakukan sesuatu</i>','very much enjoy doing something (informal)','I get a (real) kick out of going for a run first thing in the morning before anyone else is up.'],
-['3','<b>(do something) for kicks</b><br>&nbsp;&nbsp;→ <i>demi seru-seruan, cari sensasi</i>','do something because it is exciting, usually something dangerous (informal)','Sandra is keen to have a go at bungee jumping—just for kicks.'],
-['4','<b>jump for joy</b><br>&nbsp;&nbsp;→ <i>melompat kegirangan</i>','be very happy and excited about something that has happened','Ron jumped for joy when he heard that he\'d won the first prize.'],
-['5','<b>be floating / walking on air</b><br>&nbsp;&nbsp;→ <i>serasa melayang saking senangnya</i>','be very happy about something good that has happened','I\'ve been walking on air ever since James and I started going out together.'],
-['6','<b>makes your day</b><br>&nbsp;&nbsp;→ <i>bikin harimu jadi menyenangkan</i>','something makes you feel very happy','It\'s great to hear from you. It\'s really made my day.'],
-['7','<b>took my breath away</b><br>&nbsp;&nbsp;→ <i>bikin terpana, sangat bahagia</i>','feel so happy','Seeing his smile took my breath away.']])),
+['1','• <b>be thrilled to bits</b> <button type="button" class="vb-say" data-say="be thrilled to bits" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ sangat senang sekali<br>• <b>be / feel on top of the world</b> <button type="button" class="vb-say" data-say="be or feel on top of the world" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ sangat bahagia, serasa di puncak dunia<br>• <b>be on cloud nine</b> <button type="button" class="vb-say" data-say="be on cloud nine" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ sangat bahagia, serasa melayang<br>• <b>be over the moon</b> <button type="button" class="vb-say" data-say="be over the moon" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ sangat gembira<br>• <b>be in seventh heaven</b> <button type="button" class="vb-say" data-say="be in seventh heaven" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ sangat bahagia, serasa di surga','be extremely happy','I\'m thrilled to bits.<br>I\'m / feel on top of the world.<br>I\'m on cloud nine.<br>I\'m over the moon.<br>I\'m in the seventh heaven.'],
+['2','<b>get a (real) kick out of something</b> <button type="button" class="vb-say" data-say="get a real kick out of something" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>sangat menikmati / senang sekali melakukan sesuatu</i>','very much enjoy doing something (informal)','I get a (real) kick out of going for a run first thing in the morning before anyone else is up.'],
+['3','<b>(do something) for kicks</b> <button type="button" class="vb-say" data-say="do something for kicks" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>demi seru-seruan, cari sensasi</i>','do something because it is exciting, usually something dangerous (informal)','Sandra is keen to have a go at bungee jumping—just for kicks.'],
+['4','<b>jump for joy</b> <button type="button" class="vb-say" data-say="jump for joy" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>melompat kegirangan</i>','be very happy and excited about something that has happened','Ron jumped for joy when he heard that he\'d won the first prize.'],
+['5','<b>be floating / walking on air</b> <button type="button" class="vb-say" data-say="be floating or walking on air" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>serasa melayang saking senangnya</i>','be very happy about something good that has happened','I\'ve been walking on air ever since James and I started going out together.'],
+['6','<b>makes your day</b> <button type="button" class="vb-say" data-say="makes your day" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>bikin harimu jadi menyenangkan</i>','something makes you feel very happy','It\'s great to hear from you. It\'s really made my day.'],
+['7','<b>took my breath away</b> <button type="button" class="vb-say" data-say="took my breath away" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>bikin terpana, sangat bahagia</i>','feel so happy','Seeing his smile took my breath away.']])),
     vbSec('A. Happiness — Phrasal Verbs', vbTable(['No','Phrasal verb','Meaning','Example'],[
-['1','<b>break up</b><br>&nbsp;&nbsp;→ <i>tertawa terpingkal-pingkal</i>','to laugh very hard','The clown breaks me up.'],
-['2','<b>burst out laughing</b><br>&nbsp;&nbsp;→ <i>tiba-tiba tertawa terbahak-bahak</i>','to suddenly start laughing','Brad bursts out laughing when he is watching a comedy film.'],
-['3','<b>cheer up</b><br>&nbsp;&nbsp;→ <i>menghibur, bikin lebih ceria</i>','to make someone happier','Ken gives a car to his daughter to cheer her up.'],
-['4','<b>crack up</b><br>&nbsp;&nbsp;→ <i>tertawa ngakak</i>','to laugh out loud','Cracking up a lot can reduce stress level.'],
-['5','<b>crease up</b><br>&nbsp;&nbsp;→ <i>tertawa geli</i>','to start laughing','His funny accent creased me up.'],
-['6','<b>fall about</b><br>&nbsp;&nbsp;→ <i>tertawa sampai lemas</i>','to laugh a lot','The audience fall about laughing.'],
-['7','<b>grow on (for someone)</b><br>&nbsp;&nbsp;→ <i>lama-lama jadi suka</i>','start to like more and more','I didn\'t like golf at first, but then it grew on me.'],
-['8','<b>light up</b><br>&nbsp;&nbsp;→ <i>wajah berseri-seri</i>','to show happiness or excitement','Seeing my parents lights me up.'],
-['9','<b>perk (someone) up</b><br>&nbsp;&nbsp;→ <i>bikin jadi semangat lagi</i>','to make somebody more cheerful and lively','The teacher tried to perk his students up.'],
-['10','<b>tear up</b><br>&nbsp;&nbsp;→ <i>mata berkaca-kaca, terharu</i>','to cry because of happiness (or sadness)','Rose tears up after she knew she was accepted at Oxford University.']])),
+['1','<b>break up</b> <button type="button" class="vb-say" data-say="break up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>tertawa terpingkal-pingkal</i>','to laugh very hard','The clown breaks me up.'],
+['2','<b>burst out laughing</b> <button type="button" class="vb-say" data-say="burst out laughing" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>tiba-tiba tertawa terbahak-bahak</i>','to suddenly start laughing','Brad bursts out laughing when he is watching a comedy film.'],
+['3','<b>cheer up</b> <button type="button" class="vb-say" data-say="cheer up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>menghibur, bikin lebih ceria</i>','to make someone happier','Ken gives a car to his daughter to cheer her up.'],
+['4','<b>crack up</b> <button type="button" class="vb-say" data-say="crack up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>tertawa ngakak</i>','to laugh out loud','Cracking up a lot can reduce stress level.'],
+['5','<b>crease up</b> <button type="button" class="vb-say" data-say="crease up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>tertawa geli</i>','to start laughing','His funny accent creased me up.'],
+['6','<b>fall about</b> <button type="button" class="vb-say" data-say="fall about" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>tertawa sampai lemas</i>','to laugh a lot','The audience fall about laughing.'],
+['7','<b>grow on (for someone)</b> <button type="button" class="vb-say" data-say="grow on for someone" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>lama-lama jadi suka</i>','start to like more and more','I didn\'t like golf at first, but then it grew on me.'],
+['8','<b>light up</b> <button type="button" class="vb-say" data-say="light up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>wajah berseri-seri</i>','to show happiness or excitement','Seeing my parents lights me up.'],
+['9','<b>perk (someone) up</b> <button type="button" class="vb-say" data-say="perk someone up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>bikin jadi semangat lagi</i>','to make somebody more cheerful and lively','The teacher tried to perk his students up.'],
+['10','<b>tear up</b> <button type="button" class="vb-say" data-say="tear up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>mata berkaca-kaca, terharu</i>','to cry because of happiness (or sadness)','Rose tears up after she knew she was accepted at Oxford University.']])),
     vbSec('B. Idioms about Sadness', `Seperti happiness, ada ratusan idiom untuk mengekspresikan kesedihan. Berikut beberapa contoh untuk memperkaya percakapanmu.` + vbTable(['No','Idiom','Meaning','Example'],[
-['1','<b>at the end of my tether</b><br>&nbsp;&nbsp;→ <i>sudah di ujung batas kesabaran</i>','being worried, tired, and unhappy because of your problems that you cannot cope with','I just don\'t know what to do about the problem. I\'m at the end of my tether.'],
-['2','<b>down in the mouth</b><br>&nbsp;&nbsp;→ <i>murung, lesu</i>','unhappy','Bob did not pass the exam, so he felt down in the mouth for a day.'],
-['3','<b>feeling blue</b><br>&nbsp;&nbsp;→ <i>merasa sedih, galau</i>','to feel sad','I have told Elsa to move on, but she is still feeling blue.'],
-['4','<b>had my fill of</b><br>&nbsp;&nbsp;→ <i>sudah muak dengan</i>','to fed up or annoyed','I\'ve had my fill of exams. I hope I never do another one for the rest of my life.'],
-['5','<b>on edge all day</b><br>&nbsp;&nbsp;→ <i>gelisah, tegang seharian</i>','feeling nervous','She\'s been on edge all day.'],
-['6','<b>reduce to tears</b><br>&nbsp;&nbsp;→ <i>membuat sampai menangis</i>','to make someone feel unhappy and about to cry','Mr. James is a strict teacher. He often reduces his students to tears.'],
-['7','<b>sick and tired of</b><br>&nbsp;&nbsp;→ <i>capek dan muak dengan</i>','thoroughly worn, bored, or annoyed','I\'m sick and tired of studying. I just want to get a job and earn money.']])),
+['1','<b>at the end of my tether</b> <button type="button" class="vb-say" data-say="at the end of my tether" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>sudah di ujung batas kesabaran</i>','being worried, tired, and unhappy because of your problems that you cannot cope with','I just don\'t know what to do about the problem. I\'m at the end of my tether.'],
+['2','<b>down in the mouth</b> <button type="button" class="vb-say" data-say="down in the mouth" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>murung, lesu</i>','unhappy','Bob did not pass the exam, so he felt down in the mouth for a day.'],
+['3','<b>feeling blue</b> <button type="button" class="vb-say" data-say="feeling blue" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>merasa sedih, galau</i>','to feel sad','I have told Elsa to move on, but she is still feeling blue.'],
+['4','<b>had my fill of</b> <button type="button" class="vb-say" data-say="had my fill of" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>sudah muak dengan</i>','to fed up or annoyed','I\'ve had my fill of exams. I hope I never do another one for the rest of my life.'],
+['5','<b>on edge all day</b> <button type="button" class="vb-say" data-say="on edge all day" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>gelisah, tegang seharian</i>','feeling nervous','She\'s been on edge all day.'],
+['6','<b>reduce to tears</b> <button type="button" class="vb-say" data-say="reduce to tears" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>membuat sampai menangis</i>','to make someone feel unhappy and about to cry','Mr. James is a strict teacher. He often reduces his students to tears.'],
+['7','<b>sick and tired of</b> <button type="button" class="vb-say" data-say="sick and tired of" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>capek dan muak dengan</i>','thoroughly worn, bored, or annoyed','I\'m sick and tired of studying. I just want to get a job and earn money.']])),
     vbSec('B. Sadness — Phrasal Verbs', vbTable(['No','Phrasal verb','Meaning','Example'],[
-['1','<b>Bottle up</b><br>&nbsp;&nbsp;→ <i>memendam perasaan</i>','to hide a feeling or emotion','Sometimes, it\'s better to bottle up emotion than express it.'],
-['2','<b>Bring (someone) down</b><br>&nbsp;&nbsp;→ <i>bikin sedih, bikin down</i>','to make someone unhappy','Billy is a public enemy because his hobby is bringing someone down.'],
-['3','<b>Cast down</b><br>&nbsp;&nbsp;→ <i>bikin kecewa, patah semangat</i>','to make someone sad or disappointed','Jane cast down after she was fired from her job.'],
-['4','<b>Choke up</b><br>&nbsp;&nbsp;→ <i>tercekat, susah bicara karena emosi</i>','to have trouble talking because of crying or strong emotions','Islan choked up when she heard this terrible news.'],
-['5','<b>Cry out</b><br>&nbsp;&nbsp;→ <i>menjerit, berteriak</i>','to shout or make loud voice because of pain or fear','Dodi cried out when he was drowning in the ocean.'],
-['6','<b>Fall apart</b><br>&nbsp;&nbsp;→ <i>hancur secara emosional</i>','becoming emotionally disturbed and being unable to think calmly or deal with the difficult or unpleasant situation','Hearing her husband\'s affair, Mira begins to fall apart.'],
-['7','<b>Get (someone) down</b><br>&nbsp;&nbsp;→ <i>bikin sedih, bikin down</i>','to get someone unhappy','Jennie feels sad when her own family breaks her heart and gets her down.'],
-['8','<b>Mope around</b><br>&nbsp;&nbsp;→ <i>murung dan lesu</i>','to move around a place in a sad slow way because you feel unhappy','Life can be hard but don\'t mope around for days.'],
-['9','<b>Wallow in</b><br>&nbsp;&nbsp;→ <i>larut dalam (kesedihan)</i>','to allow someone to enjoy something','I don\'t get why people can wallow in their sadness.'],
-['10','<b>Well up</b><br>&nbsp;&nbsp;→ <i>mata berkaca-kaca, mulai menangis</i>','to start crying','Laura welled up after she was caught by police.']]))
+['1','<b>Bottle up</b> <button type="button" class="vb-say" data-say="Bottle up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>memendam perasaan</i>','to hide a feeling or emotion','Sometimes, it\'s better to bottle up emotion than express it.'],
+['2','<b>Bring (someone) down</b> <button type="button" class="vb-say" data-say="Bring someone down" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>bikin sedih, bikin down</i>','to make someone unhappy','Billy is a public enemy because his hobby is bringing someone down.'],
+['3','<b>Cast down</b> <button type="button" class="vb-say" data-say="Cast down" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>bikin kecewa, patah semangat</i>','to make someone sad or disappointed','Jane cast down after she was fired from her job.'],
+['4','<b>Choke up</b> <button type="button" class="vb-say" data-say="Choke up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>tercekat, susah bicara karena emosi</i>','to have trouble talking because of crying or strong emotions','Islan choked up when she heard this terrible news.'],
+['5','<b>Cry out</b> <button type="button" class="vb-say" data-say="Cry out" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>menjerit, berteriak</i>','to shout or make loud voice because of pain or fear','Dodi cried out when he was drowning in the ocean.'],
+['6','<b>Fall apart</b> <button type="button" class="vb-say" data-say="Fall apart" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>hancur secara emosional</i>','becoming emotionally disturbed and being unable to think calmly or deal with the difficult or unpleasant situation','Hearing her husband\'s affair, Mira begins to fall apart.'],
+['7','<b>Get (someone) down</b> <button type="button" class="vb-say" data-say="Get someone down" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>bikin sedih, bikin down</i>','to get someone unhappy','Jennie feels sad when her own family breaks her heart and gets her down.'],
+['8','<b>Mope around</b> <button type="button" class="vb-say" data-say="Mope around" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>murung dan lesu</i>','to move around a place in a sad slow way because you feel unhappy','Life can be hard but don\'t mope around for days.'],
+['9','<b>Wallow in</b> <button type="button" class="vb-say" data-say="Wallow in" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>larut dalam (kesedihan)</i>','to allow someone to enjoy something','I don\'t get why people can wallow in their sadness.'],
+['10','<b>Well up</b> <button type="button" class="vb-say" data-say="Well up" onclick="vbSay(this)">🔊</button><br>&nbsp;&nbsp;→ <i>mata berkaca-kaca, mulai menangis</i>','to start crying','Laura welled up after she was caught by police.']]))
   ]
 }
 ,{
@@ -18431,6 +18432,8 @@ const VOCABBUILD_CHAPTERS = [
   if(document.getElementById('vbStyle')) return;
   const st = document.createElement('style'); st.id = 'vbStyle';
   st.textContent = `
+.vb-say{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-left:6px;padding:0;border-radius:50%;border:1.5px solid #f59e0b;background:#fff7e6;font-size:13px;line-height:1;cursor:pointer;vertical-align:middle;}
+.vb-say.playing{background:#f59e0b;}
   .vb-table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 12px;}
   .vb-table th{text-align:left;padding:6px;background:rgba(0,0,0,0.05);font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:0.03em;color:rgba(38,38,38,0.6);white-space:nowrap;}
   .vb-table td{padding:7px 6px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5;}
@@ -18793,7 +18796,7 @@ function renderVbQuestion(){
       if(st.answered) return;
       const v=inp.value; if(!v.trim()){ inp.focus(); return; }
       const ok=vbCheckFix(q,v);
-      finish(ok, `Jawaban benar: <b>${escapeHtmlIdx(q.answer)}</b><br>Kata yang salah: <s>${escapeHtmlIdx(q.wrong)}</s> → <b>${escapeHtmlIdx(q.word)}</b>${q.meaning?'<br>Arti: '+escapeHtmlIdx(q.meaning):''}`);
+      finish(ok, `Jawaban benar: <b>${escapeHtmlIdx(q.answer)}</b> <button type="button" class="vb-say" data-say="${escapeHtmlIdx(q.answer.replace(/[()]/g,''))}" onclick="vbSay(this)">🔊</button><br>Kata yang salah: <s>${escapeHtmlIdx(q.wrong)}</s> → <b>${escapeHtmlIdx(q.word)}</b>${q.meaning?'<br>Arti: '+escapeHtmlIdx(q.meaning):''}`);
     };
     document.getElementById('vbCheckBtn').onclick=doCheck;
     inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); doCheck(); } });
