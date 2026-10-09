@@ -9985,6 +9985,7 @@ function renderLainnyaSubmenu(onBack){
       <button class="btn ghost" id="lainnyaKamusBtn" style="margin-top:2px;border-color:#0ea5e9;color:#0369a1;">🔍 Kamus Kosakata</button>
       <button class="btn ghost" id="lainnyaIeltsBtn" style="border-color:#f97316;color:#c2410c;">🎓 Persiapan IELTS &amp; TOEFL</button>
       <button class="btn ghost" id="lainnyaGuideBtn" style="border-color:#0ea5e9;color:#0369a1;">📖 Panduan Pemula</button>
+      <button class="btn ghost" id="lainnyaOtherAppsBtn" style="border-color:#6366f1;color:#4338ca;">🚀 Aplikasi Lainnya dari Developer</button>
       <button class="btn ghost" id="lainnyaAboutBtn" style="border-color:#ec4899;color:#be185d;">💌 Tentang Saya</button>
 
       <button class="btn ghost" id="backToModeSelectBtnLainnya" style="margin-top:14px;">← Kembali</button>
@@ -10004,6 +10005,7 @@ function renderLainnyaSubmenu(onBack){
     renderIeltsToefl(()=> renderLainnyaSubmenu(onBack));
   };
   document.getElementById('lainnyaGuideBtn').onclick = ()=> renderBeginnerGuide(()=> renderLainnyaSubmenu(onBack));
+  document.getElementById('lainnyaOtherAppsBtn').onclick = ()=> renderOtherApps(()=> renderLainnyaSubmenu(onBack));
   document.getElementById('lainnyaAboutBtn').onclick = ()=> renderTentangKami(()=> renderLainnyaSubmenu(onBack));
 }
 
@@ -19346,6 +19348,69 @@ function renderLcqResult(){
   };
   document.getElementById('lcqAgainBtn').onclick = ()=> lcqStart(st.onBack, st.count);
   document.getElementById('lcqMenuBtn').onclick = ()=> renderLevelCompare(st.onBack);
+}
+
+
+/* ============================================================
+   APLIKASI LAINNYA DARI DEVELOPER (Mode Lainnya)
+   Mau nambah aplikasi baru? tinggal tambah 1 objek ke OTHER_APPS.
+   - name : nama aplikasi
+   - emoji: logo cadangan (dipakai kalau logo gambar kosong/gagal dimuat)
+   - logo : link gambar logo (contoh 'https://.../icon-192.png'), boleh dikosongkan
+   - desc : penjelasan singkat
+   - url  : link aplikasi yang dituju  <<< WAJIB DIISI
+   ============================================================ */
+const OTHER_APPS = [
+  {
+    name: 'Mr. Money',
+    emoji: '💰',
+    logo: '',
+    desc: 'Aplikasi pencatat keuangan pribadi. Catat pemasukan & pengeluaran, atur anggaran per kategori, pantau tabungan, dan buat catatan berulang. Data tersimpan di perangkatmu.',
+    url: 'https://mr2414783-sketch.github.io/Mr.-Money/'
+  }
+];
+
+function openOtherApp(app){
+  if(!app.url){
+    alert('Link aplikasi "' + app.name + '" belum diisi. Isi dulu field url di OTHER_APPS pada index.html.');
+    return;
+  }
+  // Akun Daily English otomatis offline sebelum pindah ke aplikasi lain
+  try { stopPresence(); } catch(e){ console.error(e); }
+  // Dibuka terpisah (tab/jendela baru), Daily English tidak ditutup
+  const w = window.open(app.url, '_blank', 'noopener');
+  if(!w){ window.location.href = app.url; }
+}
+
+function renderOtherApps(onBack){
+  clearTimer();
+  statusVal.textContent = "APLIKASI LAINNYA";
+  setPresenceStatus('idle');
+  setPresenceMode('Melihat Aplikasi Lainnya dari Developer');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#6366f1;color:#fff;">🚀 APLIKASI LAINNYA</div>
+      <h1 class="intro-title" style="font-size:19px;">Aplikasi Lain dari Developer</h1>
+      <p class="intro-desc" style="font-size:12px;">Aplikasi buatan developer yang sama. Kalau diklik, aplikasi akan terbuka terpisah dan akunmu di Daily English otomatis offline.</p>
+      <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+        ${OTHER_APPS.map((a,i)=>`
+          <button type="button" class="otherapp-card" data-idx="${i}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-family:inherit;color:var(--ink);">
+            <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;overflow:hidden;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:28px;">
+              ${a.logo ? `<img src="${escapeHtmlIdx(a.logo)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.replaceWith(document.createTextNode('${a.emoji||'📱'}'))">` : (a.emoji||'📱')}
+            </div>
+            <div style="min-width:0;flex:1;">
+              <div style="font-weight:800;font-size:15px;">${escapeHtmlIdx(a.name)}</div>
+              <div style="font-size:12px;line-height:1.5;opacity:0.75;margin-top:2px;">${escapeHtmlIdx(a.desc)}</div>
+              <div style="font-size:11px;font-weight:800;color:#4338ca;margin-top:6px;">Buka aplikasi ↗</div>
+            </div>
+          </button>`).join('')}
+      </div>
+      <button class="btn ghost" id="otherAppsBackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>`;
+  document.getElementById('otherAppsBackBtn').onclick = ()=> onBack();
+  document.querySelectorAll('.otherapp-card').forEach(btn=>{
+    btn.onclick = ()=> openOtherApp(OTHER_APPS[parseInt(btn.dataset.idx,10)]);
+  });
 }
 
 </script>
