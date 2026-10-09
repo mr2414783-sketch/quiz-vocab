@@ -19377,9 +19377,22 @@ function openOtherApp(app){
   }
   // Akun Daily English otomatis offline sebelum pindah ke aplikasi lain
   try { stopPresence(); } catch(e){ console.error(e); }
-  // Dibuka terpisah (tab/jendela baru), Daily English tidak ditutup
-  const w = window.open(app.url, '_blank', 'noopener');
-  if(!w){ window.location.href = app.url; }
+  // Dibuka lewat Chrome (supaya tombol unduh/install aplikasi muncul)
+  const ua = navigator.userAgent || '';
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const u = app.url.replace(/^https?:\/\//i, '');
+  if(isAndroid){
+    // Intent Chrome; kalau Chrome tidak ada, otomatis jatuh ke link biasa
+    window.location.href = 'intent://' + u + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(app.url) + ';end';
+  } else if(isIOS){
+    window.location.href = 'googlechromes://' + u;
+    // Kalau Chrome belum terpasang (halaman masih terlihat), buka biasa
+    setTimeout(()=>{ if(!document.hidden){ window.open(app.url, '_blank', 'noopener'); } }, 1500);
+  } else {
+    const w = window.open(app.url, '_blank', 'noopener');
+    if(!w){ window.location.href = app.url; }
+  }
 }
 
 function renderOtherApps(onBack){
@@ -19391,7 +19404,7 @@ function renderOtherApps(onBack){
     <div class="center-stack" style="align-items:stretch;">
       <div class="section-tag" style="background:#6366f1;color:#fff;">🚀 APLIKASI LAINNYA</div>
       <h1 class="intro-title" style="font-size:19px;">Aplikasi Lain dari Developer</h1>
-      <p class="intro-desc" style="font-size:12px;">Aplikasi buatan developer yang sama. Kalau diklik, aplikasi akan terbuka terpisah dan akunmu di Daily English otomatis offline.</p>
+      <p class="intro-desc" style="font-size:12px;">Aplikasi buatan developer yang sama. Kalau diklik, aplikasi akan terbuka di Chrome dan akunmu di Daily English otomatis offline.</p>
       <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:6px;">
         ${OTHER_APPS.map((a,i)=>`
           <button type="button" class="otherapp-card" data-idx="${i}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-family:inherit;color:var(--ink);">
