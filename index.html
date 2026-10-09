@@ -19370,29 +19370,10 @@ const OTHER_APPS = [
   }
 ];
 
-function openOtherApp(app){
-  if(!app.url){
-    alert('Link aplikasi "' + app.name + '" belum diisi. Isi dulu field url di OTHER_APPS pada index.html.');
-    return;
-  }
-  // Akun Daily English otomatis offline sebelum pindah ke aplikasi lain
+/* Dipanggil saat kartu diklik. Link-nya dibuka langsung oleh tag <a> (link biasa),
+   jadi sistem HP yang memilih browser bawaan (Chrome). Di sini cuma bikin akun offline. */
+function goOfflineBeforeLeaving(){
   try { stopPresence(); } catch(e){ console.error(e); }
-  // Dibuka lewat Chrome (supaya tombol unduh/install aplikasi muncul)
-  const ua = navigator.userAgent || '';
-  const isAndroid = /Android/i.test(ua);
-  const isIOS = /iPhone|iPad|iPod/i.test(ua);
-  const u = app.url.replace(/^https?:\/\//i, '');
-  if(isAndroid){
-    // Intent Chrome; kalau Chrome tidak ada, otomatis jatuh ke link biasa
-    window.location.href = 'intent://' + u + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(app.url) + ';end';
-  } else if(isIOS){
-    window.location.href = 'googlechromes://' + u;
-    // Kalau Chrome belum terpasang (halaman masih terlihat), buka biasa
-    setTimeout(()=>{ if(!document.hidden){ window.open(app.url, '_blank', 'noopener'); } }, 1500);
-  } else {
-    const w = window.open(app.url, '_blank', 'noopener');
-    if(!w){ window.location.href = app.url; }
-  }
 }
 
 function renderOtherApps(onBack){
@@ -19404,10 +19385,10 @@ function renderOtherApps(onBack){
     <div class="center-stack" style="align-items:stretch;">
       <div class="section-tag" style="background:#6366f1;color:#fff;">🚀 APLIKASI LAINNYA</div>
       <h1 class="intro-title" style="font-size:19px;">Aplikasi Lain dari Developer</h1>
-      <p class="intro-desc" style="font-size:12px;">Aplikasi buatan developer yang sama. Kalau diklik, aplikasi akan terbuka di Chrome dan akunmu di Daily English otomatis offline.</p>
+      <p class="intro-desc" style="font-size:12px;">Aplikasi buatan developer yang sama. Kalau diklik, aplikasi akan terbuka terpisah di browser HP-mu (Chrome) dan akunmu di Daily English otomatis offline.</p>
       <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:6px;">
         ${OTHER_APPS.map((a,i)=>`
-          <button type="button" class="otherapp-card" data-idx="${i}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-family:inherit;color:var(--ink);">
+          <a class="otherapp-card" href="${escapeHtmlIdx(a.url)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-family:inherit;color:var(--ink);">
             <div style="flex-shrink:0;width:52px;height:52px;border-radius:14px;overflow:hidden;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:28px;">
               ${a.logo ? `<img src="${escapeHtmlIdx(a.logo)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.replaceWith(document.createTextNode('${a.emoji||'📱'}'))">` : (a.emoji||'📱')}
             </div>
@@ -19416,15 +19397,15 @@ function renderOtherApps(onBack){
               <div style="font-size:12px;line-height:1.5;opacity:0.75;margin-top:2px;">${escapeHtmlIdx(a.desc)}</div>
               <div style="font-size:11px;font-weight:800;color:#4338ca;margin-top:6px;">Buka aplikasi ↗</div>
             </div>
-          </button>`).join('')}
+          </a>`).join('')}
       </div>
       <button class="btn ghost" id="otherAppsBackBtn" style="margin-top:14px;">← Kembali</button>
     </div>`;
   document.getElementById('otherAppsBackBtn').onclick = ()=> onBack();
-  document.querySelectorAll('.otherapp-card').forEach(btn=>{
-    btn.onclick = ()=> openOtherApp(OTHER_APPS[parseInt(btn.dataset.idx,10)]);
+  document.querySelectorAll('.otherapp-card').forEach(link=>{
+    link.addEventListener('click', ()=>{ goOfflineBeforeLeaving(); }); // jangan preventDefault: biar link terbuka
   });
-}
+  }
 
 </script>
 </body>
