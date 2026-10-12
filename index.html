@@ -19544,6 +19544,7 @@ function renderStpList(){
       <div class="section-tag" style="background:#0ea5e9;color:#fff;">🖼️ STP</div>
       <h1 class="intro-title" style="font-size:19px;">Story Through Pictures</h1>
       <p class="intro-desc" style="font-size:12px;">Pilih chapter: lihat gambar ceritanya, lalu kerjakan Exercise 2 &amp; 4.</p>
+      <button class="btn" id="stpVocabBtn" type="button" style="margin:4px 0 10px;">📖 Tabel Vocab STP (Chapter 1–24)</button>
       <div class="day-grid">
         ${STP_CHAPTERS.map((c,i)=>`
           <button class="day-btn" data-stp="${i}" type="button">
@@ -19554,6 +19555,7 @@ function renderStpList(){
       <button class="btn ghost" id="stpBackBtn" style="margin-top:14px;">← Kembali</button>
     </div>`;
   document.getElementById('stpBackBtn').onclick = ()=> renderBelajarSubmenu();
+  document.getElementById('stpVocabBtn').onclick = ()=> renderStpVocab();
   document.querySelectorAll('[data-stp]').forEach(b=>{ b.onclick = ()=> renderStpDetail(parseInt(b.dataset.stp,10)); });
 }
 
@@ -19577,6 +19579,7 @@ function renderStpDetail(i){
         ${stpExHtml(c.e2, 2)}
         ${stpExHtml(c.e4, 4)}
       </div>
+      <button class="btn ghost" id="stpVocabBtn2" type="button" style="margin-top:10px;">📖 Vocab chapter ini</button>
       <div style="display:flex;gap:8px;margin-top:10px;">
         <button class="btn ghost" id="stpPrevBtn" type="button" style="flex:1;margin:0;" ${i===0?'disabled':''}>← Chapter ${c.n-1}</button>
         <button class="btn ghost" id="stpNextBtn" type="button" style="flex:1;margin:0;" ${i===STP_CHAPTERS.length-1?'disabled':''}>Chapter ${c.n+1} →</button>
@@ -19592,6 +19595,79 @@ function renderStpDetail(i){
   document.getElementById('stpPrevBtn').onclick = ()=> renderStpDetail(i-1);
   document.getElementById('stpNextBtn').onclick = ()=> renderStpDetail(i+1);
   document.getElementById('stpListBtn').onclick = ()=> renderStpList();
+  document.getElementById('stpVocabBtn2').onclick = ()=> renderStpVocab(i, true);
+}
+
+
+/* ---------- Tabel Vocab STP (chapter 1–24): "inggris=arti" dipisah | ---------- */
+const STP_VOCAB = [
+'sales reports=laporan penjualan|same=sama|breakfast=sarapan|chauffeur=sopir pribadi|servants=pelayan|suit=setelan jas|two o\'clock=jam dua|entertains=menjamu|exhausted=kelelahan|meetings=rapat|multi-millionaire=multijutawan|chairman=ketua/direktur utama|mansion=rumah mewah|cabaret=pertunjukan kabaret|night club=klub malam|champagne=sampanye',
+'crew=awak kapal|flare=suar|to rescue=menyelamatkan|polluted=tercemar|tourism=pariwisata|bow=haluan kapal|to sink=tenggelam|to spray=menyemprot|collision=tabrakan|to leak=bocor|oil tanker=kapal tanker minyak|life raft=rakit penyelamat|fishermen=nelayan|stormy=berbadai|helicopter=helikopter',
+'cycled=bersepeda|carnival=karnaval|outside=di luar|pasta=pasta|photos=foto|boat=perahu|world=dunia|parents=orang tua|danced=menari|mountains=pegunungan|sharks=hiu|money=uang|grapes=anggur|thief=pencuri|temples=kuil|seasick=mabuk laut|gap year=tahun jeda',
+'alien=makhluk asing|glowing=bercahaya|flight deck=ruang kemudi|to orbit=mengorbit|to reappear=muncul kembali|to land=mendarat|curious=penasaran|to take off=lepas landas|UFO=pesawat asing (piring terbang)|postman=tukang pos|control panels=panel kontrol|duty officer=petugas jaga|pub=kedai minum|field=ladang',
+'players=pemain|foul=pelanggaran|referee=wasit|kitchen=dapur|stadium=stadion|crowd=kerumunan penonton|highlights=cuplikan terbaik|pitch=lapangan|penalty=penalti|won=menang|match=pertandingan|goalkeeper=penjaga gawang|supporters=pendukung|disappointed=kecewa|annoyed=kesal|tray=nampan|supper=makan malam|defender=pemain bertahan',
+'homeless=tunawisma|pavement=trotoar|peace=perdamaian|nun=biarawati|orphan=anak yatim piatu|shelter=tempat berlindung|charity=lembaga amal|clinic=klinik|Nobel Prize=Hadiah Nobel|poor=miskin|organisation=organisasi|born=lahir',
+'dress=gaun|burst=meledak (burst into tears = menangis tersedu)|cat=kucing|prepared=menyiapkan|fish and chip=ikan dan kentang goreng|empty=kosong|horrified=ngeri/syok|invited=mengundang|laid=menata (laid the table)|arrived=tiba|rushed=bergegas|candles=lilin|boss=bos|salmon=ikan salmon|disaster=bencana',
+'baseball=bisbol|uniforms=seragam|mini=mini|dresses=gaun|jackets=jaket|expensive=mahal|jeans=jins|fashion=mode|fads=tren sesaat|Victorian=era Victoria|unisex=unisex|fleece=jaket fleece|hood=tudung|striped=bergaris|necklace=kalung|wartime=masa perang|piercings=tindik|tattoos=tato',
+'outlaw=penjahat buronan|Wild West=Wild West (Barat Liar)|gunfighter=jagoan tembak|sheriff=sheriff/kepala polisi|deputy=wakil sheriff|frightened=ketakutan|saloon=bar ala koboi|whisky=wiski|hiding=bersembunyi|afraid=takut|episode=episode',
+'mirror=cermin|laughed=menertawakan|threw=melempar|overweight=kelebihan berat badan|tripped=tersandung|back ache=sakit punggung|rain=hujan|exercise=olahraga|bit=menggigit|talking=berbicara|miserable=sengsara|trip=tersandung|pavement=trotoar|limp=berjalan pincang|jogging=lari santai|marathon=maraton',
+'robbers=perampok|customers=nasabah|informer=informan|camera=kamera|gunpoint=todongan senjata|girlfriends=pacar|arrested=ditangkap|witnesses=saksi|villa=vila|cashier=kasir|criminals=penjahat|bulletin=siaran berita|statement=pernyataan|fingerprints=sidik jari|masked=bertopeng',
+'argument=pertengkaran|traffic jam=kemacetan|campsite=area perkemahan|petrol=bensin|bull=banteng|fence=pagar|collapsed=roboh|tent=tenda|picnic=piknik|storm=badai|fishing=memancing|packed=mengemas|disagree=tidak setuju|chased=dikejar|tore=merobek',
+'raise=mengumpulkan (dana)|black market=pasar gelap|rebuilding=pembangunan kembali|shake=berguncang|news=berita|trapped=terjebak|rescuers=penyelamat|medicine=obat|buildings=bangunan|tents=tenda|ruins=reruntuhan|survivors=penyintas|homeless=tunawisma|remote=terpencil|scandal=skandal|victims=korban|tragedy=tragedi|crooks=penjahat|earthquake=gempa bumi|appeal=seruan donasi',
+'restorer=restorator|wealthy=kaya|vineyard=kebun anggur|potter=pembuat tembikar|wrecked=karam|auction=lelang|undamaged=tidak rusak|museum=museum|merchant=pedagang|ship=kapal|divers=penyelam|seaweed=rumput laut|voyage=pelayaran|purchased=dibeli|vase=vas|fragments=pecahan|nobleman=bangsawan|miraculously=secara ajaib',
+'perfect=sempurna|polluted=tercemar|disappointed=kecewa|posed=berpose|gloomily=dengan murung|wedding=pernikahan|postcards=kartu pos|plaster=gips|complain=mengeluh|plane=pesawat|factories=pabrik|slipped=terpeleset|honeymoon=bulan madu|luxury=kemewahan|inland=pedalaman|delayed=tertunda|travel agent=agen perjalanan',
+'coach=pelatih|champion=juara|injure=melukai|cheering=bersorak|reception=resepsi/penyambutan|medal=medali|motorcyclist=pengendara motor|trained=berlatih|tremendous=luar biasa|politician=politikus|athletics=atletik|despite=meskipun|Olympics=Olimpiade|honour=kehormatan',
+'alcohol=alkohol|flirted=merayu|delighted=sangat senang|overnight=dalam semalam|treatments=perawatan|handsome=tampan|press=media/pers|begging=memohon/mengemis|decorated=didekorasi|heartbroken=patah hati|sweethearts=kekasih|together=bersama|flatter=menyanjung|ambition=ambisi|fortune=kekayaan besar|lottery=lotre|jackpot=hadiah utama|fresh start=awal yang baru',
+'exhausted=kelelahan|split up=bubar/berpisah|tour=tur|pop group=grup pop|screaming=berteriak histeris|famous=terkenal|drugs=narkoba|performed=tampil|argument=pertengkaran|swimming pool=kolam renang|peace=ketenangan|successful=sukses|mobbed=dikerumuni|adore=memuja|tragedy=tragedi|sell out=terjual habis|smash hit=lagu hit besar|drowned=tenggelam',
+'endangered=terancam punah|species=spesies|poachers=pemburu liar|hunters=pemburu|tusks=gading (taring)|rhino=badak|elephants=gajah|game wardens=penjaga satwa liar|protect=melindungi|slaughter=membantai|illegal=ilegal|rot=membusuk|ivory=gading|herd=kawanan|rifles=senapan|gorillas=gorila|whales=paus|conservationist=pegiat konservasi',
+'outbreaks=wabah|conquered=menaklukkan|injected=menyuntik|emergency=keadaan darurat|eradicated=diberantas tuntas|vaccine=vaksin|campaign=kampanye|remote=terpencil|risk=risiko|smallpox=cacar|disease=penyakit|discoverer=penemu|resistance=kekebalan|headline=judul berita|team=tim|orphaned=menjadi yatim piatu',
+'irrigate=mengairi|bulk=massa/volume|consortium=konsorsium|blast=meledakkan|destination=tujuan|melting=pencairan|imaginative=penuh imajinasi|tugs=kapal tunda|crack=retak|satellite=satelit|surface=permukaan|suitable=cocok|iceberg=gunung es|desert=gurun|gigantic=raksasa|pipeline=pipa|investors=investor|fleet=armada|to tow=menarik/menderek|explosives=bahan peledak',
+'microchip=mikrocip|compact=ringkas|affordable=terjangkau|integral=bagian yang tak terpisahkan|robotics=robotika|assembly=perakitan|beneficial=bermanfaat|laptop=laptop|generation=generasi|scanner=pemindai|navigation=navigasi|poverty=kemiskinan|industry=industri|commuter=penglaju|revolution=revolusi|miniature=mini',
+'politics=politik|size=ukuran/luas|resources=sumber daya|situated=terletak|tourism=pariwisata|climate=iklim|island=pulau|population=jumlah penduduk|income per head=pendapatan per kapita|Tropic of Cancer=Garis Balik Utara|Marxist=bersifat Marxis|sugar cane=tebu|cigars=cerutu|geysers=geiser|ambassador=duta besar|rainfall=curah hujan|temperature=suhu|densely populated=padat penduduk',
+'January=Januari|visa=visa|settled=menetap|identity=identitas|escape=melarikan diri|low-paid=bergaji rendah|permit=izin|cargo boat=kapal kargo|village=desa|bitterly=sangat (dingin menusuk)|graduated=lulus|safety=keselamatan|migrants=migran|traumatic=traumatis|to die of exposure=mati karena cuaca ekstrem|stateless=tanpa kewarganegaraan|fiction=fiksi|war-torn=dilanda perang|refugees=pengungsi|enrol=mendaftar|part-time=paruh waktu'
+];
+
+function renderStpVocab(focus, fromDetail){
+  clearTimer();
+  statusVal.textContent = "STP";
+  setPresenceStatus('idle');
+  setPresenceMode('Tabel Vocab STP');
+  const secs = STP_CHAPTERS.map((c,i)=>{
+    const rows = (STP_VOCAB[i]||'').split('|').filter(Boolean).map((p,n)=>{
+      const k = p.indexOf('=');
+      return `<tr data-q="${stpSafe((p).toLowerCase())}"><td style="padding:5px 6px;opacity:0.5;width:26px;">${n+1}</td><td style="padding:5px 6px;font-weight:800;">${stpSafe(p.slice(0,k))}</td><td style="padding:5px 6px;">${stpSafe(p.slice(k+1))}</td></tr>`;
+    }).join('');
+    return `<div class="stp-vsec" id="stpV${i}" style="margin-bottom:14px;">
+      <div style="font-weight:800;font-size:13px;padding:6px 10px;border-radius:10px;background:rgba(14,165,233,0.12);">Chapter ${c.n} · ${stpSafe(c.t)}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.5;text-align:left;"><thead><tr style="opacity:0.6;font-size:11px;"><th style="padding:4px 6px;">#</th><th style="padding:4px 6px;">English</th><th style="padding:4px 6px;">Arti</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+  }).join('');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#0ea5e9;color:#fff;">📖 VOCAB STP</div>
+      <h1 class="intro-title" style="font-size:18px;">Tabel Vocab STP</h1>
+      <input id="stpVSearch" type="search" placeholder="Cari kata (English / Indonesia)..." style="width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);font-size:14px;box-sizing:border-box;margin:4px 0 8px;">
+      <div id="stpVBox" style="width:100%;max-height:62vh;overflow-y:auto;text-align:left;">${secs}</div>
+      <button class="btn ghost" id="stpVBack" style="margin-top:12px;">← Kembali</button>
+    </div>`;
+  const box = document.getElementById('stpVBox');
+  document.getElementById('stpVSearch').oninput = function(){
+    const q = this.value.trim().toLowerCase();
+    box.querySelectorAll('.stp-vsec').forEach(sec=>{
+      let any = false;
+      sec.querySelectorAll('tbody tr').forEach(tr=>{
+        const show = !q || tr.dataset.q.indexOf(q) !== -1;
+        tr.style.display = show ? '' : 'none';
+        if(show) any = true;
+      });
+      sec.style.display = any ? '' : 'none';
+    });
+  };
+  document.getElementById('stpVBack').onclick = ()=>{ if(fromDetail && typeof focus === 'number') renderStpDetail(focus); else renderStpList(); };
+  if(typeof focus === 'number'){
+    const el = document.getElementById('stpV'+focus);
+    if(el) box.scrollTop = el.offsetTop - box.offsetTop;
+  }
 }
 
 
