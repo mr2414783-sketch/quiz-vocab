@@ -18350,6 +18350,108 @@ function vbTable(head, rows){
     rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
+/* Data Chapter 6 (country | nationality | language), dipakai materi dan latihan */
+const VB_WORLD = `Afghanistan|Afghan|Pashto, Dari
+Algeria|Algerian|Arabic, Berber
+Argentina|Argentinean|Spanish
+Australia|Australian|English
+Austria|Austrian|German
+Bangladesh|Bangladeshi|Bengali
+Belarus|Belarusian|Belarusian
+Belgium|Belgian|Dutch, French, and German
+Bolivia|Bolivian|Spanish, Quechua, and Aymara
+Bosnia and Herzegovina|Bosnian|Bosnian, Croatian, and Serbian
+Brazil|Brazilian|Portuguese
+Bulgaria|Bulgarian|Bulgarian
+Cambodia|Cambodian|Khmer
+Canada|Canadian|English, French
+Chile|Chilean|Spanish
+China|Chinese|Mandarin
+Colombia|Colombian|Spanish
+Costa Rica|Costa Rican|Spanish
+Croatia|Croatian|Croatian
+Cyprus|Cypriot|Greek, Turkish
+Denmark|Danish|Danish
+Ecuador|Ecuadorian|Spanish
+Egypt|Egyptian|Arabic
+El Salvador|Salvadoran|Spanish
+Estonia|Estonian|Estonian
+Fiji|Fijian|English, Fijian
+Finland|Finnish|Finnish, Swedish
+France|French|French
+Germany|German|German
+Ghana|Ghanaian|English
+Greece|Greek|Greek
+Guatemala|Guatemalan|Spanish
+Guyana|Guyanese|English
+Honduras|Honduran|Spanish
+Hungary|Hungarian|Hungarian
+Iceland|Icelandic|Icelandic
+India|Indian|Hindi, English
+Indonesia|Indonesian|Indonesian
+Iran|Iranian|Persian
+Iraq|Iraqi|Arabic, Kurdish
+Ireland|Irish|English, Irish
+Israel|Israeli|Hebrew
+Italy|Italian|Italian
+Japan|Japanese|Japanese
+Jordan|Jordanian|Arabic
+Kazakhstan|Kazakh|Kazakh
+Kenya|Kenyan|English, Swahili
+Kuwait|Kuwaiti|Arabic
+Latvia|Latvian|Latvian
+Lebanon|Lebanese|Arabic
+Lithuania|Lithuanian|Lithuanian
+Luxembourg|Luxembourger|Luxembourgish
+Madagascar|Malagasy|Malagasy, French
+Malaysia|Malaysian|Malay
+Malta|Maltese|Maltese, English
+Mexico|Mexican|Spanish
+Mongolia|Mongolian|Mongolian
+Nepal|Nepali|Nepali
+Netherlands|Dutch|Dutch
+New Zealand|New Zealander|English, Maori
+Nigeria|Nigerian|English
+North Korea|North Korean|Korean
+Norway|Norwegian|Norwegian
+Oman|Omani|Arabic
+Pakistan|Pakistani|Urdu, English
+Panama|Panamanian|Spanish
+Papua New Guinea|Papua New Guinean|English, Hiri Motu
+Paraguay|Paraguayan|Spanish, Guarani
+Peru|Peruvian|Spanish
+Philippines|Filipino|Filipino, English
+Poland|Polish|Polish
+Portugal|Portuguese|Portuguese
+Qatar|Qatari|Arabic
+Romania|Romanian|Romanian
+Samoa|Samoan|Samoan, English
+Saudi Arabia|Saudi|Arabic
+Serbia|Serbian|Serbian
+Singapore|Singaporean|English, Malay
+Slovakia|Slovak|Slovak
+Slovenia|Slovenian|Slovenian
+South Africa|South African|Afrikaans
+South Korea|Korean|Korean
+Spain|Spanish|Spanish
+Sri Lanka|Sri Lankan|Sinhala, Tamil
+Suriname|Surinamese|Dutch
+Sweden|Swedish|Swedish
+Switzerland|Swiss|German, French, and Italian
+Tanzania|Tanzanian|Swahili
+Thailand|Thai|Thai
+Tonga|Tongan|Tongan, English
+Tunisia|Tunisian|Arabic
+Turkey|Turkish|Turkish
+Uganda|Ugandan|English
+Ukraine|Ukrainian|Ukrainian
+United Arab Emirates|Emirati|Arabic
+United Kingdom of Great Britain and Northern Ireland|British|English
+United States of America|American|English
+Uruguay|Uruguayan|Spanish
+Venezuela|Venezuelan|Spanish
+Vietnam|Vietnamese|Vietnamese`.split('\n').map(r=>r.split('|'));
+
 const VOCABBUILD_CHAPTERS = [
 {
   id:'vb-ch1', title:'Chapter 1 — Collocation',
@@ -18466,7 +18568,98 @@ const VOCABBUILD_CHAPTERS = [
 ['e.','Other existing states','appear, be, seem, look like, look, sound, resemble, cost, owe, weigh, equal, exist, matter, consist of, contain, include']]) + `Understanding this difference is important for constructing grammatically correct sentences and conveying precise meanings in English.`)
   ]
 }
-/* ← tambah Chapter 4, 5, dst. di sini (pakai koma setelah objek sebelumnya) */
+,{
+  id:'vb-ch4', title:'Chapter 4 — Likes and Dislikes',
+  sections:[
+    vbSec('What kind of movie do you like? Why?', `Mengungkapkan <b>likes and dislikes</b> (suka dan tidak suka) adalah hal yang kita lakukan setiap hari, dan merupakan bagian penting dari komunikasi karena membantu kita terhubung dengan orang lain.<br><br>Ada banyak ungkapan untuk itu, misalnya <mark>keen on, a big fan of, loathe, detest</mark>, dan lain-lain. Ungkapan likes &amp; dislikes punya <b>2 makna: active meaning dan passive meaning</b>. Perhatikan tabel di bawah. <mark>Tidak semua ungkapan bisa diubah ke bentuk passive</mark> karena bentuknya tidak umum (itu sebabnya ada tanda "-").`),
+    vbSec('Active vs Passive Meaning (catatan kelas)', vbTable(['','Active meaning','Passive meaning'],[
+      ['Arti','<b>me-</b>','<b>di- / ter-</b>'],
+      ['Rumus','<b>V1</b>','<b>V3 + by</b>'],
+      ['Contoh','I have finished','I\'m done / finished'],
+      ['Contoh','I have eaten','I\'m eaten'],
+      ['Contoh','I have drunk','I\'m drunk (juga bisa berarti "mabuk")']])),
+    vbSec('A. Dislikes', vbTable(['Active meaning','Passive meaning'],[
+      ['Jake loves hiking, but he <b>loathes</b> camping overnight in the wilderness.','Camping overnight in the wilderness is <b>loathed</b> by Jake, despite his love for hiking.'],
+      ['Maria loves traveling, but she <b>detests</b> long layovers in airports.','-'],
+      ['He <b>cannot stand</b> going a day without diving into a good book.','-'],
+      ['The strong smell of certain fermented dishes <b>repels</b> Sarah.','Sarah enjoys trying new foods, but she is <b>repelled by</b> the strong smell of certain fermented dishes.'],
+      ['The smell of wet dog fur <b>disgusts</b> Mark.','Mark is <b>disgusted</b> by the smell of wet dog fur.'],
+      ['The texture of certain slimy foods, like okra, <b>revolts</b> Sarah.','Sarah is <b>revolted by</b> the texture of certain slimy foods, like okra.'],
+      ['Robert <b>cannot bear</b> to start his day without a cup of coffee.','-'],
+      ['Mike <b>dreads</b> attending large parties because he finds them overwhelming and exhausting.','Large parties <b>are dreaded by</b> Mike due to finding them overwhelming and exhausting.']])),
+    vbSec('B. Likes', vbTable(['Active meaning','Passive meaning'],[
+      ['She <b>yearned</b> for the serenity of the countryside.','-'],
+      ['Viola is <b>passionate about</b> basketball.','-'],
+      ['-','Noodles are quite <b>fond of by</b> Indonesians. <i>(tulisan di buku; bentuk natural: Indonesians are quite fond of noodles)</i>'],
+      ['The first time I visited Venice, the city <b>captivated</b> me.','The first time I visited Venice, I <b>was captivated by</b> the city.'],
+      ['I <b>fancied</b> the idea of spending the weekend curled up with a good book and warm tea.','-'],
+      ['I am <b>keen on</b> hiking.','-'],
+      ['She <b>looks forward to</b> the annual family reunion with eager anticipation and excitement.','-'],
+      ['He <b>longs for</b> the crisp mountain air and the sound of rushing streams.','-'],
+      ['The vibrant colors of the painting really <b>appeal to</b> me.','-'],
+      ['Her warmth and kindness really <b>attract</b> me.','I am really <b>attracted to</b> her warmth and kindness.'],
+      ['Her excellent multilingual skills <b>fascinate</b> me.','I\'m <b>fascinated by</b> her excellent multilingual skills.'],
+      ['The aroma of baked cookies <b>tempts</b> me every time.','I <b>am tempted by</b> the aroma of baked cookies every time.']])),
+    vbSec('C. Kelompok Makna (catatan papan tulis)', vbTable(['Kelompok','Ungkapan','Arti'],[
+      ['Benci (hate)','loathe(d), detest(s)','benci'],
+      ['Tidak tahan','can\'t / cannot stand, can\'t / cannot bear','tidak tahan'],
+      ['Jijik','repel(s), dread(ed), disgust(s/ed)','jijik, muak (revolt juga masuk sini)'],
+      ['Tertarik','fond of, keen on, fancy','tertarik, suka'],
+      ['Kagum / senang','appeal to, attract, fascinate, tempt','kagum, senang, terpikat, tergoda'],
+      ['Lainnya','yearn for, passionate about, captivated, look forward to, long for','merindukan, antusias pada, terpikat, menantikan, mendambakan']]) + `<i>Catatan: arti kelompok "Lainnya" saya tulis sendiri karena tulisan papan tulisnya kurang terbaca. Cocokkan lagi dengan catatan kelasmu.</i>`)
+  ]
+}
+,{
+  id:'vb-ch5', title:'Chapter 5 — Collective Nouns',
+  sections:[
+    vbSec('Apa itu Collective Noun?', `<b>Collective noun</b> adalah jenis noun yang mewakili <mark>sekelompok orang, hewan, atau benda sebagai satu kesatuan</mark>. Alih-alih menyebut tiap anggota satu per satu, collective noun menggambarkan kelompoknya secara keseluruhan. Fungsinya menyederhanakan bahasa dengan meringkas banyak hal menjadi satu istilah. Collective noun bisa merujuk ke berbagai kelompok: orang, hewan, benda, dan konsep.<br><br><i>A collective noun is a type of noun that represents a group of people, animals, or things as a single entity.</i>`),
+    vbSec('Singular Form', `Collective noun pada umumnya <b>berbentuk singular</b>, walaupun mewakili banyak individu atau benda. Contoh: <b>team, herd, committee, family</b> semuanya collective noun.` + vbTable(['Example'],[
+      ['The <b>team</b> is winning the match.'],
+      ['The <b>choir</b> is performing tonight.']])),
+    vbSec('Grouping Individuals', `Collective noun memungkinkan penutur dan penulis menyebut sekelompok individu atau benda sebagai <mark>satu unit</mark>. Ini membuat komunikasi lebih ringkas dan menghindari pengulangan.` + vbTable(['Example'],[
+      ['The <b>family</b> goes on vacation every summer.']])),
+    vbSec('A. Categories (Kategori)', `Collective noun bisa dikelompokkan berdasarkan jenis kelompok yang diwakili. Kategori yang umum:` + vbTable(['Kategori','Collective nouns'],[
+      ['<b>People</b>','family, team, committee, audience, jury'],
+      ['<b>Animal</b>','herd, pack, flock, swarm, school'],
+      ['<b>Object</b>','collection, fleet, stack, cluster, bundle']])),
+    vbSec('B. Usage in Language', `Collective noun dipakai luas dalam bahasa sehari-hari: <b>tulisan formal, percakapan santai, dan literatur</b>. Fungsinya menyampaikan informasi secara efisien dengan menyebut kelompok secara singkat. Berikut contoh-contohnya (masih banyak collective noun lain untuk orang, hewan, dan benda).` + vbTable(['Collective noun','Arti'],[
+      ['a <b>litter</b> of puppies','seinduk anak anjing'],
+      ['a <b>pride</b> of lions','kawanan singa'],
+      ['a <b>crew</b> of sailors','awak pelaut'],
+      ['a <b>grove</b> of trees','rumpun pohon'],
+      ['a <b>swarm</b> of bees','kawanan lebah'],
+      ['a <b>colony</b> of ants','koloni semut'],
+      ['a <b>choir</b> of singers','paduan suara'],
+      ['a <b>comb</b> of bananas','sesisir pisang'],
+      ['a <b>herd</b> of cattle','kawanan sapi'],
+      ['a <b>class</b> of students','satu kelas siswa'],
+      ['a <b>group</b> of dancers','kelompok penari'],
+      ['a <b>pair</b> of shoes','sepasang sepatu'],
+      ['a <b>school</b> of fish','kawanan ikan'],
+      ['a <b>crowd</b> of people','kerumunan orang'],
+      ['a <b>flock</b> of tourists','rombongan turis'],
+      ['a <b>pack</b> of cards','setumpuk (satu set) kartu'],
+      ['a <b>flock</b> of birds','kawanan burung'],
+      ['a <b>band</b> of musicians','grup musisi'],
+      ['a <b>bunch</b> of grapes','seikat / setandan anggur'],
+      ['a <b>range</b> of mountains','rangkaian pegunungan']]) + `<i>Catatan: kolom "Arti" saya tulis sendiri sebagai bantuan belajar, bukan dari buku.</i>`)
+  ]
+}
+,{
+  id:'vb-ch6', title:'Chapter 6 — Around the World',
+  sections:[
+    vbSec('Around the World', `Apa yang terlintas di pikiranmu saat melihat peta dunia? Bisakah kamu menyebutkan beberapa negara dan <b>nationality</b>-nya?<br><br>Sistem politik yang berkaitan dengan lokasi geografis dikenal sebagai <mark>Geopolitics</mark>. Di chapter ini kamu akan belajar tentang <b>country</b> (negara), <b>nationality</b> (kebangsaan), dan <b>language</b> (bahasa). Tapi pertama, kenali dulu nama-nama benua pada tabel berikut.`),
+    vbSec('A. Geographic Region / Continent', vbTable(['Continent','Continental identity'],[
+      ['Africa','African'],['Asia','Asian'],['Europe','European'],['Central America','Central American'],
+      ['North America','North American'],['South America','South American'],['Southeast Asia','Southeast Asian'],['Middle East','Middle Eastern']]) + `<i>Catatan: di buku tertulis "North Africa → North American" dan "Southeast Asia → Southeast Asia". Saya tulis versi yang benar (North America, Southeast Asian).</i>`),
+    vbSec('B. Country, Nationality & Language', `Orang dari negara yang sama sering punya <b>nationality</b> yang sama dan mungkin berbicara <b>bahasa</b> yang sama, jadi penting untuk mengenal semuanya. Berikut daftar country, nationality, dan language, dibagi 4 bagian (A–F, F–M, N–S, T–V).`),
+    vbSec('B.1 Countries A – F', vbTable(['Country','Nationality','Language'], VB_WORLD.slice(0,27))),
+    vbSec('B.2 Countries F – M', vbTable(['Country','Nationality','Language'], VB_WORLD.slice(27,57))),
+    vbSec('B.3 Countries N – S', vbTable(['Country','Nationality','Language'], VB_WORLD.slice(57,87))),
+    vbSec('B.4 Countries T – V', vbTable(['Country','Nationality','Language'], VB_WORLD.slice(87)))
+  ]
+}
+/* ← tambah Chapter 7, 8, dst. di sini (pakai koma setelah objek sebelumnya) */
 ];
 
 /* ---------- Style (disuntik sekali, gak ngubah CSS lama) ---------- */
@@ -18719,6 +18912,8 @@ function vbPrBuild(setId){
       explain:escapeHtmlIdx(a[0])+' = '+escapeHtmlIdx(m)+' → '+(happy?'Happiness (senang)':'Sadness (sedih)')});
   });
   else if(setId==='colloc') VB_PRACTICE_COLLOC.forEach(a=>out.push(mkFix(a,'Collocation · '+a[3],'')));
+  else if(setId.indexOf('ld-')===0) return vbLdBuild(setId);
+  else if(setId.indexOf('cn-')===0||setId.indexOf('wd-')===0) return vbCwBuild(setId);
   else {
     VB_PRACTICE_VERBS_AS.forEach(a=>out.push({kind:'choice',label:'Action vs Stative',prompt:a[0],ask:'Verb yang ditebalkan itu termasuk apa?',
       options:[['AV','Action verb'],['SV','Stative verb']],answer:a[1],explain:a[2]}));
@@ -18735,6 +18930,94 @@ const VB_PRACTICE_SETS = [
  {id:'verb', icon:'🏃', title:'Action Verbs', sub:'Action/Stative & Transitive/Intransitive', n:()=>VB_PRACTICE_VERBS_AS.length+VB_PRACTICE_VERBS_TI.length}
 ];
 
+/* ---------- Latihan Chapter 4: Likes and Dislikes (tambahan, set lama tidak diubah) ---------- */
+// [ungkapan benar, kata benar, kata salah (pengecoh), arti, label]
+const VB_LD_FIX = [
+ ["cannot stand","stand","stay","tidak tahan (pakai cannot, bukan can't)","Dislikes · tidak tahan"],
+ ["cannot bear","bear","carry","tidak tahan (pakai cannot, bukan can't)","Dislikes · tidak tahan"],
+ ["be loathed by","by","with","dibenci","Dislikes · benci (passive)"],
+ ["be repelled by","by","to","merasa jijik","Dislikes · jijik (passive)"],
+ ["be disgusted by","by","to","merasa jijik","Dislikes · jijik (passive)"],
+ ["be revolted by","by","for","merasa muak / jijik","Dislikes · jijik (passive)"],
+ ["be dreaded by","by","from","ditakuti / dicemaskan","Dislikes · jijik (passive)"],
+ ["be attracted to","to","of","tertarik pada","Likes · kagum/senang (passive)"],
+ ["be fascinated by","by","for","terpesona oleh","Likes · kagum/senang (passive)"],
+ ["be tempted by","by","of","tergoda oleh","Likes · kagum/senang (passive)"],
+ ["be captivated by","by","to","terpikat oleh","Likes (passive)"],
+ ["be fond of","of","to","menyukai / tertarik pada","Likes · tertarik"],
+ ["be keen on","on","in","gemar / tertarik pada","Likes · tertarik"],
+ ["be passionate about","about","on","sangat antusias terhadap","Likes"],
+ ["look forward to","to","for","menantikan","Likes"],
+ ["long for","for","at","mendambakan / merindukan","Likes"],
+ ["yearn for","for","of","merindukan","Likes"],
+ ["appeal to","to","at","menarik hati","Likes · kagum/senang"]
+];
+// [kalimat active, kalimat passive ('' = tidak ada), L/D, arti ungkapan]
+const VB_LD_ITEMS = [
+ ["Jake loves hiking, but he <b>loathes</b> camping overnight in the wilderness.","Camping overnight in the wilderness is <b>loathed</b> by Jake, despite his love for hiking.","D","loathe = sangat membenci"],
+ ["Maria loves traveling, but she <b>detests</b> long layovers in airports.","","D","detest = sangat membenci"],
+ ["He <b>cannot stand</b> going a day without diving into a good book.","","D","cannot stand = tidak tahan"],
+ ["The strong smell of certain fermented dishes <b>repels</b> Sarah.","Sarah enjoys trying new foods, but she is <b>repelled by</b> the strong smell of certain fermented dishes.","D","repel = membuat jijik"],
+ ["The smell of wet dog fur <b>disgusts</b> Mark.","Mark is <b>disgusted by</b> the smell of wet dog fur.","D","disgust = menjijikkan"],
+ ["The texture of certain slimy foods, like okra, <b>revolts</b> Sarah.","Sarah is <b>revolted by</b> the texture of certain slimy foods, like okra.","D","revolt = membuat muak / jijik"],
+ ["Robert <b>cannot bear</b> to start his day without a cup of coffee.","","D","cannot bear = tidak tahan"],
+ ["Mike <b>dreads</b> attending large parties because he finds them overwhelming and exhausting.","Large parties <b>are dreaded by</b> Mike due to finding them overwhelming and exhausting.","D","dread = sangat takut / enggan menghadapi"],
+ ["She <b>yearned for</b> the serenity of the countryside.","","L","yearn for = merindukan"],
+ ["Viola is <b>passionate about</b> basketball.","","L","passionate about = sangat antusias / gemar"],
+ ["The first time I visited Venice, the city <b>captivated</b> me.","The first time I visited Venice, I <b>was captivated by</b> the city.","L","captivate = memikat"],
+ ["I <b>fancied</b> the idea of spending the weekend curled up with a good book and warm tea.","","L","fancy = tertarik / menyukai"],
+ ["I am <b>keen on</b> hiking.","","L","keen on = gemar / tertarik"],
+ ["She <b>looks forward to</b> the annual family reunion with eager anticipation and excitement.","","L","look forward to = menantikan"],
+ ["He <b>longs for</b> the crisp mountain air and the sound of rushing streams.","","L","long for = mendambakan / merindukan"],
+ ["The vibrant colors of the painting really <b>appeal to</b> me.","","L","appeal to = menarik hati"],
+ ["Her warmth and kindness really <b>attract</b> me.","I am really <b>attracted to</b> her warmth and kindness.","L","attract = menarik"],
+ ["Her excellent multilingual skills <b>fascinate</b> me.","I'm <b>fascinated by</b> her excellent multilingual skills.","L","fascinate = memukau"],
+ ["The aroma of baked cookies <b>tempts</b> me every time.","I <b>am tempted by</b> the aroma of baked cookies every time.","L","tempt = menggoda"]
+];
+const VB_LD_GROUPS = {H:'Benci',T:'Tidak tahan',J:'Jijik',K:'Tertarik',S:'Kagum / senang'};
+const VB_LD_GRP = [
+ ["loathe / loathes / loathed","H"],["detest / detests","H"],
+ ["cannot stand","T"],["cannot bear","T"],
+ ["repel / repels / repelled by","J"],["dread / dreads / dreaded by","J"],["disgust / disgusts / disgusted by","J"],["revolt / revolts / revolted by","J"],
+ ["be fond of","K"],["be keen on","K"],["fancy / fancied","K"],
+ ["appeal to","S"],["attract / attracted to","S"],["fascinate / fascinated by","S"],["tempt / tempts / tempted by","S"]
+];
+function vbLdBuild(id){
+  const out=[];
+  const key=h=>{ const m=h.match(/<b>(.*?)<\/b>/); return m?m[1]:''; };
+  if(id==='ld-fix') VB_LD_FIX.forEach(a=>{
+    const re=new RegExp('\\b'+a[1]+'\\b');
+    out.push({kind:'fix',shown:a[0].replace(re,a[2]),answer:a[0],word:a[1],wrong:a[2],label:a[4],hint:'Arti: '+a[3]});
+  });
+  else if(id==='ld-feel') VB_LD_ITEMS.forEach(a=>out.push({kind:'choice',label:'Likes & Dislikes',prompt:a[0],
+    ask:'Ungkapan yang ditebalkan menyatakan suka atau tidak suka?',options:[['L','👍 Suka'],['D','👎 Tidak suka']],answer:a[2],
+    explain:a[3]+' → '+(a[2]==='L'?'suka / tertarik (Likes)':'tidak suka (Dislikes)')}));
+  else if(id==='ld-voice') VB_LD_ITEMS.forEach(a=>{
+    out.push({kind:'choice',label:'Active vs Passive meaning',prompt:a[0],ask:'Kalimat ini bermakna active atau passive?',
+      options:[['A','Active (V1, me-)'],['P','Passive (V3 + by, di-/ter-)']],answer:'A',
+      explain:'Active meaning: pakai V1 (arti "me-"). Ungkapan: '+key(a[0])});
+    if(a[1]) out.push({kind:'choice',label:'Active vs Passive meaning',prompt:a[1],ask:'Kalimat ini bermakna active atau passive?',
+      options:[['A','Active (V1, me-)'],['P','Passive (V3 + by, di-/ter-)']],answer:'P',
+      explain:'Passive meaning: V3 + by (arti "di-/ter-"). Ungkapan: '+key(a[1])});
+  });
+  else if(id==='ld-grp') VB_LD_GRP.forEach(a=>{
+    const others=Object.keys(VB_LD_GROUPS).filter(k=>k!==a[1]);
+    for(let i=others.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [others[i],others[j]]=[others[j],others[i]]; }
+    const ids=[a[1],others[0],others[1]];
+    for(let i=ids.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [ids[i],ids[j]]=[ids[j],ids[i]]; }
+    out.push({kind:'choice',label:'Arti ungkapan',prompt:'“'+escapeHtmlIdx(a[0])+'”',ask:'Termasuk kelompok makna yang mana?',
+      options:ids.map(k=>[k,VB_LD_GROUPS[k]]),answer:a[1],explain:a[0]+' = '+VB_LD_GROUPS[a[1]]});
+  });
+  for(let i=out.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [out[i],out[j]]=[out[j],out[i]]; }
+  return out;
+}
+VB_PRACTICE_SETS.push(
+ {id:'ld-fix', icon:'✏️', title:'Likes & Dislikes', sub:'Perbaiki kata yang salah', n:()=>VB_LD_FIX.length},
+ {id:'ld-feel', icon:'👍', title:'Suka atau Tidak?', sub:'Like or Dislike', n:()=>VB_LD_ITEMS.length},
+ {id:'ld-voice', icon:'🔁', title:'Active / Passive', sub:'V1 vs V3 + by', n:()=>vbLdBuild('ld-voice').length},
+ {id:'ld-grp', icon:'🧠', title:'Arti Ungkapan', sub:'Benci, jijik, tertarik, dll.', n:()=>VB_LD_GRP.length}
+);
+
 function vbNorm(x){ return String(x).toLowerCase().replace(/\([^)]*\)/g,' ').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim(); }
 function vbNormKeep(x){ return String(x).toLowerCase().replace(/[()]/g,' ').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim(); }
 function vbStripSome(x){ return x.replace(/\b(something|someone|somebody)\b/g,' ').replace(/\s+/g,' ').trim(); }
@@ -18750,6 +19033,111 @@ function vbCheckFix(q,input){
 }
 
 let vbPr = null;
+/* ---------- Latihan Chapter 5 (Collective Nouns) & Chapter 6 (Around the World) ---------- */
+// [ungkapan, collective noun, pengecoh 1, pengecoh 2, arti]
+const VB_CN = [
+ ["a litter of puppies","litter","swarm","pair","seinduk anak anjing"],
+ ["a pride of lions","pride","choir","grove","kawanan singa"],
+ ["a crew of sailors","crew","herd","comb","awak pelaut"],
+ ["a grove of trees","grove","litter","band","rumpun pohon"],
+ ["a swarm of bees","swarm","class","pair","kawanan lebah"],
+ ["a colony of ants","colony","choir","comb","koloni semut"],
+ ["a choir of singers","choir","herd","grove","paduan suara"],
+ ["a comb of bananas","comb","crew","school","sesisir pisang"],
+ ["a herd of cattle","herd","choir","pair","kawanan sapi"],
+ ["a class of students","class","swarm","grove","satu kelas siswa"],
+ ["a group of dancers","group","colony","comb","kelompok penari"],
+ ["a pair of shoes","pair","herd","swarm","sepasang sepatu"],
+ ["a school of fish","school","choir","grove","kawanan ikan"],
+ ["a crowd of people","crowd","litter","comb","kerumunan orang"],
+ ["a flock of tourists","flock","pride","comb","rombongan turis"],
+ ["a pack of cards","pack","herd","grove","setumpuk kartu"],
+ ["a flock of birds","flock","school","litter","kawanan burung"],
+ ["a band of musicians","band","swarm","pair","grup musisi"],
+ ["a bunch of grapes","bunch","herd","crew","seikat anggur"],
+ ["a range of mountains","range","litter","choir","rangkaian pegunungan"]
+];
+// [collective noun, kategori] P = People, A = Animal, O = Object
+const VB_CN_CAT = [["family","P"],["team","P"],["committee","P"],["audience","P"],["jury","P"],
+ ["herd","A"],["pack","A"],["flock","A"],["swarm","A"],["school","A"],
+ ["collection","O"],["fleet","O"],["stack","O"],["cluster","O"],["bundle","O"]];
+// [kalimat, bentuk singular, bentuk plural]
+const VB_CN_SING = [
+ ["The team ___ winning the match.","is","are"],
+ ["The choir ___ performing tonight.","is","are"],
+ ["The family ___ on vacation every summer.","goes","go"],
+ ["The herd ___ crossing the river.","is","are"],
+ ["The class ___ taking a test now.","is","are"],
+ ["The committee ___ making a decision today.","is","are"]
+];
+const VB_CONT = [["Africa","African"],["Asia","Asian"],["Europe","European"],["Central America","Central American"],
+ ["North America","North American"],["South America","South American"],["Southeast Asia","Southeast Asian"],["Middle East","Middle Eastern"]];
+function vbCwBuild(id){
+  const out=[];
+  const shuf=a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+  const tok=s=>s.toLowerCase().split(/,| and /).map(x=>x.trim()).filter(Boolean);
+  const uniq=a=>a.filter((x,i)=>a.indexOf(x)===i);
+  // pilihan ganda: opts sudah termasuk jawaban benar; id opsi dibuat acak
+  const mc=(label,prompt,ask,correct,opts,explain)=>{
+    const l=shuf(opts.slice());
+    return {kind:'choice',label,prompt,ask,options:l.map((x,i)=>['o'+i,escapeHtmlIdx(x)]),answer:'o'+l.indexOf(correct),explain};
+  };
+  const three=(ok,pool)=>{ const bad=[]; shuf(uniq(pool)).forEach(x=>{ if(x!==ok && bad.length<2) bad.push(x); }); return [ok].concat(bad); };
+  const quote=s=>'“'+escapeHtmlIdx(s)+'”';
+  const sample=(a,n)=>shuf(a.slice()).slice(0,n);
+  if(id==='cn-fix') VB_CN.forEach(a=>{
+    const re=new RegExp('\\b'+a[1]+'\\b');
+    out.push({kind:'fix',shown:a[0].replace(re,a[2]),answer:a[0],word:a[1],wrong:a[2],label:'Collective nouns',
+      hint:'Arti: '+a[4]+' (boleh ketik kata yang benar saja atau ungkapan lengkap)'});
+  });
+  else if(id==='cn-pick') VB_CN.forEach(a=>out.push(mc('Collective nouns',escapeHtmlIdx(a[0].replace(a[1],'___')),'Pilih collective noun yang tepat.',a[1],[a[1],a[2],a[3]],a[0]+' = '+a[4])));
+  else if(id==='cn-cat'){
+    const N={P:'People',A:'Animal',O:'Object'};
+    VB_CN_CAT.forEach(a=>out.push(mc('Kategori collective noun',quote(a[0]),'Termasuk kategori apa?',N[a[1]],['People','Animal','Object'],a[0]+' = '+N[a[1]])));
+  }
+  else if(id==='cn-sing') VB_CN_SING.forEach(a=>out.push(mc('Collective noun umumnya singular',escapeHtmlIdx(a[0]),'Pilih bentuk yang tepat.',a[1],[a[1],a[2]],'Collective noun umumnya singular, jadi pakai "'+a[1]+'".')));
+  else if(id==='wd-nat') sample(VB_WORLD,20).forEach(r=>out.push(mc('Nationality',quote(r[0]),'Apa nationality (kebangsaan) dari negara ini?',r[1],three(r[1],VB_WORLD.map(x=>x[1])),r[0]+' → '+r[1])));
+  else if(id==='wd-ctry') sample(VB_WORLD,20).forEach(r=>out.push(mc('Nationality → Country',quote(r[1]),'Nationality ini berasal dari negara mana?',r[0],three(r[0],VB_WORLD.map(x=>x[0])),r[1]+' = orang '+r[0])));
+  else if(id==='wd-lang') sample(VB_WORLD,20).forEach(r=>{
+    const ct=tok(r[2]);
+    const pool=VB_WORLD.map(x=>x[2]).filter(l=>!tok(l).some(t=>ct.indexOf(t)>-1));
+    out.push(mc('Language',quote(r[0]),'Bahasa apa yang dipakai di negara ini?',r[2],three(r[2],pool),r[0]+' → '+r[2]));
+  });
+  else if(id==='wd-cont') VB_CONT.forEach(a=>out.push(mc('Continent',quote(a[0]),'Apa continental identity-nya?',a[1],three(a[1],VB_CONT.map(x=>x[1])),a[0]+' → '+a[1])));
+  return shuf(out);
+}
+VB_PRACTICE_SETS.push(
+ {id:'cn-fix', icon:'✏️', title:'Collective Noun', sub:'Perbaiki kata yang salah', n:()=>VB_CN.length},
+ {id:'cn-pick', icon:'🎯', title:'a ___ of ...', sub:'Pilih collective noun yang tepat', n:()=>VB_CN.length},
+ {id:'cn-cat', icon:'🗂️', title:'People / Animal / Object', sub:'Tebak kategorinya', n:()=>VB_CN_CAT.length},
+ {id:'cn-sing', icon:'1️⃣', title:'Singular Form', sub:'is / are, goes / go', n:()=>VB_CN_SING.length},
+ {id:'wd-nat', icon:'🌍', title:'Country → Nationality', sub:'20 soal acak', n:()=>Math.min(20,VB_WORLD.length)},
+ {id:'wd-ctry', icon:'🧭', title:'Nationality → Country', sub:'20 soal acak', n:()=>Math.min(20,VB_WORLD.length)},
+ {id:'wd-lang', icon:'🗣️', title:'Country → Language', sub:'20 soal acak', n:()=>Math.min(20,VB_WORLD.length)},
+ {id:'wd-cont', icon:'🗺️', title:'Continent', sub:'Benua & identitasnya', n:()=>VB_CONT.length}
+);
+
+// Pengelompokan menu latihan per chapter (set latihan sendiri tidak diubah)
+const VB_SET_CH = {colloc:'vb-ch1', idiom:'vb-ch2', mood:'vb-ch2', verb:'vb-ch3', 'ld-fix':'vb-ch4', 'ld-feel':'vb-ch4', 'ld-voice':'vb-ch4', 'ld-grp':'vb-ch4', 'cn-fix':'vb-ch5', 'cn-pick':'vb-ch5', 'cn-cat':'vb-ch5', 'cn-sing':'vb-ch5', 'wd-nat':'vb-ch6', 'wd-ctry':'vb-ch6', 'wd-lang':'vb-ch6', 'wd-cont':'vb-ch6'};
+function vbPrGroupedGrid(){
+  const btn = x => `
+          <button class="day-btn" data-vbpr="${x.id}" type="button">
+            <div class="dnum">${x.icon} ${x.n()} SOAL</div>
+            <div class="dtitle">${x.title}<br><span style="font-size:10.5px;font-weight:600;opacity:.75;">${x.sub}</span></div>
+          </button>`;
+  const head = (t,n) => `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:16px 0 6px;"><b style="font-size:13.5px;color:var(--ink);">🧩 ${t}</b><span style="font-size:11px;font-weight:700;opacity:.6;">${n} soal</span></div>`;
+  const used = {};
+  let html = '';
+  VOCABBUILD_CHAPTERS.forEach(ch=>{
+    const sets = VB_PRACTICE_SETS.filter(x=>VB_SET_CH[x.id]===ch.id);
+    if(!sets.length) return;
+    sets.forEach(x=>used[x.id]=1);
+    html += head(ch.title, sets.reduce((a,x)=>a+x.n(),0)) + `<div class="day-grid">${sets.map(btn).join('')}</div>`;
+  });
+  const rest = VB_PRACTICE_SETS.filter(x=>!used[x.id]);
+  if(rest.length) html += head('Lainnya', rest.reduce((a,x)=>a+x.n(),0)) + `<div class="day-grid">${rest.map(btn).join('')}</div>`;
+  return html;
+}
 function renderVbPracticeMenu(){
   clearTimer();
   statusVal.textContent = "LATIHAN";
@@ -18759,14 +19147,8 @@ function renderVbPracticeMenu(){
     <div class="center-stack" style="align-items:stretch;">
       <div class="section-tag" style="background:#f59e0b;color:#fff;">📝 LATIHAN SOAL</div>
       <h1 class="intro-title" style="font-size:19px;">Latihan Vocabulary Building</h1>
-      <p class="intro-desc" style="font-size:12px;">Pilih latihan. Untuk Idioms &amp; Collocation: ada 1 kata yang salah di ungkapan, tebak lalu ketik versi yang benar.</p>
-      <div class="day-grid">
-        ${VB_PRACTICE_SETS.map(x=>`
-          <button class="day-btn" data-vbpr="${x.id}" type="button">
-            <div class="dnum">${x.icon} ${x.n()} SOAL</div>
-            <div class="dtitle">${x.title}<br><span style="font-size:10.5px;font-weight:600;opacity:.75;">${x.sub}</span></div>
-          </button>`).join('')}
-      </div>
+      <p class="intro-desc" style="font-size:12px;">Pilih latihan per chapter. Untuk Idioms &amp; Collocation: ada 1 kata yang salah di ungkapan, tebak lalu ketik versi yang benar.</p>
+      ${vbPrGroupedGrid()}
       <button class="btn ghost" id="vbPrBackBtn" style="margin-top:14px;">← Kembali</button>
     </div>`;
   document.getElementById('vbPrBackBtn').onclick = ()=> renderVocabBuildingList(vbBackTarget);
