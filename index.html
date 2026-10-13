@@ -19576,6 +19576,8 @@ function renderStpDetail(i){
         <img id="stpImg" src="${src}" alt="Chapter ${c.n}" style="width:100%;border-radius:12px;border:1.5px solid var(--line);cursor:zoom-in;">
         <div style="font-size:11px;opacity:0.6;text-align:center;margin-top:-6px;">Ketuk gambar untuk memperbesar</div>
         <button class="btn ghost" id="stpToggleBtn" type="button" style="margin:0;">${stpShowAns ? '🙈 Sembunyikan jawaban' : '👀 Tampilkan jawaban'}</button>
+        ${STP_RETELL[i] ? `<button class="btn" id="stpRetellBtn" type="button" style="margin:0;">📝 Retell</button>
+        <div id="stpRetell" style="display:none;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;font-size:13px;line-height:1.75;"><div style="font-weight:800;margin-bottom:6px;">Retell: ${stpSafe(c.t)}</div>${stpSafe(STP_RETELL[i])}</div>` : ''}
         ${stpExHtml(c.e2, 2)}
         ${stpExHtml(c.e4, 4)}
       </div>
@@ -19592,12 +19594,27 @@ function renderStpDetail(i){
     document.getElementById('stpBox').classList.toggle('stp-hide', !stpShowAns);
     document.getElementById('stpToggleBtn').textContent = stpShowAns ? '🙈 Sembunyikan jawaban' : '👀 Tampilkan jawaban';
   };
+  const rb = document.getElementById('stpRetellBtn');
+  if(rb){ rb.onclick = ()=>{
+    const pn = document.getElementById('stpRetell');
+    const open = pn.style.display === 'none';
+    pn.style.display = open ? 'block' : 'none';
+    rb.textContent = open ? '🙈 Sembunyikan Retell' : '📝 Retell';
+  }; }
   document.getElementById('stpPrevBtn').onclick = ()=> renderStpDetail(i-1);
   document.getElementById('stpNextBtn').onclick = ()=> renderStpDetail(i+1);
   document.getElementById('stpListBtn').onclick = ()=> renderStpList();
   document.getElementById('stpVocabBtn2').onclick = ()=> renderStpVocab(i, true);
 }
 
+
+/* ---------- Retell STP (baru chapter 1–4; chapter lain tombolnya otomatis tidak muncul) ---------- */
+const STP_RETELL = {
+0: `James Cash is a multi-millionaire. He is the chairman of a big company and lives in a mansion. Every morning, he has breakfast in bed, usually boiled eggs and champagne. His servants help him get dressed, and he always wears a suit. His chauffeur drives him to work at 7 am. In the morning he has business meetings, and in the afternoon he looks at the sales reports. Sales go up every year because business is good. In the evening he entertains clients. He takes them to a night club and they watch a cabaret. At two o'clock in the morning his chauffeur drives him home. James is always exhausted, and the next day is exactly the same.`,
+1: `Last night there was an accident in the South China Sea, near the Philippines. At half past two in the morning, an oil tanker hit a fishing boat in stormy weather. There was a hole in the tanker and tons of oil came out. The fishing boat sank, but the crew got into a life raft. The fishermen sent flares from the raft, and a rescue boat went to find them. They rescued the fishermen, who were very cold. In the morning, a helicopter saw all the oil on the sea. Now special boats are spraying chemicals on the oil. The beaches are very polluted, and a lot of fish and seabirds are caught in the oil.`,
+2: `Francis Thumber bought a "World Traveller" ticket and travelled around the world. In Australia he picked grapes and swam with sharks. He saw old temples in Greece and ate pasta in Italy. A thief stole his money, and he had to sleep outside under the stars. In India he took lots of photos, and in Tibet he climbed high mountains. He went from Hong Kong to China by boat and was seasick. In China he cycled to the Great Wall. In Rio he went to the carnival, where he met a beautiful girl and they danced all night. This morning he arrived home and went to see his parents.`,
+3: `Joe Green is a postman. One evening he saw a UFO in the sky. It landed in a field near his house, and he climbed inside. He looked at the control panels. Then the UFO took off and flew around the earth. After that it landed in the same field. Joe went home and told his wife. Then he went to the police station and told the duty officer. At the pub, his friends laughed at his story. Now, every night, he goes to the field and waits there.`
+};
 
 /* ---------- Tabel Vocab STP (chapter 1–24): "inggris=arti" dipisah | ---------- */
 const STP_VOCAB = [
