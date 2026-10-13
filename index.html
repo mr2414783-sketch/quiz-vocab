@@ -19536,6 +19536,7 @@ function stpZoom(src){
 
 function renderStpList(){
   clearTimer();
+  stpStopStory();
   statusVal.textContent = "STP";
   setPresenceStatus('idle');
   setPresenceMode('Materi STP (menu)');
@@ -19561,6 +19562,7 @@ function renderStpList(){
 
 function renderStpDetail(i){
   clearTimer();
+  stpStopStory();
   const c = STP_CHAPTERS[i];
   if(!c){ renderStpList(); return; }
   stpCur = i;
@@ -19577,7 +19579,7 @@ function renderStpDetail(i){
         <div style="font-size:11px;opacity:0.6;text-align:center;margin-top:-6px;">Ketuk gambar untuk memperbesar</div>
         <button class="btn ghost" id="stpToggleBtn" type="button" style="margin:0;">${stpShowAns ? '🙈 Sembunyikan jawaban' : '👀 Tampilkan jawaban'}</button>
         ${STP_RETELL[i] ? `<button class="btn" id="stpRetellBtn" type="button" style="margin:0;">📝 Retell</button>
-        <div id="stpRetell" style="display:none;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;font-size:13px;line-height:1.75;"><div style="font-weight:800;margin-bottom:6px;">Retell: ${stpSafe(c.t)}</div>${stpSafe(STP_RETELL[i])}</div>` : ''}
+        <div id="stpRetell" style="display:none;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:left;font-size:13px;line-height:1.75;"><div style="font-weight:800;margin-bottom:6px;">Retell: ${stpSafe(c.t)}</div>${STP_RETELL_ORDER[i] ? `<div style="font-size:11.5px;opacity:0.7;margin-bottom:6px;">Urutan gambar: ${stpSafe(STP_RETELL_ORDER[i])}</div>` : ''}<button class="btn ghost" id="stpPlayBtn" type="button" style="margin:0 0 8px;">🔊 Dengarkan cerita</button>${stpSafe(STP_RETELL[i])}</div>` : ''}
         ${stpExHtml(c.e2, 2)}
         ${stpExHtml(c.e4, 4)}
       </div>
@@ -19600,7 +19602,10 @@ function renderStpDetail(i){
     const open = pn.style.display === 'none';
     pn.style.display = open ? 'block' : 'none';
     rb.textContent = open ? '🙈 Sembunyikan Retell' : '📝 Retell';
+    if(!open) stpStopStory();
   }; }
+  const pb = document.getElementById('stpPlayBtn');
+  if(pb) pb.onclick = ()=> stpPlayStory(STP_RETELL[i], pb);
   document.getElementById('stpPrevBtn').onclick = ()=> renderStpDetail(i-1);
   document.getElementById('stpNextBtn').onclick = ()=> renderStpDetail(i+1);
   document.getElementById('stpListBtn').onclick = ()=> renderStpList();
@@ -19610,11 +19615,43 @@ function renderStpDetail(i){
 
 /* ---------- Retell STP (baru chapter 1–4; chapter lain tombolnya otomatis tidak muncul) ---------- */
 const STP_RETELL = {
-0: `James Cash is a multi-millionaire. He is the chairman of a big company and lives in a mansion. Every morning, he has breakfast in bed, usually boiled eggs and champagne. His servants help him get dressed, and he always wears a suit. His chauffeur drives him to work at 7 am. In the morning he has business meetings, and in the afternoon he looks at the sales reports. Sales go up every year because business is good. In the evening he entertains clients. He takes them to a night club and they watch a cabaret. At two o'clock in the morning his chauffeur drives him home. James is always exhausted, and the next day is exactly the same.`,
-1: `Last night there was an accident in the South China Sea, near the Philippines. At half past two in the morning, an oil tanker hit a fishing boat in stormy weather. There was a hole in the tanker and tons of oil came out. The fishing boat sank, but the crew got into a life raft. The fishermen sent flares from the raft, and a rescue boat went to find them. They rescued the fishermen, who were very cold. In the morning, a helicopter saw all the oil on the sea. Now special boats are spraying chemicals on the oil. The beaches are very polluted, and a lot of fish and seabirds are caught in the oil.`,
-2: `Francis Thumber bought a "World Traveller" ticket and travelled around the world. In Australia he picked grapes and swam with sharks. He saw old temples in Greece and ate pasta in Italy. A thief stole his money, and he had to sleep outside under the stars. In India he took lots of photos, and in Tibet he climbed high mountains. He went from Hong Kong to China by boat and was seasick. In China he cycled to the Great Wall. In Rio he went to the carnival, where he met a beautiful girl and they danced all night. This morning he arrived home and went to see his parents.`,
-3: `Joe Green is a postman. One evening he saw a UFO in the sky. It landed in a field near his house, and he climbed inside. He looked at the control panels. Then the UFO took off and flew around the earth. After that it landed in the same field. Joe went home and told his wife. Then he went to the police station and told the duty officer. At the pub, his friends laughed at his story. Now, every night, he goes to the field and waits there.`
+0: `James Cash is a multi-millionaire and the chairman of a big company. He lives in a mansion, and every morning his servants bring him breakfast in bed, usually boiled eggs and champagne. They also help him put on his suit. His chauffeur drives him to the office, where he has business meetings in the morning and checks the sales reports in the afternoon. In the evening he entertains clients: he takes them to a night club to watch a cabaret. At two o'clock in the morning his chauffeur drives him home. James is always exhausted, and the next day is exactly the same.`,
+1: `Last night there was an accident in the South China Sea, near the Philippines. In stormy weather, an oil tanker hit a fishing boat at half past two in the morning. The captain reported a slight collision and minor damage, but in fact the bow of the tanker had a hole and the oil began to leak. The fishing boat sank, so the crew climbed into a life raft. The fishermen were shocked and freezing, so they sent up flares. A rescue boat came and rescued them. In the morning, a helicopter saw the oil on the sea, and special boats started to spray chemicals. The beaches are polluted, the sea birds are in danger, and tourism is in trouble.`,
+2: `Francis Thumber, a young man on his gap year, went to a travel agent and bought a "World Traveller" ticket. He set off on the adventure of a lifetime. In Australia he picked grapes and swam with sharks. In Greece he saw old temples, and in Italy he ate pasta. Then a thief stole his money, so he had to sleep outside under the stars. In India he took lots of photos. In Tibet he climbed high mountains. He went from Hong Kong to China by boat and was seasick, but in China he cycled to the Great Wall. In Rio he went to the carnival and danced all night with a beautiful girl. This morning he arrived home and went to see his parents. His parents were very pleased.`,
+3: `Joe Green is a postman. He left his van behind in a field and looked at the sky. Suddenly he saw a glowing UFO, and it landed in the field. Joe was curious, so he climbed inside. In the flight deck he looked at the control panels and pushed a button. The UFO took off, flew into outer space, and began to orbit the Earth. After that, it landed in the same field and Joe drove home. He told his wife, but she thought it was nonsense. He went to the police station and told the duty officer, and at the pub his friends laughed at him. However, every night Joe goes to the same field and waits for the UFO to reappear.`,
+4: `Jim and his dad decided to go to a football match. They arrived at the stadium at ten to three. The players came onto the pitch and the game started. It was very exciting. Liverpool scored a goal at twenty-five past three and the crowd cheered. In the second half, a Liverpool defender made a foul and the referee gave a penalty to Munich. However, the goalkeeper saved the penalty. Liverpool won one-nil, and the Munich supporters were disappointed. Meanwhile, Jim's mum was in the kitchen. When they got home at half past six, she was annoyed. They put their supper on a tray and watched the highlights of the match on TV.`
 };
+const STP_RETELL_ORDER = { 4: '1 → 2 → 3 → 4 → 6 → 5 → 7 → 8 → 9' };
+
+/* ---------- Suara untuk Retell (text-to-speech bawaan HP) ---------- */
+let _stpStoryToken = 0, _stpStoryBtn = null;
+function stpStopStory(){
+  _stpStoryToken++;
+  try{ if(typeof speechSynthesis !== 'undefined') speechSynthesis.cancel(); }catch(e){}
+  if(_stpStoryBtn){ _stpStoryBtn.textContent = '🔊 Dengarkan cerita'; _stpStoryBtn = null; }
+}
+function stpPlayStory(text, btn){
+  if(typeof speechSynthesis === 'undefined'){ btn.textContent = 'Suara tidak didukung di perangkat ini'; return; }
+  if(_stpStoryBtn === btn){ stpStopStory(); return; }
+  stpStopStory();
+  const token = _stpStoryToken;
+  _stpStoryBtn = btn;
+  btn.textContent = '⏹ Hentikan suara';
+  const sents = text.match(/[^.!?]+[.!?]+["']?/g) || [text];
+  setTimeout(()=>{
+    if(token !== _stpStoryToken) return;
+    sents.forEach((sn, idx)=>{
+      const u = new SpeechSynthesisUtterance(ttsRespell(sn.trim()));
+      u.lang = 'en-US';
+      u.rate = 0.9;
+      if(idx === sents.length - 1){
+        const done = ()=>{ if(token === _stpStoryToken && _stpStoryBtn === btn){ btn.textContent = '🔊 Dengarkan cerita'; _stpStoryBtn = null; } };
+        u.onend = done; u.onerror = done;
+      }
+      speechSynthesis.speak(u);
+    });
+  }, 80);
+}
 
 /* ---------- Tabel Vocab STP (chapter 1–24): "inggris=arti" dipisah | ---------- */
 const STP_VOCAB = [
@@ -19622,7 +19659,7 @@ const STP_VOCAB = [
 'crew=awak kapal|flare=suar|to rescue=menyelamatkan|polluted=tercemar|tourism=pariwisata|bow=haluan kapal|to sink=tenggelam|to spray=menyemprot|collision=tabrakan|to leak=bocor|oil tanker=kapal tanker minyak|life raft=rakit penyelamat|fishermen=nelayan|stormy=berbadai|helicopter=helikopter|accident=kecelakaan|South China Sea=Laut China Selatan|fishing boat=kapal nelayan|stormy weather=cuaca badai|hit=menabrak|minor damage=kerusakan ringan|shocked=terkejut|freezing=sangat kedinginan|rescue boat=kapal penyelamat|spray chemicals=menyemprotkan cairan (kimia)|sea birds=burung laut|danger=bahaya',
 'cycled=bersepeda|carnival=karnaval|outside=di luar|pasta=pasta|photos=foto|boat=perahu|world=dunia|parents=orang tua|danced=menari|mountains=pegunungan|sharks=hiu|money=uang|grapes=anggur|thief=pencuri|temples=kuil|seasick=mabuk laut|gap year=tahun jeda|travel agent=agen travel|set off=berangkat|adventure of a lifetime=petualangan seumur hidup|pick grapes=memetik anggur|old temples=kuil-kuil kuno|steal=mencuri|sleep outside=tidur di luar|high mountains=gunung tinggi|cycle=bersepeda|dance all night=menari sepanjang malam|pleased=senang',
 'alien=makhluk asing|glowing=bercahaya|flight deck=ruang kemudi|to orbit=mengorbit|to reappear=muncul kembali|to land=mendarat|curious=penasaran|to take off=lepas landas|UFO=pesawat asing (piring terbang)|postman=tukang pos|control panels=panel kontrol|duty officer=petugas jaga|pub=kedai minum|field=ladang|van=mobil van|drive home=pulang (mengendarai)|sky=langit|climb in / inside=masuk ke dalam|fly=terbang|outer space=luar angkasa|push button=menekan tombol|orbit the Earth=mengorbit Bumi|same field=ladang yang sama|tell=bercerita|nonsense=omong kosong|left behind=ditinggalkan',
-'players=pemain|foul=pelanggaran|referee=wasit|kitchen=dapur|stadium=stadion|crowd=kerumunan penonton|highlights=cuplikan terbaik|pitch=lapangan|penalty=penalti|won=menang|match=pertandingan|goalkeeper=penjaga gawang|supporters=pendukung|disappointed=kecewa|annoyed=kesal|tray=nampan|supper=makan malam|defender=pemain bertahan|decide=memutuskan|arrive=tiba|score a goal=mencetak gol|crowd cheered=penonton bersorak|exciting=seru|save=menyelamatkan|one-nil=satu-kosong|get home=tiba di rumah',
+'players=pemain|foul=pelanggaran|referee=wasit|kitchen=dapur|stadium=stadion|crowd=kerumunan penonton|highlights=cuplikan terbaik|pitch=lapangan|penalty=penalti|won=menang|match=pertandingan|goalkeeper=penjaga gawang|supporters=pendukung|disappointed=kecewa|annoyed=kesal|tray=nampan|supper=makan malam|defender=pemain bertahan|decide=memutuskan|arrive=tiba|score a goal=mencetak gol|crowd cheered=penonton bersorak|exciting=seru|save=menyelamatkan|one-nil=satu-kosong|get home=tiba di rumah|injury=cedera|however=namun / akan tetapi|meanwhile=sementara itu',
 'homeless=tunawisma|pavement=trotoar|peace=perdamaian|nun=biarawati|orphan=anak yatim piatu|shelter=tempat berlindung|charity=lembaga amal|clinic=klinik|Nobel Prize=Hadiah Nobel|poor=miskin|organisation=organisasi|born=lahir',
 'dress=gaun|burst=meledak (burst into tears = menangis tersedu)|cat=kucing|prepared=menyiapkan|fish and chip=ikan dan kentang goreng|empty=kosong|horrified=ngeri/syok|invited=mengundang|laid=menata (laid the table)|arrived=tiba|rushed=bergegas|candles=lilin|boss=bos|salmon=ikan salmon|disaster=bencana',
 'baseball=bisbol|uniforms=seragam|mini=mini|dresses=gaun|jackets=jaket|expensive=mahal|jeans=jins|fashion=mode|fads=tren sesaat|Victorian=era Victoria|unisex=unisex|fleece=jaket fleece|hood=tudung|striped=bergaris|necklace=kalung|wartime=masa perang|piercings=tindik|tattoos=tato',
@@ -19644,19 +19681,509 @@ const STP_VOCAB = [
 'January=Januari|visa=visa|settled=menetap|identity=identitas|escape=melarikan diri|low-paid=bergaji rendah|permit=izin|cargo boat=kapal kargo|village=desa|bitterly=sangat (dingin menusuk)|graduated=lulus|safety=keselamatan|migrants=migran|traumatic=traumatis|to die of exposure=mati karena cuaca ekstrem|stateless=tanpa kewarganegaraan|fiction=fiksi|war-torn=dilanda perang|refugees=pengungsi|enrol=mendaftar|part-time=paruh waktu'
 ];
 
+const STP_IPA = (()=>{const m={};`
+a ə
+accident ˈæksɪdənt
+ache eɪk
+adore əˈdɔːr
+adventure ədˈvɛntʃər
+affordable əˈfɔːrdəbəl
+afraid əˈfreɪd
+agent ˈeɪdʒənt
+alcohol ˈælkəhɔːl
+alien ˈeɪliən
+all ɔːl
+ambassador æmˈbæsədər
+ambition æmˈbɪʃən
+and ænd
+annoyed əˈnɔɪd
+appeal əˈpiːl
+argument ˈɑːrɡjumənt
+arrested əˈrɛstɪd
+arrive əˈraɪv
+arrived əˈraɪvd
+assembly əˈsɛmbli
+athletics æθˈlɛtɪks
+auction ˈɔːkʃən
+back bæk
+baseball ˈbeɪsbɔːl
+begging ˈbɛɡɪŋ
+behind bɪˈhaɪnd
+beneficial ˌbɛnɪˈfɪʃəl
+birds bɜːrdz
+bit bɪt
+bitterly ˈbɪtərli
+black blæk
+blast blæst
+boat boʊt
+born bɔːrn
+boss bɔːs
+bow baʊ
+breakfast ˈbrɛkfəst
+buildings ˈbɪldɪŋz
+bulk bʌlk
+bull bʊl
+bulletin ˈbʊlətɪn
+burst bɜːrst
+button ˈbʌtən
+cabaret ˌkæbəˈreɪ
+camera ˈkæmrə
+campaign kæmˈpeɪn
+campsite ˈkæmpsaɪt
+cancer ˈkænsər
+candles ˈkændəlz
+cane keɪn
+cargo ˈkɑːrɡoʊ
+carnival ˈkɑːrnɪvəl
+cashier kæˈʃɪr
+cat kæt
+chairman ˈtʃɛrmən
+champagne ʃæmˈpeɪn
+champion ˈtʃæmpiən
+charity ˈtʃærəti
+chased tʃeɪst
+chauffeur ˈʃoʊfər
+cheered tʃɪrd
+cheering ˈtʃɪrɪŋ
+chemicals ˈkɛmɪkəlz
+china ˈtʃaɪnə
+chip tʃɪp
+cigars sɪˈɡɑːrz
+climate ˈklaɪmət
+climb klaɪm
+clinic ˈklɪnɪk
+club klʌb
+coach koʊtʃ
+collapsed kəˈlæpst
+collision kəˈlɪʒən
+commuter kəˈmjuːtər
+compact kəmˈpækt
+complain kəmˈpleɪn
+conquered ˈkɑːŋkərd
+conservationist ˌkɑːnsərˈveɪʃənɪst
+consortium kənˈsɔːrtiəm
+control kənˈtroʊl
+crack kræk
+crew kruː
+criminals ˈkrɪmɪnəlz
+crooks krʊks
+crowd kraʊd
+curious ˈkjʊriəs
+customers ˈkʌstəmərz
+cycle ˈsaɪkəl
+cycled ˈsaɪkəld
+damage ˈdæmɪdʒ
+dance dæns
+danced dænst
+danger ˈdeɪndʒər
+decide dɪˈsaɪd
+deck dɛk
+decorated ˈdɛkəreɪtɪd
+defender dɪˈfɛndər
+delayed dɪˈleɪd
+delighted dɪˈlaɪtɪd
+densely ˈdɛnsli
+deputy ˈdɛpjuti
+desert ˈdɛzərt
+despite dɪˈspaɪt
+destination ˌdɛstɪˈneɪʃən
+die daɪ
+disagree ˌdɪsəˈɡriː
+disappointed ˌdɪsəˈpɔɪntɪd
+disaster dɪˈzæstər
+discoverer dɪˈskʌvərər
+disease dɪˈziːz
+divers ˈdaɪvərz
+dress drɛs
+dresses ˈdrɛsɪz
+drive draɪv
+drowned draʊnd
+drugs drʌɡz
+duty ˈduːti
+earth ɜːrθ
+earthquake ˈɜːrθkweɪk
+elephants ˈɛləfənts
+emergency ɪˈmɜːrdʒənsi
+empty ˈɛmpti
+endangered ɪnˈdeɪndʒərd
+enrol ɪnˈroʊl
+entertains ˌɛntərˈteɪnz
+episode ˈɛpɪsoʊd
+eradicated ɪˈrædɪkeɪtɪd
+escape ɪˈskeɪp
+exciting ɪkˈsaɪtɪŋ
+exercise ˈɛksərsaɪz
+exhausted ɪɡˈzɔːstɪd
+expensive ɪkˈspɛnsɪv
+explosives ɪkˈsploʊsɪvz
+exposure ɪkˈspoʊʒər
+factories ˈfæktəriz
+fads fædz
+famous ˈfeɪməs
+fashion ˈfæʃən
+fence fɛns
+fiction ˈfɪkʃən
+field fiːld
+fingerprints ˈfɪŋɡərprɪnts
+fish fɪʃ
+fishermen ˈfɪʃərmən
+fishing ˈfɪʃɪŋ
+flare flɛr
+flatter ˈflætər
+fleece fliːs
+fleet fliːt
+flight flaɪt
+flirted ˈflɜːrtɪd
+fly flaɪ
+fortune ˈfɔːrtʃən
+foul faʊl
+fragments ˈfræɡmənts
+freezing ˈfriːzɪŋ
+fresh frɛʃ
+frightened ˈfraɪtənd
+game ɡeɪm
+gap ɡæp
+generation ˌdʒɛnəˈreɪʃən
+get ɡɛt
+geysers ˈɡaɪzərz
+gigantic dʒaɪˈɡæntɪk
+girlfriends ˈɡɜːrlfrɛndz
+gloomily ˈɡluːmɪli
+glowing ˈɡloʊɪŋ
+goal ɡoʊl
+goalkeeper ˈɡoʊlˌkiːpər
+gorillas ɡəˈrɪləz
+graduated ˈɡrædʒueɪtɪd
+grapes ɡreɪps
+group ɡruːp
+gunfighter ˈɡʌnˌfaɪtər
+gunpoint ˈɡʌnpɔɪnt
+handsome ˈhænsəm
+head hɛd
+headline ˈhɛdlaɪn
+heartbroken ˈhɑːrtˌbroʊkən
+helicopter ˈhɛlɪkɑːptər
+herd hɜːrd
+hiding ˈhaɪdɪŋ
+high haɪ
+highlights ˈhaɪlaɪts
+hit hɪt
+home hoʊm
+homeless ˈhoʊmləs
+honeymoon ˈhʌniˌmuːn
+honour ˈɑːnər
+hood hʊd
+horrified ˈhɔːrɪfaɪd
+hunters ˈhʌntərz
+iceberg ˈaɪsbɜːrɡ
+identity aɪˈdɛntəti
+illegal ɪˈliːɡəl
+imaginative ɪˈmædʒɪnətɪv
+in ɪn
+income ˈɪnkʌm
+industry ˈɪndəstri
+informer ɪnˈfɔːrmər
+injected ɪnˈdʒɛktɪd
+injure ˈɪndʒər
+inland ˈɪnlənd
+inside ɪnˈsaɪd
+integral ˈɪntɪɡrəl
+investors ɪnˈvɛstərz
+invited ɪnˈvaɪtɪd
+irrigate ˈɪrɪɡeɪt
+island ˈaɪlənd
+ivory ˈaɪvəri
+jackets ˈdʒækɪts
+jackpot ˈdʒækpɑːt
+jam dʒæm
+january ˈdʒænjuɛri
+jeans dʒiːnz
+jogging ˈdʒɑːɡɪŋ
+kitchen ˈkɪtʃən
+laid leɪd
+land lænd
+laptop ˈlæptɑːp
+laughed læft
+leak liːk
+left lɛft
+life laɪf
+lifetime ˈlaɪftaɪm
+limp lɪmp
+lottery ˈlɑːtəri
+low loʊ
+luxury ˈlʌɡʒəri
+mansion ˈmænʃən
+marathon ˈmærəθɑːn
+market ˈmɑːrkɪt
+marxist ˈmɑːrksɪst
+masked mæskt
+match mætʃ
+medal ˈmɛdəl
+medicine ˈmɛdɪsən
+meetings ˈmiːtɪŋz
+melting ˈmɛltɪŋ
+merchant ˈmɜːrtʃənt
+microchip ˈmaɪkroʊtʃɪp
+migrants ˈmaɪɡrənts
+millionaire ˌmɪljəˈnɛr
+mini ˈmɪni
+miniature ˈmɪniətʃər
+minor ˈmaɪnər
+miraculously mɪˈrækjələsli
+mirror ˈmɪrər
+miserable ˈmɪzərəbəl
+mobbed mɑːbd
+money ˈmʌni
+motorcyclist ˈmoʊtərˌsaɪklɪst
+mountains ˈmaʊntənz
+multi ˈmʌlti
+museum mjuˈziːəm
+navigation ˌnævɪˈɡeɪʃən
+necklace ˈnɛkləs
+news nuːz
+night naɪt
+nil nɪl
+nobel noʊˈbɛl
+nobleman ˈnoʊbəlmən
+nonsense ˈnɑːnsɛns
+nun nʌn
+o'clock əˈklɑːk
+of əv
+off ɔːf
+officer ˈɔːfɪsər
+oil ɔɪl
+old oʊld
+olympics əˈlɪmpɪks
+one wʌn
+orbit ˈɔːrbɪt
+organisation ˌɔːrɡənəˈzeɪʃən
+orphan ˈɔːrfən
+orphaned ˈɔːrfənd
+out aʊt
+outbreaks ˈaʊtbreɪks
+outer ˈaʊtər
+outlaw ˈaʊtlɔː
+outside ˌaʊtˈsaɪd
+overnight ˌoʊvərˈnaɪt
+overweight ˌoʊvərˈweɪt
+packed pækt
+paid peɪd
+panels ˈpænəlz
+parents ˈpɛrənts
+part pɑːrt
+pasta ˈpɑːstə
+pavement ˈpeɪvmənt
+peace piːs
+penalty ˈpɛnəlti
+per pɜːr
+perfect ˈpɜːrfɪkt
+performed pərˈfɔːrmd
+permit ˈpɜːrmɪt
+petrol ˈpɛtrəl
+photos ˈfoʊtoʊz
+pick pɪk
+picnic ˈpɪknɪk
+piercings ˈpɪrsɪŋz
+pipeline ˈpaɪplaɪn
+pitch pɪtʃ
+plane pleɪn
+plaster ˈplæstər
+players ˈpleɪərz
+pleased pliːzd
+poachers ˈpoʊtʃərz
+politician ˌpɑːləˈtɪʃən
+politics ˈpɑːlətɪks
+polluted pəˈluːtɪd
+pool puːl
+poor pʊr
+pop pɑːp
+populated ˈpɑːpjəleɪtɪd
+population ˌpɑːpjəˈleɪʃən
+posed poʊzd
+postcards ˈpoʊstkɑːrdz
+postman ˈpoʊstmən
+potter ˈpɑːtər
+poverty ˈpɑːvərti
+prepared prɪˈpɛrd
+press prɛs
+prize praɪz
+protect prəˈtɛkt
+pub pʌb
+purchased ˈpɜːrtʃəst
+push pʊʃ
+raft ræft
+rain reɪn
+rainfall ˈreɪnfɔːl
+raise reɪz
+reappear ˌriːəˈpɪr
+rebuilding ˌriːˈbɪldɪŋ
+reception rɪˈsɛpʃən
+referee ˌrɛfəˈriː
+refugees ˌrɛfjuˈdʒiːz
+remote rɪˈmoʊt
+reports rɪˈpɔːrts
+rescue ˈrɛskjuː
+rescuers ˈrɛskjuːərz
+resistance rɪˈzɪstəns
+resources ˈriːsɔːrsɪz
+restorer rɪˈstɔːrər
+revolution ˌrɛvəˈluːʃən
+rhino ˈraɪnoʊ
+rifles ˈraɪfəlz
+risk rɪsk
+robbers ˈrɑːbərz
+robotics roʊˈbɑːtɪks
+rot rɑːt
+ruins ˈruːɪnz
+rushed rʌʃt
+safety ˈseɪfti
+sales seɪlz
+salmon ˈsæmən
+saloon səˈluːn
+same seɪm
+satellite ˈsætəlaɪt
+save seɪv
+scandal ˈskændəl
+scanner ˈskænər
+score skɔːr
+screaming ˈskriːmɪŋ
+sea siː
+seasick ˈsiːsɪk
+seaweed ˈsiːwiːd
+sell sɛl
+servants ˈsɜːrvənts
+set sɛt
+settled ˈsɛtəld
+shake ʃeɪk
+sharks ʃɑːrks
+shelter ˈʃɛltər
+sheriff ˈʃɛrɪf
+ship ʃɪp
+shocked ʃɑːkt
+sink sɪŋk
+situated ˈsɪtʃueɪtɪd
+size saɪz
+sky skaɪ
+slaughter ˈslɔːtər
+sleep sliːp
+slipped slɪpt
+smallpox ˈsmɔːlpɑːks
+smash smæʃ
+south saʊθ
+space speɪs
+species ˈspiːʃiz
+split splɪt
+spray spreɪ
+stadium ˈsteɪdiəm
+start stɑːrt
+stateless ˈsteɪtləs
+statement ˈsteɪtmənt
+steal stiːl
+storm stɔːrm
+stormy ˈstɔːrmi
+striped straɪpt
+successful səkˈsɛsfəl
+sugar ˈʃʊɡər
+suit suːt
+suitable ˈsuːtəbəl
+supper ˈsʌpər
+supporters səˈpɔːrtərz
+surface ˈsɜːrfəs
+survivors sərˈvaɪvərz
+sweethearts ˈswiːthɑːrts
+swimming ˈswɪmɪŋ
+take teɪk
+talking ˈtɔːkɪŋ
+tanker ˈtæŋkər
+tattoos tæˈtuːz
+team tiːm
+tell tɛl
+temperature ˈtɛmpərətʃər
+temples ˈtɛmpəlz
+tent tɛnt
+tents tɛnts
+the ðə
+thief θiːf
+threw θruː
+time taɪm
+to tuː
+together təˈɡɛðər
+tore tɔːr
+torn tɔːrn
+tour tʊr
+tourism ˈtʊrɪzəm
+tow toʊ
+traffic ˈtræfɪk
+tragedy ˈtrædʒədi
+trained treɪnd
+trapped træpt
+traumatic trɔːˈmætɪk
+travel ˈtrævəl
+tray treɪ
+treatments ˈtriːtmənts
+tremendous trɪˈmɛndəs
+trip trɪp
+tripped trɪpt
+tropic ˈtrɑːpɪk
+tugs tʌɡz
+tusks tʌsks
+two tuː
+ufo ˌjuː ɛf ˈoʊ
+undamaged ʌnˈdæmɪdʒd
+uniforms ˈjuːnɪfɔːrmz
+unisex ˈjuːnɪsɛks
+up ʌp
+vaccine vækˈsiːn
+van væn
+vase veɪs
+victims ˈvɪktɪmz
+victorian vɪkˈtɔːriən
+villa ˈvɪlə
+village ˈvɪlɪdʒ
+vineyard ˈvɪnjərd
+visa ˈviːzə
+voyage ˈvɔɪɪdʒ
+war wɔːr
+wardens ˈwɔːrdənz
+wartime ˈwɔːrtaɪm
+wealthy ˈwɛlθi
+weather ˈwɛðər
+wedding ˈwɛdɪŋ
+west wɛst
+whales weɪlz
+whisky ˈwɪski
+wild waɪld
+witnesses ˈwɪtnəsɪz
+won wʌn
+world wɜːrld
+wrecked rɛkt
+year jɪr
+injury ˈɪndʒəri
+however haʊˈɛvər
+meanwhile ˈmiːnwaɪl
+`.trim().split('\n').forEach(l=>{const i=l.indexOf(' ');m[l.slice(0,i)]=l.slice(i+1)});return m})();
+function stpIpa(en){
+  const out = [];
+  en.toLowerCase().split(/[\s\/\-]+/).filter(Boolean).forEach(t=>{ if(STP_IPA[t]) out.push(STP_IPA[t]); });
+  return out.length ? '/' + out.join(' ') + '/' : '';
+}
+function stpSay(en){ return en.replace(/\s*\/\s*/g, ', '); }
+
 function renderStpVocab(focus, fromDetail){
   clearTimer();
+  stpStopStory();
   statusVal.textContent = "STP";
   setPresenceStatus('idle');
   setPresenceMode('Tabel Vocab STP');
   const secs = STP_CHAPTERS.map((c,i)=>{
     const rows = (STP_VOCAB[i]||'').split('|').filter(Boolean).map((p,n)=>{
       const k = p.indexOf('=');
-      return `<tr data-q="${stpSafe((p).toLowerCase())}"><td style="padding:5px 6px;opacity:0.5;width:26px;">${n+1}</td><td style="padding:5px 6px;font-weight:800;">${stpSafe(p.slice(0,k))}</td><td style="padding:5px 6px;">${stpSafe(p.slice(k+1))}</td></tr>`;
+      const en = p.slice(0,k), ip = stpIpa(en);
+      return `<tr data-q="${stpSafe((p).toLowerCase())}"><td style="padding:5px 6px;opacity:0.5;width:26px;vertical-align:top;">${n+1}</td><td style="padding:5px 6px;"><div style="font-weight:800;">${stpSafe(en)}</div>${ip ? `<div style="font-size:11px;opacity:0.65;font-family:'Segoe UI','Noto Sans','Arial Unicode MS',sans-serif;">${stpSafe(ip)}</div>` : ''}</td><td style="padding:5px 6px;">${stpSafe(p.slice(k+1))}</td><td style="padding:5px 4px;width:36px;text-align:center;vertical-align:top;"><button type="button" class="stp-spk" data-say="${stpSafe(stpSay(en))}" aria-label="Dengarkan" style="border:1.5px solid var(--line);background:#fff;border-radius:50%;width:30px;height:30px;font-size:14px;line-height:1;cursor:pointer;">🔊</button></td></tr>`;
     }).join('');
     return `<div class="stp-vsec" id="stpV${i}" style="margin-bottom:14px;">
       <div style="font-weight:800;font-size:13px;padding:6px 10px;border-radius:10px;background:rgba(14,165,233,0.12);">Chapter ${c.n} · ${stpSafe(c.t)}</div>
-      <table style="width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.5;text-align:left;"><thead><tr style="opacity:0.6;font-size:11px;"><th style="padding:4px 6px;">#</th><th style="padding:4px 6px;">English</th><th style="padding:4px 6px;">Arti</th></tr></thead><tbody>${rows}</tbody></table>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.5;text-align:left;"><thead><tr style="opacity:0.6;font-size:11px;"><th style="padding:4px 6px;">#</th><th style="padding:4px 6px;">English</th><th style="padding:4px 6px;">Arti</th><th style="padding:4px 4px;"></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
   }).join('');
   card.innerHTML = `
@@ -19668,6 +20195,10 @@ function renderStpVocab(focus, fromDetail){
       <button class="btn ghost" id="stpVBack" style="margin-top:12px;">← Kembali</button>
     </div>`;
   const box = document.getElementById('stpVBox');
+  box.addEventListener('click', e=>{
+    const b = e.target.closest ? e.target.closest('.stp-spk') : null;
+    if(b) speakPronunWord(b.dataset.say, 'american', b);
+  });
   document.getElementById('stpVSearch').oninput = function(){
     const q = this.value.trim().toLowerCase();
     box.querySelectorAll('.stp-vsec').forEach(sec=>{
