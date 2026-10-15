@@ -18462,6 +18462,18 @@ Uruguay|Uruguayan|Spanish
 Venezuela|Venezuelan|Spanish
 Vietnam|Vietnamese|Vietnamese`.split('\n').map(r=>r.split('|'));
 
+/* Pembagian negara ke 7 benua (data VB_WORLD di atas tidak diubah) */
+const VB_CONTINENTS = [
+  { name:'Asia', icon:'🌏', list:'Afghanistan;Bangladesh;Cambodia;China;India;Indonesia;Iran;Iraq;Israel;Japan;Jordan;Kazakhstan;Kuwait;Lebanon;Malaysia;Mongolia;Nepal;North Korea;Oman;Pakistan;Philippines;Qatar;Saudi Arabia;Singapore;South Korea;Sri Lanka;Thailand;Turkey;United Arab Emirates;Vietnam' },
+  { name:'Africa', icon:'🌍', list:'Algeria;Egypt;Ghana;Kenya;Madagascar;Nigeria;South Africa;Tanzania;Tunisia;Uganda' },
+  { name:'North America', icon:'🌎', list:'Canada;Costa Rica;El Salvador;Guatemala;Honduras;Mexico;Panama;United States of America' },
+  { name:'South America', icon:'🌎', list:'Argentina;Bolivia;Brazil;Chile;Colombia;Ecuador;Guyana;Paraguay;Peru;Suriname;Uruguay;Venezuela' },
+  { name:'Antarctica', icon:'🧊', list:'', note:'Antarctica tidak punya negara (tidak ada pemerintahan atau penduduk tetap). Benua ini hanya dihuni peneliti di stasiun riset dan diatur oleh Antarctic Treaty, jadi tidak ada country, nationality, atau language di daftar buku ini.' },
+  { name:'Europe', icon:'🏰', list:'Austria;Belarus;Belgium;Bosnia and Herzegovina;Bulgaria;Croatia;Cyprus;Denmark;Estonia;Finland;France;Germany;Greece;Hungary;Iceland;Ireland;Italy;Latvia;Lithuania;Luxembourg;Malta;Netherlands;Norway;Poland;Portugal;Romania;Serbia;Slovakia;Slovenia;Spain;Sweden;Switzerland;Ukraine;United Kingdom of Great Britain and Northern Ireland' },
+  { name:'Australia (Oceania)', icon:'🦘', list:'Australia;Fiji;New Zealand;Papua New Guinea;Samoa;Tonga' }
+];
+function vbWorldBy(c){ const set = c.list ? c.list.split(';') : []; return VB_WORLD.filter(r=> set.indexOf(r[0]) > -1); }
+
 const VOCABBUILD_CHAPTERS = [
 {
   id:'vb-ch1', title:'Chapter 1 — Collocation',
@@ -18662,11 +18674,9 @@ const VOCABBUILD_CHAPTERS = [
     vbSec('A. Geographic Region / Continent', vbTable(['Continent','Continental identity'],[
       ['Africa','African'],['Asia','Asian'],['Europe','European'],['Central America','Central American'],
       ['North America','North American'],['South America','South American'],['Southeast Asia','Southeast Asian'],['Middle East','Middle Eastern']]) + `<i>Catatan: di buku tertulis "North Africa → North American" dan "Southeast Asia → Southeast Asia". Saya tulis versi yang benar (North America, Southeast Asian).</i>`),
-    vbSec('B. Country, Nationality & Language', `Orang dari negara yang sama sering punya <b>nationality</b> yang sama dan mungkin berbicara <b>bahasa</b> yang sama, jadi penting untuk mengenal semuanya. Berikut daftar country, nationality, dan language, dibagi 4 bagian (A–F, F–M, N–S, T–V).`),
-    vbSec('B.1 Countries A – F', vbTable(['Country','Nationality','Language'], VB_WORLD.slice(0,27))),
-    vbSec('B.2 Countries F – M', vbTable(['Country','Nationality','Language'], VB_WORLD.slice(27,57))),
-    vbSec('B.3 Countries N – S', vbTable(['Country','Nationality','Language'], VB_WORLD.slice(57,87))),
-    vbSec('B.4 Countries T – V', vbTable(['Country','Nationality','Language'], VB_WORLD.slice(87)))
+    vbSec('B. Country, Nationality & Language', `Orang dari negara yang sama sering punya <b>nationality</b> yang sama dan mungkin berbicara <b>bahasa</b> yang sama, jadi penting untuk mengenal semuanya. Berikut daftar country, nationality, dan language, dibagi per <b>7 benua</b>: Asia, Afrika, Amerika Utara, Amerika Selatan, Antarctica, Eropa, dan Australia (Oseania).`),
+    ...VB_CONTINENTS.map(c=> vbSec(c.icon + ' ' + c.name + ' (' + vbWorldBy(c).length + ' negara)',
+      vbWorldBy(c).length ? vbTable(['Country','Nationality','Language'], vbWorldBy(c)) : c.note))
   ]
 }
 /* ← tambah Chapter 7, 8, dst. di sini (pakai koma setelah objek sebelumnya) */
