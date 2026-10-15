@@ -9815,7 +9815,8 @@ const MODE_META = {
   grammar: { icon:'✍️', label:'Materi & Soal Grammar', sub:'Mode Hafalan Rumus & Latihan Soal Grammar' },
   pronunciation: { icon:'🗣️', label:'Pronunciation', sub:'Materi American vs British, kata bisa didengarkan' },
   vocabbuilding: { icon:'🧩', label:'Vocabulary Building', sub:'Collocation, Idioms, dan materi vocab lainnya' },
-  stp: { icon:'🖼️', label:'STP (Story Through Pictures)', sub:'24 cerita bergambar + latihan Exercise 2 & 4' }
+  stp: { icon:'🖼️', label:'STP (Story Through Pictures)', sub:'24 cerita bergambar + latihan Exercise 2 & 4' },
+  esp2: { icon:'💬', label:'ESP 2 (English for Specific Purposes 2)', sub:'Formal & Informal: cara kirim pesan dan bercakap yang benar' }
 };
 
 function modeTileHtml(key, statusKey){
@@ -9907,6 +9908,9 @@ function renderBelajarSubmenu(){
       <div class="big-mode-row">
         ${modeTileHtml('stp')}
       </div>
+      <div class="big-mode-row">
+        ${modeTileHtml('esp2')}
+      </div>
 
       <button class="btn ghost" id="backToModeSelectBtn" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -9934,6 +9938,12 @@ function renderBelajarSubmenu(){
         if(!savedName){ renderNameGate(); return; }
         if(!myPresenceRef){ startPresence(savedName); }
         renderStpList();
+      } else if(chosen === 'esp2'){
+        modeChosenThisSession = true;
+        const savedName = getSavedName();
+        if(!savedName){ renderNameGate(); return; }
+        if(!myPresenceRef){ startPresence(savedName); }
+        renderEsp2Menu();
       } else if(chosen === 'pronunciation'){
         modeChosenThisSession = true;
         const savedName = getSavedName();
@@ -20674,6 +20684,283 @@ function renderOtherApps(onBack){
     link.addEventListener('click', ()=>{ goOfflineBeforeLeaving(); }); // jangan preventDefault: biar link terbuka
   });
   }
+
+
+/* ---------------- ESP 2 (English for Specific Purposes 2): Formal & Informal ---------------- */
+function esp2Tbl(head, rows){
+  return `<div style="overflow-x:auto;margin:6px 0;"><table style="width:100%;border-collapse:collapse;font-size:12px;line-height:1.5;">
+    <thead><tr>${head.map(h=>`<th style="text-align:left;padding:6px 8px;border:1.5px solid var(--line);background:rgba(14,165,233,0.12);">${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map(c=>`<td style="padding:6px 8px;border:1.5px solid var(--line);vertical-align:top;">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function esp2Box(html){ return `<div style="margin:8px 0;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:rgba(14,165,233,0.06);font-size:12.5px;line-height:1.7;text-align:left;">${html}</div>`; }
+function esp2Mail(meta, body){
+  return `<div style="margin:8px 0;border-radius:10px;border:1.5px solid var(--line);overflow:hidden;font-size:12.5px;line-height:1.65;text-align:left;">
+    <div style="padding:5px 10px;background:rgba(0,0,0,0.12);font-weight:800;font-size:11.5px;">✉️ New message</div>
+    <div style="padding:6px 10px;border-bottom:1px dashed var(--line);font-size:11.5px;opacity:.85;">${meta}</div>
+    <div style="padding:8px 10px;">${body}</div></div>`;
+}
+function esp2Ul(items){ return `<ul style="margin:4px 0 4px 18px;padding:0;">${items.map(x=>`<li style="margin:3px 0;">${x}</li>`).join('')}</ul>`; }
+
+const ESP2_DATA = {
+formal: {
+  icon:'🎩', color:'#0ea5e9', title:'Formal', sub:'Cara menulis & berbicara yang sopan dan resmi',
+  intro:'Bahasa <b>formal</b> dipakai saat kamu menghubungi atasan, dosen, klien, pelamar/perekrut, atau orang yang <b>belum kamu kenal</b>. Kalau ragu harus formal atau tidak, pilih <b>formal</b> (lebih aman).',
+  sections:[
+  { t:'1. Kapan memakai gaya formal?', h:
+    esp2Ul([
+      '<b>Professional settings</b>: menghubungi atasan, kolega di konteks kerja, klien, atau pihak resmi.',
+      'Surat lamaran kerja, korespondensi bisnis, pertanyaan/permohonan resmi, dan komplain.',
+      '<b>Unknown recipients</b>: kamu tidak tahu preferensi penerima atau belum kenal dekat.'
+    ]) + esp2Box('💡 <b>Aturan emas:</b> belum yakin? Lebih baik terlalu sopan daripada terlalu santai.')
+  },
+  { t:'2. Struktur pesan formal (email)', h:
+    esp2Tbl(['Bagian','Contoh formal'],[
+      ['Subject','Meeting to discuss contract changes · Confirmation of meeting'],
+      ['Salutation (salam pembuka)','<i>Dear Mr. Smith,</i> · <i>Dear Ms Price,</i> · <i>Dear Hiring Manager,</i> · <i>To whom it may concern,</i> (jika tidak tahu nama)'],
+      ['Opening (tujuan)','<i>I am writing to enquire about...</i> · <i>I am writing to confirm...</i> · <i>I would like to inform you of...</i>'],
+      ['Body (isi)','Jelaskan poin utama dalam paragraf pendek. Satu paragraf = satu ide.'],
+      ['Closing phrase (penutup sopan)','<i>I look forward to meeting you on Monday.</i> · <i>Should you have any questions, please do not hesitate to get in touch.</i>'],
+      ['Sign-off (salam penutup)','<i>Best regards,</i> (netral) · <i>Yours sincerely,</i> (sangat formal) · <i>Yours faithfully,</i> (jika memakai "Dear Sir/Madam")']
+    ]) + esp2Box('✍️ Huruf pertama isi pesan diawali <b>huruf kapital</b> setelah salam: <i>Dear Robert,</i> → <i>I am writing to...</i>')
+  },
+  { t:'3. Ciri-ciri bahasa formal', h:
+    esp2Ul([
+      '<b>Tanpa contraction</b>: <i>I am, I would like, cannot, do not</i> (bukan <i>I\'m, I\'d, can\'t, don\'t</i>).',
+      '<b>Tanpa slang, emoji/emoticon, atau singkatan</b> (asap, pls, thx, btw).',
+      'Kalimat lengkap dan lebih panjang, memakai kata sopan: <i>would, could, kindly, should you...</i>',
+      'Kata kerja tunggal yang formal: <i>to enquire, to require, to postpone</i> (bukan phrasal verb santai).',
+      'Nada sopan dan tidak langsung: <i>I would appreciate it if you could...</i>',
+      'Tanggal ditulis lengkap: <b>9th October 2026</b>. Jam: <b>9.00 a.m.</b> / <b>3.00 p.m.</b>'
+    ])
+  },
+  { t:'4. Kosakata formal (Activity 2.2)', h:
+    esp2Tbl(['Formal','Artinya','Versi santai'],[
+      ['convenient','cocok / sesuai (waktu)','ok'],
+      ['assistance','bantuan','help'],
+      ['to inform','memberi tahu','to tell'],
+      ['to reply','membalas','to answer'],
+      ['to regret','menyesal / mohon maaf','to be sorry'],
+      ['to contact','menghubungi','to get in touch with'],
+      ['to postpone','menunda','to put off'],
+      ['to arrange','mengatur','to set up'],
+      ['to enquire','bertanya / menanyakan','to ask'],
+      ['to require','membutuhkan','to need to']
+    ])
+  },
+  { t:'5. Frasa berguna: memberi info & membalas', h:
+    esp2Tbl(['Informing (memberi info)','Replying (membalas)'],[
+      ['I\'d like to inform you of...','Thank you for your email.'],
+      ['I\'m writing to clarify...','In reply to your email...'],
+      ['I\'ll get back to you as soon as possible.','I\'ll follow up the points mentioned in your email...'],
+      ['Please find the information attached. / You\'ll find the info attached...','Thank you for clarifying...'],
+      ['Here are the details on...','Just a few comments about/on...']
+    ]) + esp2Box('Catatan: di buku, frasa seperti <i>Just a note to say...</i> dipakai untuk pesan yang lebih ringan. Untuk pesan yang sangat formal, pilih <i>I would like to inform you that...</i>')
+  },
+  { t:'6. Membuat & mengonfirmasi janji (arrangement)', h:
+    esp2Tbl(['Fungsi','Frasa formal'],[
+      ['Mengusulkan waktu','<i>I would like to propose next Friday at either 09.00 a.m. or 03.00 p.m.</i>'],
+      ['Meminta pilihan','<i>Please let me know which time is convenient for you.</i>'],
+      ['Mengonfirmasi','<i>I can confirm that Friday morning at 09.00 a.m. is convenient for us.</i>'],
+      ['Meminta bantuan','<i>Can you arrange for someone to collect us?</i>'],
+      ['Menunda','<i>Could we postpone the meeting until Wednesday at the same time? Would that suit you?</i>'],
+      ['Meminta maaf','<i>I really must apologise.</i> · <i>Sorry to trouble you.</i> · <i>It is unavoidable, unfortunately.</i>'],
+      ['Penutup','<i>I am looking forward to seeing you both soon.</i>']
+    ])
+  },
+  { t:'7. Contoh email formal', h:
+    esp2Mail('<b>To:</b> armitage@fisher-grp.co.uk<br><b>Subject:</b> Meeting',
+      'Dear Mr Armitage,<br><br>It was a pleasure to speak to you today. I\'d like to take this opportunity to thank you for agreeing to meet with me next week.<br><br>I would also like to confirm the date and time of our meeting: 7.30 p.m. on Monday, 8 September, at Rainbow Executive Search\'s offices.<br><br>Should you have any questions in advance of our meeting, please do not hesitate to get in touch with me.<br><br>I very much look forward to meeting you next Monday.<br><br>Yours sincerely,<br>Caroline Jones')
+    + esp2Mail('<b>To:</b> The CEO · <b>Subject:</b> Complaint about service',
+      'Dear CEO of The Western Cosine,<br><br>On January 30th, 2020, I made a reservation at your restaurant for a birthday dinner for four people. This letter is intended to bring certain issues to your attention.<br><br>Unfortunately, we did not enjoy our dinner due to the fact that the food was very slow to arrive and we received the wrong dishes.<br><br>To resolve this problem, I would appreciate it if you could provide compensation in the form of a gift voucher or discount on a future meal.<br><br>I\'m looking forward to your reply.<br><br>With regards,')
+    + esp2Mail('<b>Subject:</b> Application for the position of networking specialist',
+      'Dear hiring manager of Google,<br><br>I was very interested while reading the job posting for the position of networking specialist. I believe that my experience matches the responsibilities of this position, and I am enthusiastic about submitting my application.<br><br>I have attached my resume to this email. I believe you will learn more about my experience, education, and achievements.<br><br>Looking forward to hearing from you,<br>Anton Silalahi')
+  },
+  { t:'8. Percakapan formal (telepon / bertemu langsung)', h:
+    esp2Box('<b>Memulai & menyapa:</b><br>"Good morning, this is Caroline Jones from Rainbow Search. May I speak to Mr Armitage, please?"') +
+    esp2Box('<b>Meminta menunda:</b><br>A: "I\'m sorry to trouble you. I\'m afraid I have to ask you if we can postpone our meeting next week. Something has come up. Unfortunately I can\'t get out of it. Do you have another time in mind?"<br>A: "Could we put the meeting off until Wednesday at the same time? Would that suit you?"<br>B: "Certainly. Wednesday at 7.30 would be convenient. Thank you for letting me know."<br>A: "Sorry to have troubled you."') +
+    esp2Box('<b>Menutup:</b> "Thank you for your time. I look forward to meeting you on Wednesday. Goodbye."') +
+    esp2Ul(['Gunakan <i>May I...? / Could you...? / Would it be possible to...?</i>','Hindari slang dan ungkapan seperti <i>Yeah, sure, gonna, wanna</i>.','Berbicara dengan tenang, jelas, dan tidak memotong lawan bicara.'])
+  },
+  { t:'9. Format tanggal & jam (formal)', h:
+    esp2Tbl(['Hal','Formal','Santai / informal'],[
+      ['Tanggal','<b>9th October 2026</b>','October 9th, 2026 · Oct 9'],
+      ['Jam','9.00 a.m. · 3.00 p.m.','9am · 3pm · 15:00'],
+      ['Hari / bulan','Thursday · January','Thurs · Jan']
+    ])
+  },
+  { t:'10. Checklist sebelum menekan Send ✅', h:
+    esp2Ul(['Salam pembuka sesuai (<i>Dear Mr/Ms ...</i>).','Tujuan jelas di kalimat pertama.','Tidak ada contraction, singkatan, atau emoji.','Ada kalimat penutup sopan + salam penutup (<i>Best regards / Yours sincerely</i>).','Nama, jabatan, dan kontak tercantum. Cek lampiran dan ejaan.'])
+  }
+  ]
+},
+informal: {
+  icon:'😄', color:'#f97316', title:'Informal', sub:'Cara menulis & ngobrol santai dengan teman / rekan dekat',
+  intro:'Bahasa <b>informal</b> dipakai untuk <b>teman, keluarga, rekan kerja yang akrab</b>, dan situasi santai (janjian, ngumpul, ngobrol). Singkat, hangat, dan natural, tetapi tetap jangan asal-asalan.',
+  sections:[
+  { t:'1. Kapan memakai gaya informal?', h:
+    esp2Ul([
+      '<b>Familiar relationships</b>: teman, keluarga, rekan kerja dekat.',
+      '<b>Casual settings</b>: janjian, acara sosial, kumpul-kumpul.',
+      'Pesan singkat (chat, SMS, email santai) yang tidak butuh kesan resmi.'
+    ]) + esp2Box('⚠️ <b>Hati-hati:</b> bahasa terlalu santai ke orang yang salah (atasan, klien baru) bisa terdengar tidak sopan. Pilih sesuai hubunganmu.')
+  },
+  { t:'2. Struktur pesan informal', h:
+    esp2Tbl(['Bagian','Contoh informal'],[
+      ['Salutation','<i>Hi Martha,</i> · <i>Hello Paula,</i> · <i>Hey all!</i> · <i>Hi Tim</i>'],
+      ['Opening','<i>Just a note to say...</i> · <i>Just to let you know...</i> · <i>Thanks for your email.</i>'],
+      ['Body','Kalimat singkat, langsung ke inti. Boleh pakai tanda seru dan "&" (mis. <i>2000 participants &amp; the start-up date is Oct 1</i>).'],
+      ['Closing phrase','<i>Looking forward to seeing you soon.</i> · <i>See you Monday!</i> · <i>Give me a call if you have any questions.</i>'],
+      ['Sign-off','<i>All the best,</i> · <i>Cheers,</i> · <i>Best wishes,</i> · <i>Bye for now,</i> · <i>Regards,</i>'],
+      ['P.S.','Boleh ditambah di akhir: <i>PS How about meeting up for a drink one night? ;-)</i>']
+    ])
+  },
+  { t:'3. Ciri-ciri bahasa informal', h:
+    esp2Ul([
+      '<b>Contractions</b>: <i>I\'m, I\'ll, it\'s, can\'t, haven\'t, here\'s</i>.',
+      '<b>Phrasal verbs</b> & kata sehari-hari: <i>put off, set up, get in touch with, find out</i>.',
+      '<b>Singkatan</b>: <i>asap, pls, thx, btw, CU (see you)</i>.',
+      'Kalimat pendek, sapaan akrab, tanda seru, dan kadang emoticon <i>;-)</i>.',
+      'Pertanyaan santai: <i>How about...? What if...? Can you help me pls?</i>',
+      'Tanggal/jam boleh lebih ringkas: <i>October 9th</i>, <i>9am</i>.'
+    ])
+  },
+  { t:'4. Kosakata informal (Activity 2.2)', h:
+    esp2Tbl(['Informal','Artinya','Versi formal'],[
+      ['ok','oke / sesuai','convenient'],
+      ['help','bantuan','assistance'],
+      ['to tell','memberi tahu','to inform'],
+      ['to answer','menjawab / membalas','to reply'],
+      ['to be sorry','minta maaf','to regret'],
+      ['to get in touch with','menghubungi','to contact'],
+      ['to put off','menunda','to postpone'],
+      ['to set up','mengatur / menyiapkan','to arrange'],
+      ['to ask','bertanya','to enquire'],
+      ['to need to','perlu / harus','to require']
+    ])
+  },
+  { t:'5. Singkatan umum (Activity 2.4)', h:
+    esp2Tbl(['Singkatan','Kepanjangan','Arti'],[
+      ['ie','in other words','dengan kata lain'],
+      ['asap','as soon as possible','secepat mungkin'],
+      ['Thurs','Thursday','hari Kamis'],
+      ['Jan','January','bulan Januari'],
+      ['at the mo','at the moment','saat ini'],
+      ['bw','best wishes','salam hangat'],
+      ['attn','attention','untuk perhatian'],
+      ['rgds','regards','salam'],
+      ['pls','please','tolong / silakan'],
+      ['w/e','weekend','akhir pekan'],
+      ['thx','thanks','terima kasih'],
+      ['CU','see you','sampai jumpa']
+    ]) + esp2Box('⚠️ Singkatan hanya untuk teman / rekan dekat. Jangan dipakai di email resmi.')
+  },
+  { t:'6. Colloquial phrases (ungkapan santai) & contractions', h:
+    esp2Tbl(['Colloquial','Artinya'],[
+      ['to check sth out','melihat/memeriksa sesuatu dengan teliti'],
+      ['to touch base with sb','menghubungi seseorang'],
+      ['to send sth by snail mail','mengirim lewat pos biasa (bukan email)'],
+      ['to give sb the low-down','memberi informasi lengkap / detail'],
+      ['to chase sth up','mencari / menagih sesuatu yang belum ada'],
+      ['to be out of the loop','tidak tahu perkembangan terbaru'],
+      ['to put sth on hold','menunda sesuatu'],
+      ['cheers (BrE)','terima kasih (Inggris Britania)']
+    ]) + esp2Box('✅ <b>Contractions:</b> <i>here\'s</i> (here is), <i>haven\'t</i> (have not), <i>I\'ll</i> (I will).<br>⚠️ Jangan hilangkan apostrof! <b>it\'s</b> = it is, <b>its</b> = milik; <b>I\'ll</b> = I will, <b>ill</b> = sakit.<br>⚠️ Ungkapan colloquial bisa terdengar terlalu akrab bila dipakai di konteks yang salah.')
+  },
+  { t:'7. Membuat & mengonfirmasi janji (santai)', h:
+    esp2Tbl(['Fungsi','Frasa informal'],[
+      ['Mengusulkan waktu','<i>How about Monday, 21st May at 10.15 a.m.?</i> · <i>What if we meet at 3?</i>'],
+      ['Menanyakan lokasi','<i>Where should we meet? Should I pick you up from the station?</i>'],
+      ['Mengonfirmasi','<i>Just writing to confirm my visit. Monday 21st sounds fine.</i>'],
+      ['Meminta dijemput','<i>Could you collect me from the station? My train arrives at 10.00 a.m. Thx</i>'],
+      ['Menunda','<i>Could we put the meeting off until Wednesday?</i>'],
+      ['Minta maaf','<i>Sorry, I can\'t make it then.</i> · <i>Sorry to bother you.</i>'],
+      ['Penutup','<i>Looking forward to seeing the factory.</i> · <i>CU Monday.</i>']
+    ])
+  },
+  { t:'8. Contoh pesan informal', h:
+    esp2Mail('<b>To:</b> ian.sweeney@dbd.com<br><b>Subject:</b> Meeting to discuss contract changes',
+      'Hi Ian,<br>It was nice to speak to you. Thanks for agreeing to meet with me. Just to confirm the date and time of our meeting: Monday 23 May at 2 p.m. My PA will let you know which meeting room we\'ll be using later in the week.<br><br>I\'m attaching a list of points to discuss. Give me a call if you have any questions before the meeting.<br><br>Looking forward to seeing you on Monday.<br><br>Regards,')
+    + esp2Mail('<b>Subject:</b> Party time!',
+      'Hey all!<br><br>It\'s about time we organized a social event, and I\'m going to do it!<br><br>I\'ve done some research and found a date, time, and venue that should work for us all:<br>Date: August 13th 2023 · Time: 08.00 PM · Venue: The Odaita Hotel<br><br>Can you let me know if you\'d like to attend? Drop me an email with a yes or no, and I\'ll confirm the numbers and make a booking.<br><br>I can\'t wait to see you.<br>Jacob')
+    + esp2Mail('<b>To:</b> Johannes · <b>Subject:</b> Visit to Bern',
+      'Hi Johannes!<br><br>I\'m coming over to Bern for a conference in 2 weeks &amp; was wondering if you could sort out somewhere for me to stay? Can you help me pls?<br><br>Hope this is OK with you!<br>Teresa<br>PS How about meeting up for a drink one night? ;-)')
+  },
+  { t:'9. Percakapan informal (telepon / ngobrol)', h:
+    esp2Box('A: "Hi Sam! Could we find a time to meet next week?"<br>B: "Sure! How about Monday at nine?"<br>A: "Sorry, I can\'t make it then. How about sometime after lunch?"<br>B: "OK, what if we meet at half past one?"<br>A: "Perfect. Should we book a room for the whole afternoon?"<br>B: "Let\'s leave the length of the meeting open for now. I\'ll text you on Monday at two."<br>A: "Great, I look forward to meeting you then. Cheers!"') +
+    esp2Ul(['Gunakan <i>How about...? What if...? Shall we...? Let\'s...</i>','Boleh pakai <i>Sure, OK, Great, No worries</i>.','Tetap sopan: ucapkan <i>please, thanks, sorry</i>.'])
+  },
+  { t:'10. Formal vs Informal: bandingkan', h:
+    esp2Tbl(['Formal','Informal'],[
+      ['It was a pleasure to speak to you today.','It was nice to speak to you today.'],
+      ['I\'d like to take this opportunity to thank you for agreeing to meet with me...','Thanks for agreeing to meet with me.'],
+      ['I would also like to confirm the date and time of our meeting:','Just to confirm the date and time of our meeting:'],
+      ['Should you have any questions, please do not hesitate to get in touch.','Give me a call if you have any questions before the meeting.'],
+      ['I very much look forward to meeting you...','Looking forward to seeing you...'],
+      ['Yours sincerely','All the best / Cheers'],
+      ['I would like to propose...','How about at...? / What if...?'],
+      ['Could we postpone the meeting until Wednesday?','Can we put the meeting off until Wednesday?']
+    ])
+  }
+  ]
+}
+};
+
+function renderEsp2Menu(){
+  clearTimer();
+  statusVal.textContent = "ESP 2";
+  setPresenceStatus('idle');
+  setPresenceMode('ESP 2 (menu)');
+  card.innerHTML = `
+    <div class="center-stack">
+      <div class="section-tag" style="background:#0ea5e9;color:#fff;">💬 ESP 2</div>
+      <h1 class="intro-title" style="font-size:19px;">English for Specific Purposes 2</h1>
+      <p class="intro-desc" style="font-size:12px;">Cara yang baik dan benar saat mengirim pesan &amp; bercakap dengan orang lain. Pilih gayanya:</p>
+      <div class="big-mode-row">
+        <button class="big-mode-btn" id="esp2FormalBtn" type="button">
+          <span class="bm-icon">${ESP2_DATA.formal.icon}</span>
+          <span class="bm-label">Formal</span>
+          <span class="bm-sub">${ESP2_DATA.formal.sub}</span>
+        </button>
+      </div>
+      <div class="big-mode-row">
+        <button class="big-mode-btn" id="esp2InformalBtn" type="button">
+          <span class="bm-icon">${ESP2_DATA.informal.icon}</span>
+          <span class="bm-label">Informal</span>
+          <span class="bm-sub">${ESP2_DATA.informal.sub}</span>
+        </button>
+      </div>
+      <button class="btn ghost" id="esp2BackBtn" style="margin-top:14px;">← Kembali</button>
+    </div>`;
+  document.getElementById('esp2BackBtn').onclick = ()=> renderBelajarSubmenu();
+  document.getElementById('esp2FormalBtn').onclick = ()=> renderEsp2Section('formal');
+  document.getElementById('esp2InformalBtn').onclick = ()=> renderEsp2Section('informal');
+}
+
+function renderEsp2Section(key){
+  clearTimer();
+  const d = ESP2_DATA[key];
+  if(!d){ renderEsp2Menu(); return; }
+  statusVal.textContent = "ESP 2 · " + d.title.toUpperCase();
+  setPresenceStatus('idle');
+  setPresenceMode('ESP 2 ' + d.title);
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:${d.color};color:#fff;">${d.icon} ESP 2 · ${d.title.toUpperCase()}</div>
+      <h1 class="intro-title" style="font-size:19px;">${d.title}</h1>
+      <p class="intro-desc" style="font-size:12.5px;text-align:left;line-height:1.7;">${d.intro}</p>
+      <div style="width:100%;display:flex;flex-direction:column;gap:8px;max-height:62vh;overflow-y:auto;padding-right:2px;text-align:left;">
+        ${d.sections.map((s,i)=>`
+          <details style="border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;" ${i===0?'open':''}>
+            <summary style="cursor:pointer;font-weight:800;font-size:13.5px;">${s.t}</summary>
+            <div style="margin-top:8px;font-size:12.5px;line-height:1.7;">${s.h}</div>
+          </details>`).join('')}
+      </div>
+      <button class="btn ghost" id="esp2OtherBtn" style="margin-top:12px;">${key==='formal' ? '😄 Lihat Informal' : '🎩 Lihat Formal'}</button>
+      <button class="btn ghost" id="esp2MenuBtn" style="margin-top:8px;">← Menu ESP 2</button>
+    </div>`;
+  document.getElementById('esp2MenuBtn').onclick = ()=> renderEsp2Menu();
+  document.getElementById('esp2OtherBtn').onclick = ()=> renderEsp2Section(key==='formal' ? 'informal' : 'formal');
+}
 
 </script>
 </body>
