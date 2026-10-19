@@ -10127,7 +10127,8 @@ const MODE_META = {
   pronunciation: { icon:'🗣️', label:'Pronunciation', sub:'Materi American vs British, kata bisa didengarkan' },
   vocabbuilding: { icon:'🧩', label:'Vocabulary Building', sub:'Collocation, Idioms, dan materi vocab lainnya' },
   stp: { icon:'🖼️', label:'STP (Story Through Pictures)', sub:'24 cerita bergambar + latihan Exercise 2 & 4' },
-  esp2: { icon:'💬', label:'ESP 2 (English for Specific Purposes 2)', sub:'Formal & Informal: cara kirim pesan dan bercakap yang benar' }
+  esp2: { icon:'💬', label:'ESP 2 (English for Specific Purposes 2)', sub:'Formal & Informal: cara kirim pesan dan bercakap yang benar' },
+  speaking: { icon:'🎤', label:'Speaking', sub:'Latih speaking dengan orang dari negara lain' }
 };
 
 function modeTileHtml(key, statusKey){
@@ -10222,6 +10223,9 @@ function renderBelajarSubmenu(){
       <div class="big-mode-row">
         ${modeTileHtml('esp2')}
       </div>
+      <div class="big-mode-row">
+        ${modeTileHtml('speaking')}
+      </div>
 
       <button class="btn ghost" id="backToModeSelectBtn" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -10255,6 +10259,12 @@ function renderBelajarSubmenu(){
         if(!savedName){ renderNameGate(); return; }
         if(!myPresenceRef){ startPresence(savedName); }
         renderEsp2Menu();
+      } else if(chosen === 'speaking'){
+        modeChosenThisSession = true;
+        const savedName = getSavedName();
+        if(!savedName){ renderNameGate(); return; }
+        if(!myPresenceRef){ startPresence(savedName); }
+        renderSpeakingMenu();
       } else if(chosen === 'pronunciation'){
         modeChosenThisSession = true;
         const savedName = getSavedName();
@@ -21435,6 +21445,27 @@ informal: {
   ]
 }
 };
+
+/* ---------------- MENU SPEAKING (Mode Belajar) ---------------- */
+function renderSpeakingMenu(){
+  clearTimer();
+  statusVal.textContent = "SPEAKING";
+  setPresenceStatus('idle');
+  setPresenceMode('Speaking (menu)');
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#10b981;color:#fff;">🎤 SPEAKING</div>
+      <h1 class="intro-title" style="font-size:19px;">Ayo latih speaking-mu!</h1>
+      <div style="padding:16px;border-radius:14px;border:1.5px solid var(--line);background:#fff;text-align:center;margin-top:6px;">
+        <div style="font-size:42px;line-height:1;">🌍</div>
+        <p style="font-size:15px;font-weight:700;color:var(--ink);line-height:1.6;margin:10px 0 4px;">Ayo latih speaking-mu dengan<br><span style="color:#059669;">Speaking with People from Another Country</span></p>
+        <p style="font-size:12px;opacity:.7;line-height:1.6;margin:6px 0 0;">Ngobrol langsung dengan orang dari negara lain supaya makin lancar dan percaya diri berbicara bahasa Inggris.</p>
+      </div>
+      <a class="btn" id="speakingLinkBtn" href="https://www.episoden.com/" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;text-decoration:none;margin-top:14px;background:#10b981;border-color:#10b981;color:#fff;">🌍 Mulai Speaking di Episoden</a>
+      <button class="btn ghost" id="speakingBackBtn" type="button" style="margin-top:12px;">← Kembali</button>
+    </div>`;
+  document.getElementById('speakingBackBtn').onclick = ()=> renderBelajarSubmenu();
+}
 
 function renderEsp2Menu(){
   clearTimer();
