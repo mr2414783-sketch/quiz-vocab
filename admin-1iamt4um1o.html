@@ -2416,7 +2416,7 @@
           btn.onclick = ()=> setStatus(btn.dataset.key, btn.dataset.name, btn.dataset.set, btn);
         });
       }, (err)=>{
-        listEl.innerHTML = '<div class="history-empty">Gagal memuat (cek Firebase Rules untuk path "ieltsAccess"): ' + escapeHtml(err.message || '') + '</div>';
+        listEl.innerHTML = '<div class="history-empty">Gagal memuat (cek Firebase Rules untuk path "ieltsAccess"): ' + escapeHtml(err.message || '') + '<br><br>Kalau Rules baru saja di-Publish atau UID admin sudah dicek, muat ulang halaman ini.<br><button type="button" class="small-btn unban" style="margin-top:8px;" onclick="location.reload()">🔄 Muat ulang</button></div>';
       });
     })();
 
@@ -2491,7 +2491,7 @@
           btn.onclick = ()=> setStatus(btn.dataset.key, btn.dataset.name, btn.dataset.set, btn);
         });
       }, (err)=>{
-        listEl.innerHTML = '<div class="history-empty">Gagal memuat (cek Firebase Rules untuk path "vocabLevelAccess"): ' + escapeHtml(err.message || '') + '</div>';
+        listEl.innerHTML = '<div class="history-empty">Gagal memuat (cek Firebase Rules untuk path "vocabLevelAccess"): ' + escapeHtml(err.message || '') + '<br><br>Kalau Rules baru saja di-Publish atau UID admin sudah dicek, muat ulang halaman ini.<br><button type="button" class="small-btn unban" style="margin-top:8px;" onclick="location.reload()">🔄 Muat ulang</button></div>';
       });
     })();
 
