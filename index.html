@@ -10370,6 +10370,15 @@ function renderTentangKami(onBack){
       <p class="intro-desc" style="text-align:left;">Aplikasi ini awalnya aku bikin buat belajar sendiri. Soalnya materi yang ditulis di buku itu kan gak mungkin bukunya selalu dibawa ke mana-mana.</p>
       <p class="intro-desc" style="text-align:left;">Sempat coba difoto aja tiap halamannya, tapi ujung-ujungnya foto-fotonya numpuk di galeri, urutannya acak, jadi malah males buat dibuka & dibaca lagi.</p>
       <p class="intro-desc" style="text-align:left;">Dari situ aku kepikiran buat mindahin semua materinya ke satu tempat yang bisa dibuka kapan aja lewat HP — tinggal buka aplikasinya, materinya udah rapi per topik, tinggal pilih mau belajar apa, tanpa perlu scroll-scroll galeri foto yang berantakan. Makanya aplikasi ini dibuat.</p>
+      <p class="intro-desc" style="text-align:left;">Sekarang isinya udah aku buat lengkap, mulai dari:</p>
+      <ul style="margin:0 0 8px 20px;padding:0;font-size:13px;line-height:1.7;text-align:left;">
+        <li>🗣️ <b>Pronunciation</b> (American &amp; British, bisa didengarkan)</li>
+        <li>🎤 <b>Speaking</b> (latihan ngobrol dengan orang dari negara lain)</li>
+        <li>🎓 <b>Academic Vocabulary</b> (kata akademik AVL &amp; AWL)</li>
+        <li>🚀 Latihan <b>IELTS &amp; TOEFL</b></li>
+        <li>📚 Plus vocab, grammar, 16 Tenses, Vocabulary Building, STP, dan ESP 2</li>
+      </ul>
+      <p class="intro-desc" style="text-align:left;">Semuanya aku siapin buat mempermudah aku latihan. Terus aku coba share ke temen-temen, siapa tau bisa ikut membantu mereka juga.</p>
       <p class="intro-desc" style="text-align:left;">Awalnya emang buat kebutuhan belajar sendiri, tapi semoga bisa berguna juga buat siapa pun yang makai. 🙏</p>
       <div class="credit-box">
         <img class="credit-avatar" src="data:image/jpeg;base64,${CREDIT_PHOTO_B64}" alt="Muhamad Rifki Maulana Ruhimat">
@@ -10397,7 +10406,7 @@ function renderBeginnerGuide(onBack){
   const SECTIONS = [
     { open:false, icon:'👋', title:'Apa itu aplikasi ini?', sub:'Kenalan dulu sebentar', body:
       P('<b>Daily English</b> adalah aplikasi latihan Bahasa Inggris dari LC Language Center · Basic Camp. Dibuka lewat browser di HP, dan butuh koneksi internet.') +
-      UL(['Latihan &amp; hafalan <b>vocab</b> dan <b>grammar</b>','Materi <b>pronunciation</b> (American vs British) yang bisa didengarkan','Hafalan <b>16 Tenses</b> lewat lagu','Game bareng peserta lain: Duel, Kuis Live, Ular Tangga','Leaderboard, level, dan lencana biar makin semangat']) },
+      UL(['Latihan &amp; hafalan <b>vocab</b> dan <b>grammar</b>','Materi <b>pronunciation</b> (American vs British) yang bisa didengarkan','<b>Academic Vocabulary</b> (AVL &amp; AWL) lengkap dengan Word Family','<b>Vocabulary Building</b>, <b>STP</b> (Story Through Pictures), <b>ESP 2</b>, dan latihan <b>Speaking</b>','Persiapan <b>IELTS &amp; TOEFL</b>','Hafalan <b>16 Tenses</b> lewat lagu','Game bareng peserta lain: Duel, Kuis Live, Ular Tangga','Leaderboard, level, dan lencana biar makin semangat']) },
     { open:true, icon:'🆕', title:'Cara bikin akun (mulai dari sini)', sub:'Khusus pengguna baru', body:
       OL(['Buka aplikasinya. Di layar <b>Selamat Datang</b>, pastikan tab <b>Daftar Akun Baru</b> yang aktif.',
           'Isi <b>Nama</b> kamu (maksimal 30 karakter). Nama ini yang tampil di leaderboard dan chat, jadi pakai nama yang pantas.',
@@ -10421,7 +10430,7 @@ function renderBeginnerGuide(onBack){
       P('Kalau admin menyalakan musik, ada pemutar kecil 🎵 di bawah layar dengan tombol ⏪ ▶️ ⏩ 🔁 dan ✕ (stop).') },
     { open:false, icon:'👤', title:'Lengkapi profil', sub:'Wajib diisi sekali saja', body:
       OL(['Tap menu <b>👤 Profil</b> di bawah.','Isi <b>Nama Lengkap</b>, <b>Username Instagram</b>, <b>Status</b>, dan <b>Umur</b> (semuanya wajib).','Tambahkan <b>foto profil</b> supaya profilmu lengkap.','Simpan. Di halaman yang sama kamu bisa lihat ⭐ Level &amp; XP dan 🎖 Lencana.']) },
-    { open:false, icon:'📚', title:'Mode Belajar', sub:'Soal &amp; Vocab, Grammar, Pronunciation, Vocab Building', body:
+    { open:false, icon:'📚', title:'Mode Belajar', sub:'Soal &amp; Vocab, Grammar, Pronunciation, Vocab Building, STP, ESP 2, Speaking', body:
       H('📖 Soal &amp; Vocab') +
       OL(['Pilih <b>Mode Belajar → Soal &amp; Vocab</b>.',
           'Pilih cara belajar: <b>📖 Latihan Soal</b> (kuis) atau <b>🃏 Mode Hafalan</b> (flashcard).',
@@ -10435,9 +10444,20 @@ function renderBeginnerGuide(onBack){
       H('✍️ Materi &amp; Soal Grammar') +
       UL(['<b>📘 Materi</b>: baca penjelasan grammar per kategori','<b>📖 Latihan Soal</b> dan <b>🃏 Mode Hafalan</b>: uji dan hafalkan rumusnya','<b>🎵 Hafalan dan Materi 16 Tenses</b>: hafalan lewat lagu dengan lirik yang ikut bergerak. Tombol 🔁 memutar lagu bergantian dua penyanyi. Tanpa 🔁, yang terputar penyanyi kedua. Ada juga <b>📖 Penjelasan 16 Tenses</b>.']) +
       H('🗣️ Pronunciation') +
-      P('Pilih aksen <b>🇺🇸 American</b> atau <b>🇬🇧 British</b>, lalu buka materinya. Tap kata yang ada tanda 🔊 untuk mendengar cara bacanya.') +
+      P('Pilih aksen <b>🇺🇸 American</b> atau <b>🇬🇧 British</b>, lalu buka materinya. Tap kata yang ada tanda 🔊 untuk mendengar cara bacanya. Ulangi sambil menirukan supaya pelafalanmu makin enak didengar.') +
       H('🧩 Vocabulary Building') +
-      P('Materi tambahan seperti Collocation dan Idioms, dibaca per chapter.') },
+      P('Materi tambahan (Fourth Month) yang dibaca per chapter. Isinya ada 6 chapter: <b>Collocation</b>, <b>Idioms</b>, <b>Action Verbs</b>, <b>Likes and Dislikes</b>, <b>Collective Nouns</b>, dan <b>Around the World</b>. Tap chapter untuk membaca, lalu tap <b>📝 Latihan Soal</b> di bagian bawah untuk menguji pemahamanmu.') +
+      H('🖼️ STP (Story Through Pictures)') +
+      OL(['Buka <b>Mode Belajar → STP</b>, lalu pilih salah satu dari <b>24 chapter</b>.',
+          'Lihat gambar ceritanya. <b>Ketuk gambar</b> untuk memperbesar.',
+          'Kerjakan <b>Exercise 2</b> dan <b>Exercise 4</b>. Tap <b>👀 Tampilkan jawaban</b> kalau mau mencocokkan, dan <b>🙈 Sembunyikan jawaban</b> untuk mencoba lagi.',
+          'Kalau ada tombol <b>📝 Retell</b>, tap untuk melihat contoh cerita ulang dari gambarnya.',
+          'Tap <b>📖 Tabel Vocab STP (Chapter 1–24)</b> atau <b>📖 Vocab chapter ini</b> untuk melihat daftar kata beserta artinya.',
+          'Pakai tombol <b>← Chapter</b> dan <b>Chapter →</b> untuk pindah chapter dengan cepat.']) +
+      H('💬 ESP 2 (English for Specific Purposes 2)') +
+      P('Belajar cara menulis pesan dan bercakap dengan benar. Pilih <b>🎩 Formal</b> (untuk atasan, dosen, klien, atau orang yang belum dikenal) atau <b>Informal</b> (untuk teman dan obrolan santai). Tiap pilihan punya penjelasan, contoh, dan perbandingan kalimat.') +
+      H('🎤 Speaking') +
+      P('Tap <b>🌍 Mulai Speaking di Episoden</b> untuk membuka situs latihan ngobrol dengan orang dari negara lain. Linknya terbuka di tab baru, jadi aplikasi ini tetap aman di belakang.') },
     { open:false, icon:'🎮', title:'Mode Game', sub:'Duel 1v1, Kuis Live, Ular Tangga', body:
       H('⚔️ Duel 1v1 (Beta)') +
       OL(['Atur <b>Jumlah Soal</b>, <b>Materi</b>, dan <b>Bentuk Soal</b>.','Tap <b>⚔️ Cari Lawan</b>. Kamu dipertemukan dengan peserta yang memilih setelan yang sama persis.','Skor lebih tinggi yang menang. Kalau seri, yang paling cepat menang.']) +
@@ -10446,7 +10466,7 @@ function renderBeginnerGuide(onBack){
       H('🐍🪜 Ular Tangga') +
       P('Papan 100 kotak dan tiap kotak ada soalnya. Pilih main sendiri atau 2 sampai 4 orang. Yang duluan sampai atau melewati kotak 100 menang.') },
     { open:false, icon:'✨', title:'Mode Lainnya', sub:'Kamus, panduan, dan tentang aplikasi', body:
-      UL(['<b>🔍 Kamus Kosakata</b>: ketik kata Indonesia atau Inggris, hasilnya dicari dari seluruh kosakata di aplikasi','<b>🎓 Persiapan IELTS &amp; TOEFL</b>: menu terkunci, lihat penjelasannya di bagian berikutnya','<b>📖 Panduan Pemula</b>: halaman ini','<b>💌 Tentang Saya</b>: cerita di balik aplikasi ini']) },
+      UL(['<b>🔍 Kamus Kosakata</b>: ketik kata Indonesia atau Inggris, hasilnya dicari dari seluruh kosakata di aplikasi','<b>🎓 Persiapan IELTS &amp; TOEFL</b>: menu terkunci, lihat penjelasannya di bagian berikutnya','<b>📖 Panduan Pemula</b>: halaman ini','<b>🚀 Aplikasi Lainnya dari Developer</b>: aplikasi lain buatan pembuat aplikasi ini','<b>💌 Tentang Saya</b>: cerita di balik aplikasi ini dan apa saja yang ada di dalamnya']) },
     { open:false, icon:'🎓', title:'Persiapan IELTS &amp; TOEFL (perlu izin admin)', sub:'Menu terkunci, hanya untuk orang tertentu', body:
       P('Menu ini dikunci supaya hanya orang tertentu yang bisa masuk. Caranya:') +
       OL(['Buka <b>Mode Lainnya → 🎓 Persiapan IELTS &amp; TOEFL</b>.',
@@ -10463,7 +10483,7 @@ function renderBeginnerGuide(onBack){
       UL(['<b>👥 Grup Saya</b>: grup belajar kamu','<b>📩 Pesan Admin</b>: kirim pesan langsung ke admin','<b>📝 Kirim Masukan</b>: saran atau laporan masalah','<b>📊 Riwayat Nilai</b>: hasil latihan sebelumnya']) +
       P('<b>🎓 Ujian Mandiri</b> hanya muncul kalau admin sedang membukanya.') },
     { open:false, icon:'🌱', title:'Tips belajar untuk pemula', sub:'Urutan yang gampang diikuti', body:
-      OL(['Mulai dari <b>🃏 Mode Hafalan → Per Hari</b>, mulai dari Day yang paling awal.','Setelah hafal, uji dengan <b>📖 Latihan Soal</b> pada hari yang sama.','Pakai <b>Latihan Cerdas</b> untuk mengulang kata yang sering salah.','Belajar sedikit tapi tiap hari lebih efektif daripada sekali banyak.','Dengarkan <b>Pronunciation</b> dan lagu <b>16 Tenses</b> sambil santai.']) },
+      OL(['Mulai dari <b>🃏 Mode Hafalan → Per Hari</b>, mulai dari Day yang paling awal.','Setelah hafal, uji dengan <b>📖 Latihan Soal</b> pada hari yang sama.','Pakai <b>Latihan Cerdas</b> untuk mengulang kata yang sering salah.','Belajar sedikit tapi tiap hari lebih efektif daripada sekali banyak.','Dengarkan <b>Pronunciation</b> dan lagu <b>16 Tenses</b> sambil santai.','Tambah kosakata akademik lewat tab <b>🎓 Academic Vocabulary</b>, lalu baca <b>Vocabulary Building</b> dan <b>STP</b> untuk memperluas kosakata dan latihan bercerita.','Latih <b>Speaking</b> secara rutin, dan kalau sudah siap, coba <b>IELTS &amp; TOEFL</b>.']) },
     { open:false, icon:'❓', title:'Masalah yang sering terjadi', sub:'Kalau ada yang tidak jalan', body:
       UL(['<b>Gagal daftar atau masuk:</b> cek koneksi internet, lalu refresh halaman dan coba lagi.','<b>"Nama ini sudah dipakai":</b> pakai nama lain, atau pindah ke tab Masuk kalau itu akunmu.','<b>Tampilan tidak berubah setelah ada pembaruan:</b> tutup aplikasi lalu buka lagi. Kalau masih sama, hapus data situs di pengaturan Chrome.','<b>Suara tidak keluar:</b> cek volume HP dan pastikan tidak dalam mode senyap.','<b>Lupa password:</b> hubungi admin.','<b>Mau hapus akun:</b> buka Profil lalu tap <b>🗑 Hapus Akun Saya</b>. Ini permanen.']) }
   ];
@@ -15965,7 +15985,7 @@ function markAppTutorialSeen(){
 }
 const APP_TUTORIAL_SLIDES = [
   { emoji:'👋', title:'Selamat Datang di Daily English!', desc:'App latihan Bahasa Inggris dari LC Language Center · Basic Camp. Yuk kenalan dulu sama fitur-fiturnya sebelum mulai belajar.' },
-  { emoji:'📚', title:'Mode Belajar', desc:'Ada Hafalan Vocab (flashcard & kuis), Grammar (materi + lagu hafalan 16 Tenses), Ujian Mandiri, sampai mode buat anak-anak. Pilih sesuai kebutuhanmu.' },
+  { emoji:'📚', title:'Mode Belajar', desc:'Ada Hafalan Vocab (flashcard & kuis), Grammar (materi + lagu hafalan 16 Tenses), Pronunciation, Vocabulary Building, STP, ESP 2, dan Speaking. Pilih sesuai kebutuhanmu.' },
   { emoji:'⚔️', title:'Duel 1v1 & Kuis Live', desc:'Tantang peserta lain langsung head-to-head di Duel 1v1 (bisa atur jumlah & jenis soal), atau ikutan Kuis Live bareng-bareng ala Kahoot.' },
   { emoji:'🏆', title:'Leaderboard & Lencana', desc:'Makin rajin ngerjain soal, makin naik peringkatmu di papan peringkat, dan makin banyak lencana pencapaian yang kamu kumpulin.' },
   { emoji:'👤', title:'Lengkapi Profilmu', desc:'Jangan lupa isi nama, foto profil, sama username Instagram-mu ya — itu wajib diisi biar profilmu lengkap. Yuk mulai!' }
