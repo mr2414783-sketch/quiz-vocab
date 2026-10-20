@@ -18815,6 +18815,134 @@ const VB_CONTINENTS = [
 ];
 function vbWorldBy(c){ const set = c.list ? c.list.split(';') : []; return VB_WORLD.filter(r=> set.indexOf(r[0]) > -1); }
 
+/* ---------- Data Chapter 7–10 (materi + latihan memakai data yang sama) ---------- */
+function vbBoldIn(s, w){
+  const re = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i');
+  return re.test(s) ? s.replace(re, m=>'<b>'+m+'</b>') : s;
+}
+// [vocab, contoh kalimat, arti, kelompok (S kecil / M sedang / L besar)]
+const VB7_SIZE = [
+['Small','The studio apartment was small but cozy.','kecil','S'],
+['Tiny','The ladybug was tiny compared to the giant beetle beside it.','sangat kecil','S'],
+['Miniature','He collected miniature cars.','miniatur, mini','S'],
+['Compact','The new smartphone boasted a compact design.','ringkas, kompak','S'],
+['Petite','She wore a petite dress that accentuated her slender figure.','mungil','S'],
+['Diminutive','The diminutive house was tucked away in a corner of the village.','sangat kecil, mungil','S'],
+['Medium-sized','They ordered a medium-sized pizza.','ukuran sedang','M'],
+['Average','The average height of the students in the class was around 5 feet.','rata-rata','M'],
+['Moderate','The hotel offered moderate room rates, suitable for budget travelers.','sedang, wajar','M'],
+['Large','The large oak tree provided ample shade on hot summer days.','besar','L'],
+['Big','A big elephant passes the savanna with its colony.','besar','L'],
+['Huge','The huge waterfall cascaded down the cliffs.','sangat besar','L'],
+['Gigantic','The gigantic skyscraper towered over the city skyline.','raksasa','L'],
+['Immense','The immense desert stretched as far as we could see.','luas sekali, sangat besar','L'],
+['Massive','A massive boulder blocked the path.','besar dan berat','L']];
+const VB7_QTY = [
+['Abundance','The garden was lush with an abundance of colorful flowers.','kelimpahan'],
+['Plenty','There were plenty of snacks at the party.','banyak'],
+['Numerous','The library has numerous books on various topics.','banyak sekali'],
+['Countless','There are countless stars twinkling in the night sky.','tak terhitung'],
+['Several','Several students volunteered to help clean up the school.','beberapa'],
+['A multitude of','A multitude of menu options are available at the buffet.','sangat banyak'],
+['A plethora of','The museum displayed a plethora of artifacts.','berlimpah'],
+['Copious','The chef uses copious amounts of herbs and spices to flavor the dish.','melimpah'],
+['A myriad of','The internet offers a myriad of resources for learning new skills.','sangat banyak ragamnya'],
+['Innumerable','Innumerable tourists flock to the beach during the summer.','tak terhitung jumlahnya'],
+['A wealth of','The conference provides a wealth of information on the latest research.','kaya akan, sangat banyak'],
+['A bulk of','The majority of the population lives in urban areas, with a bulk of them residing in cities.','sebagian besar'],
+['A significant number of','A significant number of voters turned out for the election.','jumlah yang signifikan']];
+const VB7_DIM = [
+['Width','The width of the table is sufficient to accommodate four chairs.','lebar'],
+['Length','The length of the hallway seems to stretch on endlessly.','panjang'],
+['Height','The height of the mountain peak makes climbing more challenging.','tinggi'],
+['Depth','The depth of the ocean is difficult to measure.','kedalaman'],
+['Thickness','The thickness of a book indicates its substantial content.','ketebalan'],
+['Breadth','The breadth of his knowledge on the subject is impressive.','keluasan'],
+['Diameter','The diameter of a circle is measured from side to side.','diameter'],
+['Radius','The radius of the circle determines the distance from the center to any point.','jari-jari'],
+['Circumference','The circumference of the Earth is approximately 40,075 kilometers.','keliling'],
+['Volume','The volume of the swimming pool is 500 cubic meters.','volume'],
+['Area','Many areas of Africa have suffered severe drought this year.','area, wilayah'],
+['Extent','The extent of the damage caused by the storm was extensive.','tingkat, luasnya'],
+['Scale','The map provided a scale to help travelers estimate the distances between cities.','skala'],
+['Proportion','The proportion of students who passed the exam remained consistent over the years.','proporsi'],
+['Magnitude','The magnitude of the earthquake was measured on the Richter scale.','besaran, magnitudo'],
+['Scope','The scope of the research project covered a wide range of topics within the field.','cakupan']];
+// Exercise 1 Chapter 7: [sebelum, kata tebal, sesudah, S/B, penjelasan]
+const VB7_EX1 = [
+['a ','minute',' amount of dust','S','minute (dibaca maiNYUT) = sangat kecil'],
+['a ','minuscule',' piece of cloth','S','minuscule = sangat kecil'],
+['an ','enormous',' book','B','enormous = sangat besar'],
+['a ','mammoth',' job','B','mammoth = raksasa, sangat besar'],
+['a ','huge',' waste of time','B','huge = sangat besar'],
+['a ','vast',' room','B','vast = sangat luas'],
+['a ','gigantic',' wave','B','gigantic = raksasa'],
+['a ','tiny',' car','S','tiny = sangat kecil'],
+['a ','monumental',' error','B','monumental = sangat besar (kesalahan besar)'],
+['a ','colossal',' statue','B','colossal = kolosal, sangat besar'],
+['','plenty',' of food','B','plenty of = banyak (jumlah besar)']];
+
+// Chapter 8: [noun, adjective, arti]
+const VB8_SHAPES = [
+['square','square','persegi'],['circle','circular','lingkaran'],['triangle','triangular','segitiga'],['rectangle','rectangular','persegi panjang'],
+['octagon','octagonal','segi delapan'],['trapezoid','trapezoidal','trapesium'],['parallelogram','-','jajar genjang'],['cube','cubic','kubus'],
+['oval','oval','oval, bulat telur'],['semicircle','semicircular','setengah lingkaran'],['crescent','crescent-shaped','bulan sabit'],['diamond','diamond-shaped','belah ketupat'],
+['pentagon','pentagonal','segi lima'],['hexagon','hexagonal','segi enam'],['sphere','spherical','bola'],['cylinder','cylindrical','tabung'],
+['tube','tubular','tabung, pipa'],['cone','conical','kerucut'],['pyramid','-','piramida, limas']];
+const VB8_FEAT = [
+['smooth','halus'],['rough','kasar'],['sharp','tajam'],['pointed','runcing'],['curved','melengkung'],['jagged','bergerigi'],
+['symmetrical','simetris'],['angular','bersudut'],['irregular','tidak beraturan'],['textured','bertekstur'],['glossy','mengilap'],['matte','doff, tidak mengilap'],
+['transparent','transparan, bening'],['translucent','tembus cahaya (agak buram)'],['opaque','tidak tembus cahaya'],['polished','mengilap, digosok'],
+['frosted','buram seperti kaca es'],['grooved','beralur'],['embossed','timbul']];
+// Exercise 1 Chapter 8: [kata, deskripsi gambar di buku]
+const VB8_EX1 = [
+['cone','wadah es krim (gambar A)'],['cylinder','tabung pemadam api (gambar B)'],['oval','telur (gambar C)'],['cube','dadu (gambar D)'],
+['pyramid','piramida (gambar E)'],['spiral','pola berputar ke dalam (gambar F)'],['rectangle','buku catatan / uang kertas (gambar G)'],['triangle','alat musik triangle (gambar H)'],
+['square','ubin bermotif (gambar I)'],['crescent','bulan sabit (gambar J)'],['circle','lingkaran dengan bagian yang diarsir (gambar K)'],['sphere','bola dunia / globe (gambar L)']];
+// Exercise 2 Chapter 8: [noun, benar, salah1, salah2]
+const VB8_EX2 = [
+['sphere','spherical','spherous','spherocous'],['cube','cubic','cubed','cubous'],['cone','conical','conacular','conous'],
+['rectangle','rectangular','rectanglous','rectanglis'],['triangle','triangular','trianglous','triangle'],['circle','circular','circled','circulous']];
+
+// Chapter 9: [sebelum, sesudah, jawaban, arti]
+const VB9_PARTS = ['up to','out','out of','up with','on','off','down','up'];
+const VB9_EX1 = [
+['Some parents criticized for the way they bring','their children.','up','raise = membesarkan, mendidik'],
+['The committee members fell','over plans for the new health center.','out','argued = bertengkar'],
+['They refused to face','their responsibilities, with disastrous consequences.','up to','accept an unpleasant state of affairs, and try to deal with it = menghadapi'],
+['The President decided to call','his visit to Europe.','off','not to go ahead with something = membatalkan'],
+['It is at election time that Members of Parliament count','support from their constituents.','on','rely/depend = mengandalkan'],
+['Many developing countries are failing to catch','the more developed neighbors.','up with','get to the same level = menyusul'],
+['It can take months or even years for political scandals to die','.','down','become less strong = mereda']];
+
+// Chapter 10: [kata, meaning (buku), arti]
+const VB10_ENV = [
+['habitat','the place where animals or plants is normally found','habitat, tempat hidup'],
+['biodiversity','the existence of a large number of different kinds of animals and plants, which make a balanced environment','keanekaragaman hayati'],
+['ecosystem','all the plants and living creatures in a particular area considered in relation to their physical environment','ekosistem'],
+['endangered species','a species of animal or plant that is seriously at risk of extinction','spesies terancam punah'],
+['vegetation','plants that are found in a particular area or environment','vegetasi'],
+['global warming','an increase in the Earth\'s atmospheric and oceanic temperature','pemanasan global'],
+['pollute','to contaminate an environment especially with man-made waste','mencemari'],
+['deforestation','the act of cutting down or burning the trees in an area','penggundulan hutan'],
+['climate change','significant and long-lasting change in the Earth\'s climate and weather','perubahan iklim'],
+['renewable energy','energy that is produced using the sun, wind, etc., or from crops, rather than using fuels such as oil or coal','energi terbarukan'],
+['acid rain','rain that contains harmful chemicals from factory gases that damages trees, crops and buildings','hujan asam'],
+['recycle','to treat things that have already been used so that they can be used again','mendaur ulang'],
+['afforestation','the process of planting areas of land with trees in order to form a forest','penghijauan'],
+['conservation','a careful preservation and protection of something','konservasi, pelestarian'],
+['toxic waste','poisonous unwanted chemicals that are the result of manufacturing or industry','limbah beracun'],
+['greenhouse effect','a natural process that warms the Earth\'s surface.','efek rumah kaca'],
+['radiation','powerful and very dangerous rays that are sent out from radioactive substances','radiasi'],
+['overpopulation','a country or city having too many people living in it','kelebihan penduduk'],
+['extinct','no longer in existence','punah'],
+['biodegradable','capable of being broken down especially innocuous products by the action of living things (microorganisms)','dapat terurai secara hayati']];
+const VB10_PASS = [
+['biodiversity','keanekaragaman hayati'],['habitat destruction','perusakan habitat'],['pollination','penyerbukan'],['carbon sequestration','penyerapan dan penyimpanan karbon'],
+['resilient','tangguh, mampu pulih'],['susceptible','rentan'],['endangered species','spesies terancam punah'],['mitigate','mengurangi dampak'],
+['ecosystem degradation','kerusakan ekosistem'],['safeguarding','melindungi, menjaga']];
+
+
 const VOCABBUILD_CHAPTERS = [
 {
   id:'vb-ch1', title:'Chapter 1 — Collocation',
@@ -19020,7 +19148,56 @@ const VOCABBUILD_CHAPTERS = [
       vbWorldBy(c).length ? vbTable(['Country','Nationality','Language'], vbWorldBy(c)) : c.note))
   ]
 }
-/* ← tambah Chapter 7, 8, dst. di sini (pakai koma setelah objek sebelumnya) */
+,{
+  id:'vb-ch7', title:'Chapter 7 — Sizes, Quantities, and Dimensions',
+  sections:[
+    vbSec('Sizes, Quantities, and Dimensions', `<b>Sizes, quantities, and dimensions</b> adalah konsep yang saling berkaitan, dipakai untuk menggambarkan berbagai aspek benda, fenomena, atau konsep matematika. Untuk memperkaya kosakatamu, berikut daftar kosakata <mark>size, quantity, dan dimension</mark>.`),
+    vbSec('A. Size', vbTable(['Vocabulary','Examples','Arti'], VB7_SIZE.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sebagai bantuan belajar, bukan dari buku.</i>`),
+    vbSec('B. Quantity', vbTable(['Vocabulary','Examples','Arti'], VB7_QTY.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri.</i>`),
+    vbSec('C. Dimension', vbTable(['Vocabulary','Examples','Arti'], VB7_DIM.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Di buku, angka keliling Bumi tertulis \"40.075\"; saya tulis 40,075 kilometers.</i>`),
+    vbSec('Exercise 1', `Lihat daftar berikut dan tentukan apakah yang dibicarakan sesuatu yang <b>besar</b> (ukuran, jumlah, atau dimensi) atau <b>kecil</b>. Jawaban di sini mengikuti tulisan tangan di buku (S = small, B = big).` + vbTable(['No','Phrase','Jawaban'], VB7_EX1.map((r,i)=>[String(i+1), r[0]+'<b>'+r[1]+'</b>'+r[2], r[3]==='S'?'S (small)':'B (big)'])) + `Mau latihan interaktif? Buka <b>📝 Latihan Soal → Chapter 7</b>.`)
+  ]
+}
+,{
+  id:'vb-ch8', title:'Chapter 8 — Shapes and Features',
+  sections:[
+    vbSec('What do you know about shape and feature?', `Menurut Longman Dictionary, <b>shape</b> adalah bentuk yang dimiliki sesuatu, dan <b>feature</b> adalah bagian dari sesuatu yang kamu perhatikan karena tampak penting, menarik, atau khas. Shape dan feature bisa dipakai untuk menggambarkan suatu benda agar lebih spesifik. Keduanya bisa menjadi <mark>adjective</mark>, tetapi <mark>shape bisa berupa adjective atau noun</mark>.`),
+    vbSec('Shape: Noun vs Adjective', `Contoh: <i>The room had a <b>circular</b> layout, with furniture arranged in a <b>circle</b>.</i><br><br><b>\"Circle\"</b> dipakai sebagai <b>noun</b> untuk menyebut bentuk atau sekelompok orang yang berdiri melingkar. <b>\"Circular\"</b> adalah <b>adjective</b> yang menggambarkan benda yang berciri seperti lingkaran, misalnya <i>circular layout</i>. Karena shape bisa berupa noun atau adjective, daftar di bawah membantumu memakainya dalam kalimat.` + vbTable(['Noun','Adjective','Arti'], VB8_SHAPES.map(r=>[r[0], r[1], r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Tanda \"-\" berarti tidak ada bentuk adjective.</i>`),
+    vbSec('Features', `Features adalah bagian dari adjective yang menggambarkan sesuatu. Contoh: <i>The antique mirror had an <b>intricately carved wooden</b> frame.</i> Kata-kata tebal itu adjective, dan kata seperti itu bisa disebut <b>features</b>. Berikut daftar kosakata feature:` + vbTable(['Feature','Arti'], VB8_FEAT.map(r=>['<b>'+r[0]+'</b>', r[1]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Di buku, kata \"angular\" tertulis dua kali di daftar ini.</i>`)
+  ]
+}
+,{
+  id:'vb-ch9', title:'Chapter 9 — Phrasal Verbs',
+  sections:[
+    vbSec('Phrasal Verbs', `<b>Phrasal verbs</b> adalah gabungan verb dengan satu atau lebih <b>particle</b> (preposition, adverb, atau keduanya) yang membentuk satu kesatuan makna, sering dengan arti yang <mark>tidak bisa ditebak dari masing-masing katanya</mark>.` + vbTable(['Phrasal verb','Arti','Contoh'],[
+      ['<b>Look up</b>','mencari informasi','I need to <b>look up</b> the meaning of this word in the dictionary.'],
+      ['<b>Turn on</b>','menyalakan, mengaktifkan','Please <b>turn on</b> the lights. It\'s getting dark here.']])),
+    vbSec('A. Transitive and Intransitive Phrasal Verbs', `Phrasal verb bisa dibagi menjadi <b>transitive</b> atau <b>intransitive</b>, tergantung apakah bisa memakai direct object atau tidak. <b>Transitive</b> phrasal verb membutuhkan direct object untuk melengkapi maknanya, sedangkan <b>intransitive</b> tidak membutuhkan direct object.` + vbTable(['Contoh','Jenis'],[
+      ['<b>Turn on</b> <u>the lights</u>.','transitive (objeknya: the lights)'],
+      ['He <b>gave up</b>.','intransitive (tanpa objek)']])),
+    vbSec('B. Separable and Inseparable', `Selain transitive dan intransitive, phrasal verb juga bisa <b>separable</b> atau <b>inseparable</b>. Pada <b>separable</b>, direct object boleh diletakkan di antara verb dan particle. Pada <b>inseparable</b>, verb dan particle tidak bisa dipisahkan oleh direct object.` + vbTable(['Contoh','Jenis'],[
+      ['She <b>turns</b> the lights <b>on</b>. / She <b>turns on</b> the lights.','separable'],
+      ['He <b>puts off</b> the meeting.','inseparable (sesuai tulisan di buku)']]) + `<b>Note:</b> jika objeknya berbentuk <i>pronoun</i>, objek <mark>harus</mark> berada di antara verb dan particle. Contoh: <i>I <b>look</b> it <b>up</b> in the dictionary.</i><br><br><i>Catatan: di buku, \"puts off the meeting\" dicontohkan sebagai inseparable. Padahal put off umumnya separable (bisa: put the meeting off). Contoh inseparable yang umum: look after, get over.</i>`),
+    vbSec('C. Meanings: Literal, Idiomatic, and Multiple', `Phrasal verb bisa punya makna literal, idiomatic, dan kadang beberapa makna sekaligus.` + vbTable(['Jenis makna','Penjelasan','Contoh'],[
+      ['<b>1. Literal</b>','makna yang sebenarnya','Please <b>turn on</b> the lights.'],
+      ['<b>2. Idiomatic</b>','berbeda dari makna literalnya','He <b>takes after</b> his father. (mirip ayahnya)'],
+      ['<b>3. Multiple</b>','punya dua makna atau lebih tergantung konteks (literal atau idiomatic)','lihat <b>get around</b> di bawah']]) + `<b>Get around</b> punya tiga makna:` + vbTable(['Makna','Contoh'],[
+      ['Literal: berpindah dari satu tempat ke tempat lain','In the city, it\'s easy to <b>get around</b> on public transportation.'],
+      ['Idiomatic: menemukan cara untuk mengatasi atau menghindari sesuatu','Despite the traffic, people find ways to <b>get around</b> the city quickly.'],
+      ['Menyebarkan informasi atau kabar burung','News of the incident <b>got around</b> the office.']]) + `<i>Kalimat contoh pertama terpotong di buku; saya lengkapi dengan \"transportation\".</i>`),
+    vbSec('Exercise 1 (kunci jawaban)', `Lengkapi phrasal verb dengan particle dari kotak. Makna phrasal verb ada di dalam tanda kurung.` + vbTable(['No','Kalimat','Jawaban'], VB9_EX1.map((r,i)=>[String(i+1), r[0]+' <b>___</b> '+r[1], '<b>'+r[2]+'</b> <i>('+r[3]+')</i>'])) + `<i>Halaman buku berhenti di nomor 7, jadi hanya 7 soal yang saya masukkan.</i><br><br>Mau latihan interaktif? Buka <b>📝 Latihan Soal → Chapter 9</b>.`)
+  ]
+}
+,{
+  id:'vb-ch10', title:'Chapter 10 — The Environment',
+  sections:[
+    vbSec('The Environment', `Menurut pendapatmu, apa itu environment? Bagaimana lingkungan berubah sampai sekarang? Menurut Oxford Dictionary, <b>environment</b> berarti dunia alami tempat manusia, hewan, dan tumbuhan hidup. Lingkungan berperan penting dalam menopang kehidupan di Bumi dengan menyediakan sumber daya dan layanan ekosistem. Namun Bumi terus berubah, begitu juga lingkungannya.<br><br>Salah satu isu lingkungan adalah <b>environmental degradation</b>, yang mencakup <mark>pollution, deforestation, habitat destruction, climate change, dan loss of biodiversity</mark>. Isu-isu itu disebabkan oleh aktivitas manusia. Sebelum membahas topik ini, berikut daftar kosakata yang bisa kamu pakai.`),
+    vbSec('Vocabulary & Meaning', vbTable(['Vocabulary','Meaning','Arti'], VB10_ENV.map(r=>['<b>'+r[0]+'</b>', r[1], r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Beberapa kata di buku saya rapikan: \"corpses\" menjadi \"crops\" (acid rain, renewable energy). Baris pollute dan radiation yang tertulis dua kali saya gabung.</i>`),
+    vbSec('Exercise 1: Read the passage below', `One pressing environmental issue today is the rapid loss of <b>biodiversity</b> due to <b>habitat destruction</b>, pollution, climate change, and other human activities. This loss threatens the delicate balance of ecosystems and compromises essential services they provide, such as clean air and water, <b>pollination</b>, and <b>carbon sequestration</b>. As species disappear at an alarming rate, ecosystems become less <b>resilient</b>, making them more <b>susceptible</b> to collapse. Addressing biodiversity loss requires concerted efforts to conserve habitats, protect <b>endangered species</b>, and <b>mitigate</b> the drivers of <b>ecosystem degradation</b>, ultimately <b>safeguarding</b> the intricate web of life upon which humanity depends.<br><br><i>Di buku tertulis \"biodiversity less\"; saya perbaiki menjadi \"biodiversity loss\".</i>`),
+    vbSec('Kata Tebal di Passage', vbTable(['Kata','Arti'], VB10_PASS.map(r=>['<b>'+r[0]+'</b>', r[1]])) + `<i>Arti saya tambahkan sendiri sebagai bantuan belajar.</i><br><br>Mau latihan interaktif? Buka <b>📝 Latihan Soal → Chapter 10</b>.`)
+  ]
+}
+/* ← tambah Chapter 11, dst. di sini (pakai koma setelah objek sebelumnya) */
 ];
 
 /* ---------- Style (disuntik sekali, gak ngubah CSS lama) ---------- */
@@ -19480,6 +19657,98 @@ VB_PRACTICE_SETS.push(
 
 // Pengelompokan menu latihan per chapter (set latihan sendiri tidak diubah)
 const VB_SET_CH = {colloc:'vb-ch1', idiom:'vb-ch2', mood:'vb-ch2', verb:'vb-ch3', 'ld-fix':'vb-ch4', 'ld-feel':'vb-ch4', 'ld-voice':'vb-ch4', 'ld-grp':'vb-ch4', 'cn-fix':'vb-ch5', 'cn-pick':'vb-ch5', 'cn-cat':'vb-ch5', 'cn-sing':'vb-ch5', 'wd-nat':'vb-ch6', 'wd-ctry':'vb-ch6', 'wd-lang':'vb-ch6', 'wd-cont':'vb-ch6'};
+
+/* ---------- Latihan Chapter 7–10 (set lama tidak diubah) ---------- */
+function vbNewBuild(id){
+  const esc = escapeHtmlIdx, out = [];
+  const shuf = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+  const uniq = a => a.filter((x,i)=>a.indexOf(x)===i);
+  const mc = (label,prompt,ask,correct,wrongPool,explain) => {
+    const bad = shuf(uniq(wrongPool).filter(x=>x!==correct)).slice(0,2);
+    const l = shuf([correct].concat(bad));
+    return {kind:'choice',label,prompt,ask,options:l.map((x,i)=>['o'+i,esc(x)]),answer:'o'+l.indexOf(correct),explain};
+  };
+  const blank = (s,w) => {
+    const re = new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+    return re.test(s) ? s.replace(re,'＿＿＿') : null;
+  };
+  if(id==='sz-size'){
+    const N={S:'Small (kecil)',M:'Medium (sedang)',L:'Large (besar)'};
+    VB7_SIZE.forEach(r=>out.push({kind:'choice',label:'Size',prompt:'“'+esc(r[0])+'”',ask:'Kata ini menggambarkan ukuran apa?',
+      options:[['S','Small'],['M','Medium'],['L','Large']],answer:r[3],explain:r[0]+' = '+r[2]+' → '+N[r[3]]}));
+  }
+  else if(id==='sz-ex1') VB7_EX1.forEach(r=>out.push({kind:'choice',label:'Exercise 1 · Small or Big?',
+    prompt:esc(r[0])+'<b>'+esc(r[1])+'</b>'+esc(r[2]),ask:'Yang dibicarakan sesuatu yang kecil atau besar?',
+    options:[['S','Small'],['B','Big']],answer:r[3],explain:r[4]}));
+  else if(id==='sz-qty') VB7_QTY.forEach(r=>{
+    const q=blank(r[1],r[0]); if(!q) return;
+    out.push(mc('Quantity',esc(q),'Pilih kata yang tepat.',r[0].toLowerCase(),VB7_DIM.map(x=>x[0].toLowerCase()),r[1]+' → '+r[0]+' = '+r[2]));
+  });
+  else if(id==='sz-dim') VB7_DIM.forEach(r=>{
+    const q=blank(r[1],r[0]); if(!q) return;
+    out.push(mc('Dimension',esc(q),'Pilih kata yang tepat.',r[0].toLowerCase(),VB7_QTY.map(x=>x[0].toLowerCase()),r[1]+' → '+r[0]+' = '+r[2]));
+  });
+  else if(id==='sh-pic') VB8_EX1.forEach(r=>out.push(mc('Exercise 1 · Shape',esc(r[1]),'Bentuk apa yang paling cocok?',r[0],VB8_EX1.map(x=>x[0]),r[1]+' = '+r[0])));
+  else if(id==='sh-adj') VB8_EX2.forEach(r=>out.push(mc('Exercise 2 · Adjective form',esc(r[0]),'Apa bentuk adjective yang benar?',r[1],[r[2],r[3]],r[0]+' → '+r[1])));
+  else if(id==='sh-noun'){
+    const pool=VB8_SHAPES.filter(r=>r[1]!=='-');
+    pool.forEach(r=>out.push(mc('Noun → Adjective',esc(r[0]),'Apa bentuk adjective-nya?',r[1],pool.map(x=>x[1]),r[0]+' (noun) → '+r[1]+' (adjective)')));
+  }
+  else if(id==='sh-feat') VB8_FEAT.forEach(r=>out.push(mc('Features',esc(r[0]),'Apa arti kata ini?',r[1],VB8_FEAT.map(x=>x[1]),r[0]+' = '+r[1])));
+  else if(id==='pv-ex1') VB9_EX1.forEach(r=>out.push(mc('Exercise 1 · Phrasal verbs',esc(r[0])+' <b>＿＿＿</b> '+esc(r[1]),'Pilih particle yang tepat.',r[2],VB9_PARTS,r[0]+' '+r[2]+' '+r[1]+' ('+r[3]+')')));
+  else if(id==='pv-type'){
+    [['Please <b>turn on</b> the lights.','T','turn on + the lights (ada objek) → transitive.'],
+     ['He <b>gave up</b>.','I','gave up tanpa objek → intransitive.'],
+     ['I <b>look</b> it <b>up</b> in the dictionary.','T','look up + it (ada objek) → transitive.'],
+     ['She <b>turns on</b> the lights.','T','turns on + the lights (ada objek) → transitive.'],
+     ['He <b>takes after</b> his father.','T','takes after + his father (ada objek) → transitive.'],
+     ['I need to <b>look up</b> the meaning of this word.','T','look up + the meaning (ada objek) → transitive.']
+    ].forEach(a=>out.push({kind:'choice',label:'Transitive vs Intransitive',prompt:a[0],ask:'Phrasal verb ini termasuk apa?',
+      options:[['T','Transitive'],['I','Intransitive']],answer:a[1],explain:a[2]}));
+  }
+  else if(id==='pv-sep'){
+    [['I look it up in the dictionary.','I look up it in the dictionary.'],
+     ['Please turn it on.','Please turn on it.'],
+     ['She turned them off.','She turned off them.']
+    ].forEach(a=>out.push(mc('Pronoun & separable',esc('Objek berupa pronoun (it/them)'),'Pilih kalimat yang benar.',a[0],[a[1]],'Objek berbentuk pronoun harus berada di antara verb dan particle: '+a[0])));
+  }
+  else if(id==='pv-mean'){
+    const M=['Berpindah dari satu tempat ke tempat lain','Menemukan cara mengatasi atau menghindari sesuatu','Menyebarkan informasi atau kabar burung'];
+    [['In the city, it\'s easy to <b>get around</b> on public transportation.',0],
+     ['Despite the traffic, people find ways to <b>get around</b> the city quickly.',1],
+     ['News of the incident <b>got around</b> the office.',2]
+    ].forEach(a=>out.push(mc('Multiple meaning · get around',a[0],'Apa makna get around di kalimat ini?',M[a[1]],M,'get around = '+M[a[1]])));
+  }
+  else if(id==='en-word') VB10_ENV.forEach(r=>out.push(mc('Meaning → Word','“'+esc(r[1])+'”','Kata apa yang dimaksud?',r[0],VB10_ENV.map(x=>x[0]),r[1]+' = '+r[0])));
+  else if(id==='en-arti') VB10_ENV.forEach(r=>out.push(mc('Word → Arti',esc(r[0]),'Apa arti kata ini?',r[2],VB10_ENV.map(x=>x[2]),r[0]+' = '+r[2])));
+  else if(id==='en-pass') VB10_PASS.forEach(r=>out.push(mc('Passage · kata tebal',esc(r[0]),'Apa arti kata ini?',r[1],VB10_PASS.map(x=>x[1]),r[0]+' = '+r[1])));
+  return shuf(out);
+}
+const _vbPrBuildBase = vbPrBuild;
+vbPrBuild = function(id){ return /^(sz|sh|pv|en)-/.test(id) ? vbNewBuild(id) : _vbPrBuildBase(id); };
+VB_PRACTICE_SETS.push(
+ {id:'sz-size', icon:'📏', title:'Size', sub:'Small, medium, atau large?', n:()=>vbNewBuild('sz-size').length},
+ {id:'sz-ex1', icon:'🔍', title:'Exercise 1', sub:'Small or Big?', n:()=>VB7_EX1.length},
+ {id:'sz-qty', icon:'🔢', title:'Quantity', sub:'Lengkapi kalimat', n:()=>vbNewBuild('sz-qty').length},
+ {id:'sz-dim', icon:'📐', title:'Dimension', sub:'Lengkapi kalimat', n:()=>vbNewBuild('sz-dim').length},
+ {id:'sh-pic', icon:'🔷', title:'Exercise 1', sub:'Cocokkan benda dengan bentuk', n:()=>VB8_EX1.length},
+ {id:'sh-adj', icon:'✏️', title:'Exercise 2', sub:'Bentuk adjective yang benar', n:()=>VB8_EX2.length},
+ {id:'sh-noun', icon:'🔺', title:'Noun → Adjective', sub:'Circle → circular', n:()=>vbNewBuild('sh-noun').length},
+ {id:'sh-feat', icon:'✨', title:'Features', sub:'Arti kata feature', n:()=>VB8_FEAT.length},
+ {id:'pv-ex1', icon:'🧩', title:'Exercise 1', sub:'Lengkapi particle', n:()=>VB9_EX1.length},
+ {id:'pv-type', icon:'🔀', title:'Transitive / Intransitive', sub:'Jenis phrasal verb', n:()=>6},
+ {id:'pv-sep', icon:'↔️', title:'Pronoun', sub:'look it up, turn it on', n:()=>3},
+ {id:'pv-mean', icon:'💡', title:'Get Around', sub:'Tiga makna get around', n:()=>3},
+ {id:'en-word', icon:'🌿', title:'Meaning → Word', sub:'Tebak kata dari artinya', n:()=>VB10_ENV.length},
+ {id:'en-arti', icon:'🌍', title:'Word → Arti', sub:'Arti kosakata lingkungan', n:()=>VB10_ENV.length},
+ {id:'en-pass', icon:'📖', title:'Kata di Passage', sub:'Kata tebal pada bacaan', n:()=>VB10_PASS.length}
+);
+Object.assign(VB_SET_CH, {'sz-size':'vb-ch7','sz-ex1':'vb-ch7','sz-qty':'vb-ch7','sz-dim':'vb-ch7',
+ 'sh-pic':'vb-ch8','sh-adj':'vb-ch8','sh-noun':'vb-ch8','sh-feat':'vb-ch8',
+ 'pv-ex1':'vb-ch9','pv-type':'vb-ch9','pv-sep':'vb-ch9','pv-mean':'vb-ch9',
+ 'en-word':'vb-ch10','en-arti':'vb-ch10','en-pass':'vb-ch10'});
+
+
 function vbPrGroupedGrid(){
   const btn = x => `
           <button class="day-btn" data-vbpr="${x.id}" type="button">
