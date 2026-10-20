@@ -10127,7 +10127,7 @@ const MODE_META = {
   pronunciation: { icon:'🗣️', label:'Pronunciation', sub:'Materi American vs British, kata bisa didengarkan' },
   vocabbuilding: { icon:'🧩', label:'Vocabulary Building', sub:'Collocation, Idioms, dan materi vocab lainnya' },
   stp: { icon:'🖼️', label:'STP (Story Through Pictures)', sub:'24 cerita bergambar + latihan Exercise 2 & 4' },
-  esp2: { icon:'💬', label:'ESP 2 (English for Specific Purposes 2)', sub:'Formal & Informal: cara kirim pesan dan bercakap yang benar' },
+  esp2: { icon:'💬', label:'ESP 2 (English for Specific Purposes 2)', sub:'Formal & Informal, English for Negotiations' },
   speaking: { icon:'🎤', label:'Speaking', sub:'Latih speaking dengan orang dari negara lain' }
 };
 
@@ -10455,7 +10455,7 @@ function renderBeginnerGuide(onBack){
           'Tap <b>📖 Tabel Vocab STP (Chapter 1–24)</b> atau <b>📖 Vocab chapter ini</b> untuk melihat daftar kata beserta artinya.',
           'Pakai tombol <b>← Chapter</b> dan <b>Chapter →</b> untuk pindah chapter dengan cepat.']) +
       H('💬 ESP 2 (English for Specific Purposes 2)') +
-      P('Belajar cara menulis pesan dan bercakap dengan benar. Pilih <b>🎩 Formal</b> (untuk atasan, dosen, klien, atau orang yang belum dikenal) atau <b>Informal</b> (untuk teman dan obrolan santai). Tiap pilihan punya penjelasan, contoh, dan perbandingan kalimat.') +
+      P('Belajar cara menulis pesan dan bercakap dengan benar. Pilih <b>🎩 Formal</b> (untuk atasan, dosen, klien, atau orang yang belum dikenal) atau <b>Informal</b> (untuk teman dan obrolan santai). Tiap pilihan punya penjelasan, contoh, dan perbandingan kalimat. Ada juga <b>🤝 English for Negotiations</b> (Chapter 16, 18, dan 20) tentang kosakata negosiasi, agenda, HIT, dan proposal.') +
       H('🎤 Speaking') +
       P('Tap <b>🌍 Mulai Speaking di Episoden</b> untuk membuka situs latihan ngobrol dengan orang dari negara lain. Linknya terbuka di tab baru, jadi aplikasi ini tetap aman di belakang.') },
     { open:false, icon:'🎮', title:'Mode Game', sub:'Duel 1v1, Kuis Live, Ular Tangga', body:
@@ -21795,6 +21795,138 @@ informal: {
 }
 };
 
+/* ---------------- ESP 2: English for Negotiations (Week 3) ---------------- */
+ESP2_DATA.neg16 = {
+  icon:'🤝', color:'#6366f1', title:'Ch 16 · Successful Negotiators', sub:'Verb & noun, hal yang bisa/tidak bisa dinegosiasikan, minta info & bantuan',
+  intro:'<b>English for Negotiations (Week 3)</b>. Chapter 16 membahas kata-kata penting dalam negosiasi, hal apa saja yang boleh dan tidak boleh dinegosiasikan, serta cara meminta informasi dan bantuan.',
+  sections:[
+  { t:'1. Verb dan Noun (Activity 16.1)', h:
+    `Banyak kata punya bentuk <b>verb</b> dan <b>noun</b>. Berikut pasangannya (kolom yang kosong di buku sudah saya isi):` +
+    esp2Tbl(['Verb','Noun','Arti'],[
+      ['to negotiate','<b>negotiation</b>','bernegosiasi / negosiasi'],
+      ['to propose','<b>proposal</b>','mengusulkan / usulan'],
+      ['to arrange','arrangement','mengatur / pengaturan'],
+      ['to discuss','<b>discussion</b>','membahas / pembahasan'],
+      ['to prepare','preparation','menyiapkan / persiapan'],
+      ['to calculate','calculation','menghitung / perhitungan'],
+      ['to deliver','<b>delivery</b>','mengirim / pengiriman'],
+      ['to pay','payment','membayar / pembayaran'],
+      ['to quote','<b>quotation</b>','memberi penawaran harga / penawaran harga'],
+      ['to specify','specification','merinci / spesifikasi'],
+      ['to produce','<b>product</b> / production','memproduksi / produk, produksi'],
+      ['to transport','<b>transport</b> / transportation','mengangkut / pengangkutan'],
+      ['to chair','<b>chair</b> (chairperson)','memimpin rapat / ketua rapat'],
+      ['to inform','information','memberi tahu / informasi'],
+      ['to meet','<b>meeting</b>','bertemu / pertemuan']
+    ]) + esp2Box('💡 Akhiran noun yang sering muncul: <b>-tion</b> (negotiation, preparation), <b>-ment</b> (arrangement, payment), <b>-al</b> (proposal). Perhatikan juga <i>delivery</i> dari <i>deliver</i>.')
+  },
+  { t:'2. Negotiable vs Unnegotiable (Activity 16.2)', h:
+    `Tidak semua hal bisa dinegosiasikan. Ada kondisi yang <b>negotiable</b> (bisa ditawar) dan <b>unnegotiable</b> (tidak bisa ditawar).` +
+    esp2Tbl(['Negotiable (bisa ditawar)','Unnegotiable (tidak bisa ditawar)'],[
+      ['Price (harga)','Laws and regulations (hukum dan peraturan)'],
+      ['Payment terms (syarat pembayaran)','Safety and ethical standards (standar keselamatan dan etika)'],
+      ['Delivery terms (syarat pengiriman)','Fundamental human rights (hak asasi manusia)'],
+      ['Quality standards (standar kualitas)','Integrity of legal documents (keaslian dokumen hukum)'],
+      ['Quantity or scope (jumlah atau cakupan)','Criminal activities (kegiatan kriminal)'],
+      ['Warranties and guarantees (garansi)','Basic legal requirements, e.g. age of consent (syarat hukum dasar)']
+    ]) + esp2Box('Catatan: di buku kolom ini harus diisi sendiri (contoh: <i>Price</i> dan <i>Laws and regulations</i>). Pengelompokan di atas adalah jawaban yang masuk akal menurut saya; beberapa hal, seperti standar kualitas, bisa berbeda tergantung kasusnya.')
+  },
+  { t:'3. Getting Information and Asking for Help', h:
+    `Saat meminta bantuan atau informasi, ada dua pilihan: bertanya secara <b>informal</b> atau <b>formal</b>. Berikut contoh-contohnya:` +
+    esp2Tbl(['Informal','Formal'],[
+      ['Can you ...<br>I need... How about...?<br>Where is/are ...?<br>Do you know...?','Could you please...<br>I would like...<br>Please let me know...<br>Do you have any details on ...?'],
+      ['How is ... going?<br>Have you got a moment?','What is/are the alternative(s) here?<br>Who is responsible for/in charge of...?<br>Can I ask you a favour?<br>Can you help me with ..., please?']
+    ]) +
+    esp2Tbl(['Informal','Artinya','Versi formal'],[
+      ['Can you send me the price list?','Bisa kirim daftar harganya?','Could you please send me the price list?'],
+      ['Do you know where the meeting is?','Tahu di mana rapatnya?','Please let me know where the meeting will be held.'],
+      ['Have you got a moment?','Ada waktu sebentar?','Can I ask you a favour?']
+    ]) + esp2Box('Tiga baris contoh di tabel kedua saya tambahkan sendiri sebagai bantuan belajar; bukan dari buku.')
+  }
+  ]
+};
+ESP2_DATA.neg18 = {
+  icon:'🎯', color:'#6366f1', title:'Ch 18 · Setting Objectives', sub:'Skenario nego, agenda, dan HIT (Have to have, Intend, Tradable)',
+  intro:'Chapter 18 membahas cara menyusun tujuan sebelum bernegosiasi: menyiapkan agenda dan menentukan prioritas dengan sistem <b>HIT</b>.',
+  sections:[
+  { t:'1. Pilih Skenario (Activity 18.1)', h:
+    `Pilih satu skenario, lalu bersama partner buat daftar poin negosiasi yang mungkin diinginkan kedua pihak. Pertanyaan di bawah bisa membantu.` +
+    esp2Tbl(['Situation 1: Employees and employer','Situation 2: Two companies'],[
+      ['Because of the company\'s financial woes, ten people have already lost their employment. Concerns about job and pay have made the workers disgruntled.','A major customer of one firm owes the other €20,000, which they are currently unable to pay.'],
+      ['• Why should each party negotiate?<br>• What does each side want to achieve?','• What are each side\'s alternatives?<br>• What is their next best solution?']
+    ]) +
+    esp2Tbl(['Kata','Arti'],[['financial woes','masalah keuangan'],['lost their employment','kehilangan pekerjaan'],['disgruntled','kecewa, tidak puas'],['owe','berutang'],['currently unable to pay','saat ini belum mampu membayar'],['alternative','alternatif, pilihan lain']])
+  },
+  { t:'2. A. The Agenda: The Key to Success', h:
+    `Setiap rapat bisnis yang baik punya <b>agenda</b>. Setiap negosiasi yang baik juga punya agenda. Menyusun dan merencanakan agenda membantumu dalam tiga hal:` +
+    esp2Ul(['You identify your <b>own</b> issues, priorities, and goals. <i>(kamu mengenali masalah, prioritas, dan tujuanmu sendiri)</i>','You identify your <b>opponent\'s</b> issues, priorities, and goals. <i>(kamu mengenali masalah, prioritas, dan tujuan lawan)</i>','It helps you maintain <b>discipline</b>. <i>(membantu kamu tetap disiplin)</i>']) +
+    esp2Box('💬 <i>"When you know where you are and where you want to go, it\'s a lot easier to make the trip."</i><br>Artinya: kalau kamu tahu posisimu sekarang dan ke mana tujuanmu, perjalanannya jauh lebih mudah.')
+  },
+  { t:'3. B. Negotiating Skills: HIT', h:
+    `Dalam istilah negosiasi, <b>HIT</b> berarti <b>H</b> (Have to have), <b>I</b> (Intend), dan <b>T</b> (Tradable).` +
+    esp2Tbl(['Kategori','Artinya','Jumlah biasanya'],[
+      ['<b>H</b> · HAVE TO HAVE','Aspek atau hasil yang <b>sangat penting</b> bagi salah satu pihak. Wajib tercapai agar negosiasi dianggap berhasil.','hanya 1 atau 2'],
+      ['<b>I</b> · INTEND','Hal yang <b>kurang esensial tapi tetap penting</b>. Kamu bisa bersikap fleksibel.','sekitar 2 sampai 5'],
+      ['<b>T</b> · TRADABLE','Sesuatu yang kamu masukkan di proposal dan menurutmu <b>diinginkan oleh lawan</b>. Kamu siap menukarnya dengan sesuatu yang kamu inginkan.','-']
+    ]) +
+    esp2Box('📌 Sebelum mulai bernegosiasi, tentukan dulu masalah-masalahmu masuk kategori mana dari sudut pandangmu. Semua anggota tim harus paham. Semakin jelas tujuan dan kebutuhanmu (dan lawanmu), semakin efektif kamu sebagai negosiator, dan semakin besar peluang mendapat hasil yang diinginkan.')
+  },
+  { t:'4. Pilihan Tasha (Activity 18.3)', h:
+    `Lihat pilihan Tasha, lalu tentukan mana yang mungkin ia jadikan <b>H</b> (Have to have). Bisakah kamu menjelaskan alasannya?` +
+    esp2Tbl(['Pilihan Tasha','Arti'],[
+      ['good payment terms','syarat pembayaran yang baik'],['good relationship','hubungan yang baik'],['good delivery terms','syarat pengiriman yang baik'],
+      ['discount on large quantities','diskon untuk pembelian dalam jumlah besar'],['the right price for the goods','harga yang pas untuk barangnya'],['present at Christmas','hadiah saat Natal'],
+      ['a wide variety of colours','pilihan warna yang beragam'],['flexibility','fleksibilitas'],['product quality','kualitas produk'],
+      ['nice people to talk to','lawan bicara yang menyenangkan'],['short delivery time','waktu pengiriman singkat']
+    ]) + esp2Box('💡 <b>Saran saya (bukan dari buku):</b> pilih paling banyak 1 sampai 2 hal yang benar-benar wajib, misalnya <i>the right price for the goods</i> atau <i>product quality</i>. Hal seperti <i>present at Christmas</i> atau <i>a wide variety of colours</i> lebih cocok jadi I atau T. Jawabanmu boleh berbeda asal alasannya jelas.')
+  }
+  ]
+};
+ESP2_DATA.neg20 = {
+  icon:'📝', color:'#6366f1', title:'Ch 20 · Proposals', sub:'Proposal vs counterproposal dan ungkapan mengusulkan',
+  intro:'Chapter 20 membahas cara mengajukan <b>proposal</b> dan <b>counterproposal</b>, serta ungkapan yang dipakai saat bernegosiasi.',
+  sections:[
+  { t:'1. Planning the Party (Activity 20.1)', h:
+    `Bayangkan kamu menyiapkan pesta musim panas perusahaan bersama rekan kerja. Kalian membahas semua yang membuat acara sukses. Pilih favoritmu, lalu bandingkan dengan partner: apakah banyak kesamaan, atau banyak hal yang harus dinegosiasikan?` +
+    esp2Tbl(['Topik','Pilihan','Arti'],[
+      ['<b>theme</b>','Asian · Latin American · Western','tema: Asia · Amerika Latin · Barat'],
+      ['<b>location</b>','at work · on a ship · formal venue','lokasi: di kantor · di kapal · gedung resmi'],
+      ['<b>entertainment</b>','colleagues\' band · professional group · disco','hiburan: band rekan kerja · grup profesional · diskotek'],
+      ['<b>type of food</b>','finger food · barbecue · formal meal','makanan: camilan · barbekyu · makan malam resmi'],
+      ['<b>attire / dress code</b>','casual · formal · fancy dress','pakaian: santai · resmi · kostum'],
+      ['<b>budget</b>','company sponsored · purchased tickets','anggaran: dibiayai perusahaan · beli tiket'],
+      ['<b>time of year</b>','summer · winter · spring','waktu: musim panas · dingin · semi']
+    ])
+  },
+  { t:'2. A. Proposal vs Counterproposal', h:
+    esp2Tbl(['Istilah','Penjelasan'],[
+      ['<b>Proposal</b>','Penawaran dari satu pihak kepada pihak lain. Bisa berbentuk tulisan dan/atau lisan. Proposal menjadi dasar negosiasi dan kemungkinan kesepakatan (deal). Proposal yang sukses menghasilkan persetujuan.'],
+      ['<b>Counterproposal</b>','Menawarkan alternatif proposal yang mungkin cocok untuk kedua pihak. Ini bisa terjadi saat salah satu pihak menolak atau tidak setuju dengan proposal awal.']
+    ]) + esp2Box('Contoh: <i>"I propose we deliver in two shipments."</i> (proposal) → <i>"How about three shipments instead?"</i> (counterproposal). Contoh ini saya tambahkan sendiri.')
+  },
+  { t:'3. Listening 20.2: Proposal (P) atau Counterproposal (CP)?', h:
+    `Di buku, kamu mendengarkan sebuah negosiasi (Track 20.2), lalu menandai tiap topik sebagai proposal (<b>P</b>) atau counterproposal (<b>CP</b>). Berikut daftar topiknya:` +
+    esp2Tbl(['No','Negotiations'],[
+      ['1','One shipment for all the goods'],['2','Production time of 15 working days and four days for transportation'],['3','Pick-up by customer'],['4','Part-shipment'],
+      ['5','Delivery by airfreight'],['6','Delivery of three (not four) shipments'],['7','Working longer hours'],['8','Production time of 15 working days and two days for transportation']
+    ]) + esp2Box('Audio-nya tidak ada di aplikasi ini, jadi kunci jawaban tidak saya isi. Petunjuk: <b>P</b> adalah usulan pertama, <b>CP</b> adalah usulan balasan yang mengubah usulan sebelumnya.')
+  },
+  { t:'4. B. Expressions of Proposals', h:
+    `<b>Presenting proposals and counterproposals</b> (mengajukan proposal dan counterproposal)` +
+    esp2Tbl(['Ungkapan','Artinya'],[
+      ['I/We propose...','Saya/Kami mengusulkan...'],['I/We suggest ...','Saya/Kami menyarankan...'],['How about...?','Bagaimana kalau...?'],['Would it be possible...?','Apakah mungkin...?'],
+      ['How do you feel about...?','Bagaimana pendapat Anda tentang...?'],['Would/Could you consider...?','Maukah Anda mempertimbangkan...?'],['Would/Could you accept ...?','Maukah Anda menerima...?']
+    ]) +
+    `<b>Asking for and clarifying information</b> (menanyakan dan memperjelas informasi)` +
+    esp2Tbl(['Ungkapan','Artinya'],[
+      ['... is correct, isn\'t it?','... benar, bukan?'],['Can you tell me how...?','Bisakah Anda memberi tahu saya bagaimana...?'],['Is it alright with you if......?','Apakah tidak apa-apa bagi Anda jika...?'],
+      ['It seems... What is your opinion?','Sepertinya... Bagaimana pendapat Anda?'],['Would it be possible...?','Apakah mungkin...?']
+    ]) + esp2Box('Kolom "Artinya" saya tambahkan sendiri sebagai bantuan belajar.')
+  }
+  ]
+};
+const ESP2_NEG_KEYS = ['neg16','neg18','neg20'];
+
 /* ---------------- MENU SPEAKING (Mode Belajar) ---------------- */
 function renderSpeakingMenu(){
   clearTimer();
@@ -21840,13 +21972,30 @@ function renderEsp2Menu(){
           <span class="bm-sub">${ESP2_DATA.informal.sub}</span>
         </button>
       </div>
+      <p class="intro-desc" style="font-size:12px;margin-top:14px;"><b>🤝 English for Negotiations (Week 3)</b></p>
+      ${ESP2_NEG_KEYS.map(k=>`
+      <div class="big-mode-row">
+        <button class="big-mode-btn" data-esp2neg="${k}" type="button">
+          <span class="bm-icon">${ESP2_DATA[k].icon}</span>
+          <span class="bm-label">${ESP2_DATA[k].title}</span>
+          <span class="bm-sub">${ESP2_DATA[k].sub}</span>
+        </button>
+      </div>`).join('')}
       <button class="btn ghost" id="esp2BackBtn" style="margin-top:14px;">← Kembali</button>
     </div>`;
   document.getElementById('esp2BackBtn').onclick = ()=> renderBelajarSubmenu();
   document.getElementById('esp2FormalBtn').onclick = ()=> renderEsp2Section('formal');
   document.getElementById('esp2InformalBtn').onclick = ()=> renderEsp2Section('informal');
+  document.querySelectorAll('[data-esp2neg]').forEach(b=> b.onclick = ()=> renderEsp2Section(b.dataset.esp2neg));
 }
 
+function esp2OtherKey(key){ return key==='formal' ? 'informal' : key==='informal' ? 'formal' : ESP2_NEG_KEYS[(ESP2_NEG_KEYS.indexOf(key)+1)%ESP2_NEG_KEYS.length]; }
+function esp2OtherLabel(key){
+  if(key==='formal') return '😄 Lihat Informal';
+  if(key==='informal') return '🎩 Lihat Formal';
+  const n = ESP2_DATA[esp2OtherKey(key)];
+  return n.icon + ' Berikutnya: ' + n.title;
+}
 function renderEsp2Section(key){
   clearTimer();
   const d = ESP2_DATA[key];
@@ -21866,11 +22015,11 @@ function renderEsp2Section(key){
             <div style="margin-top:8px;font-size:12.5px;line-height:1.7;">${s.h}</div>
           </details>`).join('')}
       </div>
-      <button class="btn ghost" id="esp2OtherBtn" style="margin-top:12px;">${key==='formal' ? '😄 Lihat Informal' : '🎩 Lihat Formal'}</button>
+      <button class="btn ghost" id="esp2OtherBtn" style="margin-top:12px;">${esp2OtherLabel(key)}</button>
       <button class="btn ghost" id="esp2MenuBtn" style="margin-top:8px;">← Menu ESP 2</button>
     </div>`;
   document.getElementById('esp2MenuBtn').onclick = ()=> renderEsp2Menu();
-  document.getElementById('esp2OtherBtn').onclick = ()=> renderEsp2Section(key==='formal' ? 'informal' : 'formal');
+  document.getElementById('esp2OtherBtn').onclick = ()=> renderEsp2Section(esp2OtherKey(key));
 }
 
 </script>
