@@ -18943,6 +18943,64 @@ const VB10_PASS = [
 ['ecosystem degradation','kerusakan ekosistem'],['safeguarding','melindungi, menjaga']];
 
 
+/* ---------- Gambar (SVG) untuk Chapter 7 & 8 ---------- */
+function vbPoly(n, r, rot){
+  const pts=[]; for(let i=0;i<n;i++){ const a=(rot||-90)*Math.PI/180 + i*2*Math.PI/n; pts.push((20+r*Math.cos(a)).toFixed(1)+','+(20+r*Math.sin(a)).toFixed(1)); }
+  return pts.join(' ');
+}
+function vbShapeSvg(name, px){
+  const F='#fcd34d', F2='#f59e0b', F3='#b45309', S='#92400e';
+  const st=`fill="${F}" stroke="${S}" stroke-width="1.6" stroke-linejoin="round"`;
+  let g='';
+  switch(name){
+    case 'square': g=`<rect x="8" y="8" width="24" height="24" ${st}/>`; break;
+    case 'circle': g=`<circle cx="20" cy="20" r="14" ${st}/>`; break;
+    case 'triangle': g=`<polygon points="20,6 35,33 5,33" ${st}/>`; break;
+    case 'rectangle': g=`<rect x="4" y="11" width="32" height="18" ${st}/>`; break;
+    case 'octagon': g=`<polygon points="${vbPoly(8,15,-67.5)}" ${st}/>`; break;
+    case 'trapezoid': g=`<polygon points="13,10 27,10 36,30 4,30" ${st}/>`; break;
+    case 'parallelogram': g=`<polygon points="13,10 36,10 27,30 4,30" ${st}/>`; break;
+    case 'cube': g=`<polygon points="6,15 14,7 33,7 25,15" fill="${F}" stroke="${S}" stroke-width="1.4" stroke-linejoin="round"/><rect x="6" y="15" width="19" height="19" fill="${F2}" stroke="${S}" stroke-width="1.4" stroke-linejoin="round"/><polygon points="25,15 33,7 33,26 25,34" fill="${F3}" stroke="${S}" stroke-width="1.4" stroke-linejoin="round"/>`; break;
+    case 'oval': g=`<ellipse cx="20" cy="20" rx="16" ry="10" ${st}/>`; break;
+    case 'semicircle': g=`<path d="M4 27 A16 16 0 0 1 36 27 Z" ${st}/>`; break;
+    case 'crescent': g=`<path d="M24 5 A15 15 0 1 0 24 35 A6 15 0 0 1 24 5 Z" ${st}/>`; break;
+    case 'diamond': g=`<polygon points="20,4 34,20 20,36 6,20" ${st}/>`; break;
+    case 'pentagon': g=`<polygon points="${vbPoly(5,15,-90)}" ${st}/>`; break;
+    case 'hexagon': g=`<polygon points="${vbPoly(6,15,0)}" ${st}/>`; break;
+    case 'sphere': g=`<circle cx="20" cy="20" r="15" fill="${F2}" stroke="${S}" stroke-width="1.6"/><ellipse cx="15" cy="14" rx="5" ry="3.4" fill="#fff" opacity=".6" transform="rotate(-30 15 14)"/>`; break;
+    case 'cylinder': g=`<path d="M8 10 V30 A12 4.5 0 0 0 32 30 V10" fill="${F2}" stroke="${S}" stroke-width="1.6"/><ellipse cx="20" cy="10" rx="12" ry="4.5" ${st}/>`; break;
+    case 'tube': g=`<path d="M6 12 H30 V28 H6 A4 8 0 0 1 6 12 Z" fill="${F2}" stroke="${S}" stroke-width="1.6" stroke-linejoin="round"/><ellipse cx="30" cy="20" rx="4" ry="8" fill="#fff" stroke="${S}" stroke-width="1.6"/>`; break;
+    case 'cone': g=`<path d="M20 5 L33 30 A13 5 0 0 1 7 30 Z" fill="${F2}" stroke="${S}" stroke-width="1.6" stroke-linejoin="round"/>`; break;
+    case 'pyramid': g=`<polygon points="20,5 5,29 21,35" fill="${F}" stroke="${S}" stroke-width="1.5" stroke-linejoin="round"/><polygon points="20,5 21,35 36,27" fill="${F3}" stroke="${S}" stroke-width="1.5" stroke-linejoin="round"/>`; break;
+    case 'spiral': g=`<path d="M20 20 m0 0 a2 2 0 0 1 4 0 a4 4 0 0 1 -8 0 a6.5 6.5 0 0 1 13 0 a9 9 0 0 1 -18 0 a11.5 11.5 0 0 1 23 0" fill="none" stroke="${S}" stroke-width="2" stroke-linecap="round"/>`; break;
+  }
+  const s=px||34;
+  return `<svg viewBox="0 0 40 40" width="${s}" height="${s}" role="img" aria-label="${name}" style="display:block;margin:0 auto;">${g}</svg>`;
+}
+const VB_SVG_STYLE='display:block;width:100%;max-width:340px;height:auto;margin:6px auto 10px;';
+function vbSizeSvg(){
+  const items=[['tiny',4,'Small'],['small',8,'Small'],['medium',13,'Medium'],['large',19,'Large'],['huge',26,'Large'],['gigantic',34,'Large']];
+  let x=14,g='';
+  items.forEach(it=>{ const r=it[1]; x+=r; g+=`<circle cx="${x}" cy="62" r="${r}" fill="#fcd34d" stroke="#92400e" stroke-width="1.5"/><text x="${x}" y="108" font-size="9" text-anchor="middle" fill="#444">${it[0]}</text>`; x+=r+13; });
+  return `<svg viewBox="0 0 300 118" style="${VB_SVG_STYLE}" role="img" aria-label="Perbandingan ukuran"><text x="150" y="12" font-size="10" font-weight="700" text-anchor="middle" fill="#444">kecil → besar</text>${g}</svg>`;
+}
+function vbQtySvg(){
+  const dots=(n,cx,cy,w,r,per)=>{ let o=''; for(let i=0;i<n;i++){ o+=`<circle cx="${cx+(i%per)*w}" cy="${cy+Math.floor(i/per)*w}" r="${r}" fill="#f59e0b"/>`; } return o; };
+  return `<svg viewBox="0 0 300 120" style="${VB_SVG_STYLE}" role="img" aria-label="Perbandingan jumlah">
+    <rect x="4" y="18" width="84" height="72" rx="8" fill="#fff" stroke="#d6d3d1"/><rect x="108" y="18" width="84" height="72" rx="8" fill="#fff" stroke="#d6d3d1"/><rect x="212" y="18" width="84" height="72" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    ${dots(5,22,40,13,4.5,3)}${dots(18,118,30,12,4,6)}${dots(60,218,27,8,2.4,10)}
+    <text x="46" y="106" font-size="10" text-anchor="middle" fill="#444">several</text><text x="150" y="106" font-size="10" text-anchor="middle" fill="#444">plenty</text><text x="254" y="106" font-size="10" text-anchor="middle" fill="#444">countless</text></svg>`;
+}
+function vbDimSvg(){
+  const A='#dc2626', T=`font-size="10" font-weight="700" fill="${A}"`;
+  const box=`<polygon points="40,40 130,40 160,18 70,18" fill="#fde68a" stroke="#92400e" stroke-width="1.5" stroke-linejoin="round"/><rect x="40" y="40" width="90" height="70" fill="#fcd34d" stroke="#92400e" stroke-width="1.5"/><polygon points="130,40 160,18 160,88 130,110" fill="#f59e0b" stroke="#92400e" stroke-width="1.5" stroke-linejoin="round"/>`;
+  const arrows=`<line x1="40" y1="122" x2="130" y2="122" stroke="${A}" stroke-width="1.5"/><path d="M40 122 l6 -3 v6 z M130 122 l-6 -3 v6 z" fill="${A}"/><text x="85" y="136" text-anchor="middle" ${T}>width</text>
+    <line x1="24" y1="40" x2="24" y2="110" stroke="${A}" stroke-width="1.5"/><path d="M24 40 l-3 6 h6 z M24 110 l-3 -6 h6 z" fill="${A}"/><text transform="translate(14 75) rotate(-90)" text-anchor="middle" ${T}>height</text>
+    <line x1="134" y1="112" x2="164" y2="90" stroke="${A}" stroke-width="1.5"/><text x="170" y="106" ${T}>depth</text>`;
+  const circ=`<circle cx="250" cy="70" r="40" fill="#fde68a" stroke="#92400e" stroke-width="1.5"/><line x1="210" y1="70" x2="290" y2="70" stroke="${A}" stroke-width="1.5"/><circle cx="250" cy="70" r="2" fill="${A}"/><line x1="250" y1="70" x2="278" y2="42" stroke="#2563eb" stroke-width="1.5"/><text x="250" y="86" text-anchor="middle" ${T}>diameter</text><text x="270" y="60" font-size="10" font-weight="700" fill="#2563eb">radius</text><text x="250" y="124" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">circumference</text><path d="M219.4 95.7 A40 40 0 0 0 280.6 95.7" fill="none" stroke="#166534" stroke-width="2.5" stroke-dasharray="2 3"/>`;
+  return `<svg viewBox="0 0 310 146" style="${VB_SVG_STYLE}" role="img" aria-label="Gambar dimensi">${box}${arrows}${circ}</svg>`;
+}
+
 const VOCABBUILD_CHAPTERS = [
 {
   id:'vb-ch1', title:'Chapter 1 — Collocation',
@@ -19152,17 +19210,16 @@ const VOCABBUILD_CHAPTERS = [
   id:'vb-ch7', title:'Chapter 7 — Sizes, Quantities, and Dimensions',
   sections:[
     vbSec('Sizes, Quantities, and Dimensions', `<b>Sizes, quantities, and dimensions</b> adalah konsep yang saling berkaitan, dipakai untuk menggambarkan berbagai aspek benda, fenomena, atau konsep matematika. Untuk memperkaya kosakatamu, berikut daftar kosakata <mark>size, quantity, dan dimension</mark>.`),
-    vbSec('A. Size', vbTable(['Vocabulary','Examples','Arti'], VB7_SIZE.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sebagai bantuan belajar, bukan dari buku.</i>`),
-    vbSec('B. Quantity', vbTable(['Vocabulary','Examples','Arti'], VB7_QTY.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri.</i>`),
-    vbSec('C. Dimension', vbTable(['Vocabulary','Examples','Arti'], VB7_DIM.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Di buku, angka keliling Bumi tertulis \"40.075\"; saya tulis 40,075 kilometers.</i>`),
-    vbSec('Exercise 1', `Lihat daftar berikut dan tentukan apakah yang dibicarakan sesuatu yang <b>besar</b> (ukuran, jumlah, atau dimensi) atau <b>kecil</b>. Jawaban di sini mengikuti tulisan tangan di buku (S = small, B = big).` + vbTable(['No','Phrase','Jawaban'], VB7_EX1.map((r,i)=>[String(i+1), r[0]+'<b>'+r[1]+'</b>'+r[2], r[3]==='S'?'S (small)':'B (big)'])) + `Mau latihan interaktif? Buka <b>📝 Latihan Soal → Chapter 7</b>.`)
+    vbSec('A. Size', vbSizeSvg() + vbTable(['Vocabulary','Examples','Arti'], VB7_SIZE.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sebagai bantuan belajar, bukan dari buku.</i>`),
+    vbSec('B. Quantity', vbQtySvg() + vbTable(['Vocabulary','Examples','Arti'], VB7_QTY.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri.</i>`),
+    vbSec('C. Dimension', vbDimSvg() + vbTable(['Vocabulary','Examples','Arti'], VB7_DIM.map(r=>['<b>'+r[0]+'</b>', vbBoldIn(r[1],r[0]), r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Di buku, angka keliling Bumi tertulis \"40.075\"; saya tulis 40,075 kilometers.</i>`),
   ]
 }
 ,{
   id:'vb-ch8', title:'Chapter 8 — Shapes and Features',
   sections:[
     vbSec('What do you know about shape and feature?', `Menurut Longman Dictionary, <b>shape</b> adalah bentuk yang dimiliki sesuatu, dan <b>feature</b> adalah bagian dari sesuatu yang kamu perhatikan karena tampak penting, menarik, atau khas. Shape dan feature bisa dipakai untuk menggambarkan suatu benda agar lebih spesifik. Keduanya bisa menjadi <mark>adjective</mark>, tetapi <mark>shape bisa berupa adjective atau noun</mark>.`),
-    vbSec('Shape: Noun vs Adjective', `Contoh: <i>The room had a <b>circular</b> layout, with furniture arranged in a <b>circle</b>.</i><br><br><b>\"Circle\"</b> dipakai sebagai <b>noun</b> untuk menyebut bentuk atau sekelompok orang yang berdiri melingkar. <b>\"Circular\"</b> adalah <b>adjective</b> yang menggambarkan benda yang berciri seperti lingkaran, misalnya <i>circular layout</i>. Karena shape bisa berupa noun atau adjective, daftar di bawah membantumu memakainya dalam kalimat.` + vbTable(['Noun','Adjective','Arti'], VB8_SHAPES.map(r=>[r[0], r[1], r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Tanda \"-\" berarti tidak ada bentuk adjective.</i>`),
+    vbSec('Shape: Noun vs Adjective', `Contoh: <i>The room had a <b>circular</b> layout, with furniture arranged in a <b>circle</b>.</i><br><br><b>\"Circle\"</b> dipakai sebagai <b>noun</b> untuk menyebut bentuk atau sekelompok orang yang berdiri melingkar. <b>\"Circular\"</b> adalah <b>adjective</b> yang menggambarkan benda yang berciri seperti lingkaran, misalnya <i>circular layout</i>. Karena shape bisa berupa noun atau adjective, daftar di bawah membantumu memakainya dalam kalimat.` + vbTable(['Gambar','Noun','Adjective','Arti'], VB8_SHAPES.map(r=>[vbShapeSvg(r[0]), r[0], r[1], r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Tanda \"-\" berarti tidak ada bentuk adjective.</i>`),
     vbSec('Features', `Features adalah bagian dari adjective yang menggambarkan sesuatu. Contoh: <i>The antique mirror had an <b>intricately carved wooden</b> frame.</i> Kata-kata tebal itu adjective, dan kata seperti itu bisa disebut <b>features</b>. Berikut daftar kosakata feature:` + vbTable(['Feature','Arti'], VB8_FEAT.map(r=>['<b>'+r[0]+'</b>', r[1]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Di buku, kata \"angular\" tertulis dua kali di daftar ini.</i>`)
   ]
 }
@@ -19185,7 +19242,6 @@ const VOCABBUILD_CHAPTERS = [
       ['Literal: berpindah dari satu tempat ke tempat lain','In the city, it\'s easy to <b>get around</b> on public transportation.'],
       ['Idiomatic: menemukan cara untuk mengatasi atau menghindari sesuatu','Despite the traffic, people find ways to <b>get around</b> the city quickly.'],
       ['Menyebarkan informasi atau kabar burung','News of the incident <b>got around</b> the office.']]) + `<i>Kalimat contoh pertama terpotong di buku; saya lengkapi dengan \"transportation\".</i>`),
-    vbSec('Exercise 1 (kunci jawaban)', `Lengkapi phrasal verb dengan particle dari kotak. Makna phrasal verb ada di dalam tanda kurung.` + vbTable(['No','Kalimat','Jawaban'], VB9_EX1.map((r,i)=>[String(i+1), r[0]+' <b>___</b> '+r[1], '<b>'+r[2]+'</b> <i>('+r[3]+')</i>'])) + `<i>Halaman buku berhenti di nomor 7, jadi hanya 7 soal yang saya masukkan.</i><br><br>Mau latihan interaktif? Buka <b>📝 Latihan Soal → Chapter 9</b>.`)
   ]
 }
 ,{
@@ -19193,8 +19249,6 @@ const VOCABBUILD_CHAPTERS = [
   sections:[
     vbSec('The Environment', `Menurut pendapatmu, apa itu environment? Bagaimana lingkungan berubah sampai sekarang? Menurut Oxford Dictionary, <b>environment</b> berarti dunia alami tempat manusia, hewan, dan tumbuhan hidup. Lingkungan berperan penting dalam menopang kehidupan di Bumi dengan menyediakan sumber daya dan layanan ekosistem. Namun Bumi terus berubah, begitu juga lingkungannya.<br><br>Salah satu isu lingkungan adalah <b>environmental degradation</b>, yang mencakup <mark>pollution, deforestation, habitat destruction, climate change, dan loss of biodiversity</mark>. Isu-isu itu disebabkan oleh aktivitas manusia. Sebelum membahas topik ini, berikut daftar kosakata yang bisa kamu pakai.`),
     vbSec('Vocabulary & Meaning', vbTable(['Vocabulary','Meaning','Arti'], VB10_ENV.map(r=>['<b>'+r[0]+'</b>', r[1], r[2]])) + `<i>Kolom \"Arti\" saya tambahkan sendiri. Beberapa kata di buku saya rapikan: \"corpses\" menjadi \"crops\" (acid rain, renewable energy). Baris pollute dan radiation yang tertulis dua kali saya gabung.</i>`),
-    vbSec('Exercise 1: Read the passage below', `One pressing environmental issue today is the rapid loss of <b>biodiversity</b> due to <b>habitat destruction</b>, pollution, climate change, and other human activities. This loss threatens the delicate balance of ecosystems and compromises essential services they provide, such as clean air and water, <b>pollination</b>, and <b>carbon sequestration</b>. As species disappear at an alarming rate, ecosystems become less <b>resilient</b>, making them more <b>susceptible</b> to collapse. Addressing biodiversity loss requires concerted efforts to conserve habitats, protect <b>endangered species</b>, and <b>mitigate</b> the drivers of <b>ecosystem degradation</b>, ultimately <b>safeguarding</b> the intricate web of life upon which humanity depends.<br><br><i>Di buku tertulis \"biodiversity less\"; saya perbaiki menjadi \"biodiversity loss\".</i>`),
-    vbSec('Kata Tebal di Passage', vbTable(['Kata','Arti'], VB10_PASS.map(r=>['<b>'+r[0]+'</b>', r[1]])) + `<i>Arti saya tambahkan sendiri sebagai bantuan belajar.</i><br><br>Mau latihan interaktif? Buka <b>📝 Latihan Soal → Chapter 10</b>.`)
   ]
 }
 /* ← tambah Chapter 11, dst. di sini (pakai koma setelah objek sebelumnya) */
