@@ -20880,6 +20880,7 @@ const STP_RETELL = {
 5: `Mother Teresa was born in 1910 in Macedonia. When she grew up, she became a nun. In 1929 she went to India to work with poor people. There she saw many homeless people on the pavement and many orphans without a mother or father. So she started an organisation called the Sisters of Charity. The Sisters run clinics and provide shelters on the streets of Calcutta. In 1979 Mother Teresa got the Nobel Prize for Peace. Today the Sisters of Charity continue to help the poor.`,
 6: `Mr Smith phoned his boss and invited him and his wife to dinner. Mr and Mrs Smith prepared a salmon for dinner. They laid the table with candles and bottles of wine. Mrs Smith put on an evening dress, and Mr Smith wore his best suit. The Plummers arrived at eight o'clock. When they saw the table, they were horrified, because the main plate was empty and the cat had eaten the salmon. Mrs Smith burst into tears and Mr Smith rushed out of the house. He ran to the fish and chip shop down the road and bought a takeaway. They had a lovely evening, and so did the cat.`,
 8: `High Noon is a very popular TV programme about outlaws in the Wild West. Killer Clint is a dangerous gunfighter, and he has just arrived in Desertville. The people of Desertville are frightened, so they are running away. It is 12 o'clock, high noon, and Killer Clint is at the Sheriff's office. The sheriff is hiding. Even the Sheriff and his Deputy are afraid of Killer Clint. Now Killer Clint is kicking open the door of the saloon bar, and he is drinking whisky at the bar. What do you think will happen next?`,
+11: `The Thompsons packed all their luggage for a camping holiday, but the traffic was very bad and they were stuck in a traffic jam. Then they ran out of petrol and had to push the car to the campsite. They decided to have a picnic, but Alex was so greedy that he had eaten all the food. Then Alex went fishing and fell in the lake, and he was soaking wet. Mr Thompson was chased by a bull and tore his trousers on a fence. In the night there was a storm, and Mr Thompson slept in a tree. The tent collapsed, and Mrs Thompson decided to go home.`,
 };
 const STP_RETELL_ORDER = { 4: '1 → 2 → 3 → 4 → 6 → 5 → 7 → 8 → 9' };
 
@@ -20926,7 +20927,7 @@ const STP_VOCAB = [
 'outlaw=penjahat buronan|Wild West=Wild West (Barat Liar)|gunfighter=penembak / jagoan tembak|dangerous=berbahaya|sheriff=sheriff/kepala polisi|deputy=wakil sheriff|frightened=takut / ketakutan|terrified=sangat ketakutan|people running away=orang melarikan diri|saloon=bar ala koboi|whisky=wiski|hiding=bersembunyi|afraid=takut|episode=episode',
 'mirror=cermin|laughed=menertawakan|threw=melempar|overweight=kelebihan berat badan|tripped=tersandung|back ache=sakit punggung|rain=hujan|exercise=olahraga|bit=menggigit|talking=berbicara|miserable=sengsara|trip=tersandung|pavement=trotoar|limp=berjalan pincang|jogging=lari santai|marathon=maraton',
 'robbers=perampok|customers=nasabah|informer=informan|camera=kamera|gunpoint=todongan senjata|girlfriends=pacar|arrested=ditangkap|witnesses=saksi|villa=vila|cashier=kasir|criminals=penjahat|bulletin=siaran berita|statement=pernyataan|fingerprints=sidik jari|masked=bertopeng',
-'argument=pertengkaran|traffic jam=kemacetan|campsite=area perkemahan|petrol=bensin|bull=banteng|fence=pagar|collapsed=roboh|tent=tenda|picnic=piknik|storm=badai|fishing=memancing|packed=mengemas|disagree=tidak setuju|chased=dikejar|tore=merobek',
+'argument=pertengkaran|traffic jam=kemacetan|campsite=area perkemahan|petrol=bensin|bull=banteng|fence=pagar|collapsed=roboh|tent=tenda|picnic=piknik|storm=badai|fishing=memancing|packed=mengemas|disagree=tidak setuju|chased=dikejar|tore=merobek|pack=mengemas|luggage=barang bawaan|argue=bertengkar|stuck=terjebak|run out=kehabisan|greedy=rakus|chase=mengejar|collapse=runtuh|leave behind=meninggalkan|soaking wet=basah kuyup',
 'raise=mengumpulkan (dana)|black market=pasar gelap|rebuilding=pembangunan kembali|shake=berguncang|news=berita|trapped=terjebak|rescuers=penyelamat|medicine=obat|buildings=bangunan|tents=tenda|ruins=reruntuhan|survivors=penyintas|homeless=tunawisma|remote=terpencil|scandal=skandal|victims=korban|tragedy=tragedi|crooks=penjahat|earthquake=gempa bumi|appeal=seruan donasi',
 'restorer=restorator|wealthy=kaya|vineyard=kebun anggur|potter=pembuat tembikar|wrecked=karam|auction=lelang|undamaged=tidak rusak|museum=museum|merchant=pedagang|ship=kapal|divers=penyelam|seaweed=rumput laut|voyage=pelayaran|purchased=dibeli|vase=vas|fragments=pecahan|nobleman=bangsawan|miraculously=secara ajaib',
 'perfect=sempurna|polluted=tercemar|disappointed=kecewa|posed=berpose|gloomily=dengan murung|wedding=pernikahan|postcards=kartu pos|plaster=gips|complain=mengeluh|plane=pesawat|factories=pabrik|slipped=terpeleset|honeymoon=bulan madu|luxury=kemewahan|inland=pedalaman|delayed=tertunda|travel agent=agen perjalanan',
@@ -21442,6 +21443,17 @@ rush rʌʃ
 down daʊn
 road roʊd
 takeaway ˈteɪkəweɪ
+pack pæk
+luggage ˈlʌɡɪdʒ
+argue ˈɑːrɡjuː
+stuck stʌk
+run rʌn
+greedy ˈɡriːdi
+chase tʃeɪs
+collapse kəˈlæps
+leave liːv
+soaking ˈsoʊkɪŋ
+wet wɛt
 `.trim().split('\n').forEach(l=>{const i=l.indexOf(' ');m[l.slice(0,i)]=l.slice(i+1)});return m})();
 function stpIpa(en){
   const out = [];
