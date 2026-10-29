@@ -10128,7 +10128,8 @@ const MODE_META = {
   vocabbuilding: { icon:'🧩', label:'Vocabulary Building', sub:'Collocation, Idioms, dan materi vocab lainnya' },
   stp: { icon:'🖼️', label:'STP (Story Through Pictures)', sub:'24 cerita bergambar + latihan Exercise 2 & 4' },
   esp2: { icon:'💬', label:'ESP 2 (English for Specific Purposes 2)', sub:'Formal & Informal, English for Negotiations' },
-  speaking: { icon:'🎤', label:'Speaking', sub:'Latih speaking dengan orang dari negara lain' }
+  speaking: { icon:'🎤', label:'Speaking', sub:'Latih speaking dengan orang dari negara lain' },
+  latihanvocab: { icon:'🎯', label:'Latihan Seluruh Vocab', sub:'Dengarkan lalu tulis, atau buat kalimat dari vocab' }
 };
 
 function modeTileHtml(key, statusKey){
@@ -10226,6 +10227,9 @@ function renderBelajarSubmenu(){
       <div class="big-mode-row">
         ${modeTileHtml('speaking')}
       </div>
+      <div class="big-mode-row">
+        ${modeTileHtml('latihanvocab')}
+      </div>
 
       <button class="btn ghost" id="backToModeSelectBtn" style="margin-top:14px;">← Kembali</button>
     </div>
@@ -10265,6 +10269,12 @@ function renderBelajarSubmenu(){
         if(!savedName){ renderNameGate(); return; }
         if(!myPresenceRef){ startPresence(savedName); }
         renderSpeakingMenu();
+      } else if(chosen === 'latihanvocab'){
+        modeChosenThisSession = true;
+        const savedName = getSavedName();
+        if(!savedName){ renderNameGate(); return; }
+        if(!myPresenceRef){ startPresence(savedName); }
+        renderLatihanVocabMenu();
       } else if(chosen === 'pronunciation'){
         modeChosenThisSession = true;
         const savedName = getSavedName();
@@ -22167,6 +22177,333 @@ function renderEsp2Section(key){
     </div>`;
   document.getElementById('esp2MenuBtn').onclick = ()=> renderEsp2Menu();
   document.getElementById('esp2OtherBtn').onclick = ()=> renderEsp2Section(esp2OtherKey(key));
+}
+
+
+/* =====================================================================
+   LATIHAN SELURUH VOCAB (tambahan baru — sistem lama tidak diubah)
+   Mode 1: 🎧 Dengarkan & Tulis (tulisan disembunyikan, ada tombol Tampilkan Jawaban)
+   Mode 2: ✍️ Buat Kalimat dari vocab yang muncul
+   Sumber vocab: Bulan 1-3, Per Level (A1-C2), Vocabulary Building, STP
+   ===================================================================== */
+(function(){
+  if(document.getElementById('lvStyle')) return;
+  const st = document.createElement('style'); st.id = 'lvStyle';
+  st.textContent = `
+.lv-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 8px;}
+.lv-chip{padding:7px 12px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:12px;font-weight:700;cursor:pointer;}
+.lv-chip.on{background:#0ea5e9;border-color:#0ea5e9;color:#fff;}
+.lv-sub{font-size:11.5px;font-weight:700;opacity:.65;text-align:center;margin-top:6px;}
+.lv-info{font-size:12px;text-align:center;line-height:1.6;padding:8px 10px;border-radius:12px;background:rgba(14,165,233,0.08);margin:6px 0;}
+.lv-prog{font-size:12px;font-weight:800;text-align:center;opacity:.7;margin-top:4px;}
+.lv-bar{height:6px;border-radius:99px;background:rgba(0,0,0,0.08);overflow:hidden;margin:4px 0 8px;}
+.lv-bar i{display:block;height:100%;background:#0ea5e9;border-radius:99px;}
+.lv-big-say{align-self:center;width:112px;height:112px;border-radius:50%;border:3px solid #0ea5e9;background:#e0f2fe;font-size:46px;line-height:1;cursor:pointer;margin:10px 0 6px;}
+.lv-big-say.lv-playing{background:#0ea5e9;}
+.lv-small-say{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1.5px solid #0ea5e9;background:#e0f2fe;font-size:16px;cursor:pointer;margin-left:8px;vertical-align:middle;padding:0;}
+.lv-small-say.lv-playing{background:#0ea5e9;}
+.lv-ans{padding:12px 14px;border-radius:14px;border:1.5px solid #0ea5e9;background:#f0f9ff;text-align:center;margin:8px 0;}
+.lv-en{font-size:20px;font-weight:800;color:var(--ink);word-break:break-word;}
+.lv-ph{font-size:13px;opacity:.7;margin-top:2px;}
+.lv-id{font-size:14px;margin-top:6px;font-weight:600;}
+.lv-tag{font-size:11px;opacity:.55;margin-top:6px;}
+.lv-ta{width:100%;box-sizing:border-box;min-height:84px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);font-size:14px;font-family:inherit;resize:vertical;margin-top:8px;}
+.lv-fb{padding:9px 12px;border-radius:12px;font-size:12.5px;line-height:1.55;margin-top:8px;text-align:left;}
+.lv-fb.ok{background:#dcfce7;color:#166534;}
+.lv-fb.warn{background:#fef3c7;color:#92400e;}
+`;
+  document.head.appendChild(st);
+})();
+
+const LV_GROUPS = [
+  {k:'m1', l:'Bulan 1'}, {k:'m2', l:'Bulan 2'}, {k:'m3', l:'Bulan 3'},
+  {k:'lvl', l:'Per Level (A1–C2)'}, {k:'vb', l:'Vocabulary Building'}, {k:'stp', l:'STP'}
+];
+const LV_COUNTS = [10, 20, 50, 0];
+let lvSel = { groups:new Set(), levels:new Set(), count:20 }; // groups kosong = semua
+let lvS = null;
+
+function lvLooksLikeSentence(en){
+  const t = String(en||'').trim();
+  return /[.?!]$/.test(t) || t.split(/\s+/).length >= 7;
+}
+
+/* Kumpulkan seluruh vocab dari data yang ada (read-only, tidak mengubah data apa pun) */
+function lvCollectAll(){
+  const P = [];
+  const add = (en, id, g, sub, ph, lvl)=>{
+    en = String(en==null?'':en).trim(); if(!en) return;
+    P.push({en, id:String(id==null?'':id).trim(), g, sub:sub||'', ph:ph||'', lvl:lvl||''});
+  };
+  try{
+    (typeof ALL !== 'undefined' ? ALL : []).forEach(it=>{
+      if(!it) return;
+      if(it.month>=1 && it.month<=3) add(it.en, it.id, 'm'+it.month, 'Bulan '+it.month+(it.day?' · Day '+it.day:''), it.ph);
+      else if(it.month===4) add(it.en, it.id, 'lvl', 'Level '+(it.tag||''), it.ph, it.tag||'');
+    });
+  }catch(e){}
+  try{
+    if(typeof VB_PRACTICE_IDIOMS!=='undefined') VB_PRACTICE_IDIOMS.forEach(a=>{
+      const en = (typeof VB_IDIOM_EN!=='undefined' && VB_IDIOM_EN[a[0]]) ? ' ('+VB_IDIOM_EN[a[0]]+')' : '';
+      add(a[0], a[3]+en, 'vb', 'Vocab Building · Idioms');
+    });
+    if(typeof VB_PRACTICE_COLLOC!=='undefined') VB_PRACTICE_COLLOC.forEach(a=> add(a[0], '', 'vb', 'Vocab Building · Collocation ('+a[3]+')'));
+    if(typeof VB_LD_FIX!=='undefined') VB_LD_FIX.forEach(a=> add(a[0], a[3], 'vb', 'Vocab Building · Likes & Dislikes'));
+    const v7 = [[typeof VB7_SIZE!=='undefined'?VB7_SIZE:[],'Ch 7 · Size'],[typeof VB7_QTY!=='undefined'?VB7_QTY:[],'Ch 7 · Quantity'],[typeof VB7_DIM!=='undefined'?VB7_DIM:[],'Ch 7 · Dimension']];
+    v7.forEach(([arr,l])=> arr.forEach(a=> add(a[0], a[2], 'vb', 'Vocab Building · '+l)));
+    if(typeof VB8_SHAPES!=='undefined') VB8_SHAPES.forEach(a=>{
+      add(a[0], a[2], 'vb', 'Vocab Building · Ch 8 Shapes');
+      if(a[1] && a[1]!=='-' && a[1]!==a[0]) add(a[1], a[2]+' (kata sifat)', 'vb', 'Vocab Building · Ch 8 Shapes');
+    });
+    if(typeof VB8_FEAT!=='undefined') VB8_FEAT.forEach(a=> add(a[0], a[1], 'vb', 'Vocab Building · Ch 8 Features'));
+    const vc = [[typeof VB10_ENV!=='undefined'?VB10_ENV:[],'Ch 10 · Environment'],[typeof VB11_SOC!=='undefined'?VB11_SOC:[],'Ch 11 · Social Tensions'],
+      [typeof VB12_SCI!=='undefined'?VB12_SCI:[],'Ch 12 · Science & Tech'],[typeof VB13_FOOD!=='undefined'?VB13_FOOD:[],'Ch 13 · Food & Diet'],
+      [typeof VB14_ARCH!=='undefined'?VB14_ARCH:[],'Ch 14 · Architecture'],[typeof VB15_GEO!=='undefined'?VB15_GEO:[],'Ch 15 · Geography']];
+    vc.forEach(([arr,l])=> arr.forEach(a=> add(a[0], a[2], 'vb', 'Vocab Building · '+l)));
+    if(typeof VB_WORLD!=='undefined') VB_WORLD.forEach(r=> add(r[0], 'nama negara (warga: '+(r[1]||'-')+(r[2]?'; bahasa: '+r[2]:'')+')', 'vb', 'Vocab Building · Countries'));
+  }catch(e){}
+  try{
+    if(typeof STP_VOCAB!=='undefined') STP_VOCAB.forEach((line, i)=>{
+      String(line||'').split('|').forEach(p=>{
+        const k = p.indexOf('='); if(k<1) return;
+        add(p.slice(0,k), p.slice(k+1), 'stp', 'STP · Cerita '+(i+1));
+      });
+    });
+  }catch(e){}
+  return P;
+}
+
+function lvBuildPool(sel, forSentence){
+  const all = lvCollectAll();
+  const seen = new Set(); const out = [];
+  all.forEach(it=>{
+    if(sel.groups.size && !sel.groups.has(it.g)) return;
+    if(it.g==='lvl' && sel.levels.size && !sel.levels.has(it.lvl)) return;
+    if(forSentence && lvLooksLikeSentence(it.en)) return;
+    const key = it.en.toLowerCase();
+    if(seen.has(key)) return;
+    seen.add(key); out.push(it);
+  });
+  return out;
+}
+
+function lvShuffle(a){
+  a = a.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+function lvSpeak(text, rate, btn){
+  try{
+    if(typeof speechSynthesis === 'undefined' || !text) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(typeof ttsRespell==='function' ? ttsRespell(text) : text);
+    u.lang = 'en-US'; u.rate = rate || 0.85;
+    if(btn){
+      btn.classList.add('lv-playing');
+      const off = ()=> btn.classList.remove('lv-playing');
+      u.onend = off; u.onerror = off;
+    }
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function lvStopSpeech(){ try{ if(typeof speechSynthesis !== 'undefined') speechSynthesis.cancel(); }catch(e){} }
+
+/* ---------------- MENU ---------------- */
+function renderLatihanVocabMenu(){
+  try{ clearTimer(); }catch(e){}
+  lvStopSpeech();
+  statusVal.textContent = "LATIHAN SELURUH VOCAB";
+  try{ setPresenceStatus('idle'); setPresenceMode('Latihan Seluruh Vocab (menu)'); }catch(e){}
+  const poolL = lvBuildPool(lvSel, false), poolS = lvBuildPool(lvSel, true);
+  const levels = (typeof OTHER_LEVELS!=='undefined') ? OTHER_LEVELS : ['A1','A2','B1','B2','C1','C2'];
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#0ea5e9;color:#fff;">🎯 LATIHAN SELURUH VOCAB</div>
+      <h1 class="intro-title" style="font-size:19px;">Latihan Seluruh Vocab</h1>
+      <p class="intro-desc" style="font-size:12px;">Pilih sumber vocab (kosong = semua), jumlah kata, lalu pilih jenis latihan.</p>
+
+      <div class="lv-sub">Sumber vocab</div>
+      <div class="lv-chips">
+        <button type="button" class="lv-chip ${lvSel.groups.size===0?'on':''}" data-lvall="1">Semua</button>
+        ${LV_GROUPS.map(g=>`<button type="button" class="lv-chip ${lvSel.groups.has(g.k)?'on':''}" data-lvg="${g.k}">${g.l}</button>`).join('')}
+      </div>
+      ${lvSel.groups.has('lvl') ? `
+        <div class="lv-sub">Level (kosong = semua level)</div>
+        <div class="lv-chips">${levels.map(l=>`<button type="button" class="lv-chip ${lvSel.levels.has(l)?'on':''}" data-lvl="${l}">${l}</button>`).join('')}</div>` : ''}
+
+      <div class="lv-sub">Jumlah kata per latihan</div>
+      <div class="lv-chips">
+        ${LV_COUNTS.map(n=>`<button type="button" class="lv-chip ${lvSel.count===n?'on':''}" data-lvn="${n}">${n===0?'Semua':n}</button>`).join('')}
+      </div>
+
+      <div class="lv-info">🎧 Dengarkan: <b>${poolL.length}</b> kata tersedia<br>✍️ Buat kalimat: <b>${poolS.length}</b> kata tersedia</div>
+
+      <button class="btn" id="lvStartListen" style="background:#0ea5e9;border-color:#0ea5e9;color:#fff;">🎧 Dengarkan &amp; Tulis di Kertas</button>
+      <button class="btn" id="lvStartWrite" style="background:#8b5cf6;border-color:#8b5cf6;color:#fff;">✍️ Buat Kalimat dari Vocab</button>
+      <button class="btn ghost" id="lvMenuBack" style="margin-top:10px;">← Kembali</button>
+    </div>`;
+  card.querySelectorAll('[data-lvall]').forEach(b=> b.onclick = ()=>{ lvSel.groups.clear(); lvSel.levels.clear(); renderLatihanVocabMenu(); });
+  card.querySelectorAll('[data-lvg]').forEach(b=> b.onclick = ()=>{
+    const k = b.dataset.lvg;
+    if(lvSel.groups.has(k)){ lvSel.groups.delete(k); if(k==='lvl') lvSel.levels.clear(); } else lvSel.groups.add(k);
+    renderLatihanVocabMenu();
+  });
+  card.querySelectorAll('[data-lvl]').forEach(b=> b.onclick = ()=>{
+    const k = b.dataset.lvl; if(lvSel.levels.has(k)) lvSel.levels.delete(k); else lvSel.levels.add(k);
+    renderLatihanVocabMenu();
+  });
+  card.querySelectorAll('[data-lvn]').forEach(b=> b.onclick = ()=>{ lvSel.count = parseInt(b.dataset.lvn,10); renderLatihanVocabMenu(); });
+  document.getElementById('lvStartListen').onclick = ()=> lvStart('listen');
+  document.getElementById('lvStartWrite').onclick = ()=> lvStart('write');
+  document.getElementById('lvMenuBack').onclick = ()=> renderBelajarSubmenu();
+}
+
+function lvStart(mode){
+  const pool = lvBuildPool(lvSel, mode==='write');
+  if(!pool.length){ alert('Belum ada vocab untuk pilihan ini. Coba pilih sumber lain.'); return; }
+  let q = lvShuffle(pool);
+  if(lvSel.count > 0) q = q.slice(0, lvSel.count);
+  lvS = { mode, q, i:0, round:0, redo:[], right:0, wrong:0, written:0, used:0, total:q.length };
+  try{ setPresenceStatus('in_progress'); setPresenceMode('Latihan Seluruh Vocab ('+(mode==='listen'?'Dengarkan':'Buat Kalimat')+')'); }catch(e){}
+  if(mode==='listen') lvRenderListen(); else lvRenderWrite();
+}
+
+function lvExit(){ lvStopSpeech(); lvS = null; renderLatihanVocabMenu(); }
+
+/* ---------------- MODE 1: DENGARKAN & TULIS ---------------- */
+function lvRenderListen(){
+  const s = lvS; if(!s) return;
+  if(s.i >= s.q.length){ lvFinish(); return; }
+  const it = s.q[s.i];
+  statusVal.textContent = "DENGARKAN & TULIS";
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#0ea5e9;color:#fff;">🎧 DENGARKAN &amp; TULIS</div>
+      <div class="lv-prog">Kata ${s.i+1} / ${s.q.length}${s.round>0?' · ulangan':''}</div>
+      <div class="lv-bar"><i style="width:${Math.round(s.i/s.q.length*100)}%"></i></div>
+      <p class="intro-desc" style="font-size:12.5px;margin:0;">Dengarkan, lalu <b>tulis di kertasmu</b>. Jangan lihat layar dulu 😉</p>
+      <button class="lv-big-say" id="lvSay" type="button" aria-label="Putar suara">🔊</button>
+      <button class="btn ghost" id="lvSlow" type="button">🐢 Putar pelan</button>
+      <div class="lv-ans" id="lvAns" style="display:none;"></div>
+      <button class="btn" id="lvShow" type="button" style="background:#0ea5e9;border-color:#0ea5e9;color:#fff;">👁 Tampilkan Jawaban</button>
+      <div id="lvJudge" style="display:none;">
+        <p class="intro-desc" style="font-size:12px;margin:2px 0 6px;text-align:center;">Tulisanmu di kertas sudah benar?</p>
+        <button class="btn" id="lvRight" type="button" style="background:#16a34a;border-color:#16a34a;color:#fff;">✅ Sudah benar</button>
+        <button class="btn ghost" id="lvWrong" type="button">🔁 Belum, ulangi nanti</button>
+      </div>
+      <button class="btn ghost" id="lvExitBtn" type="button" style="margin-top:12px;">← Keluar</button>
+    </div>`;
+  const sayBtn = document.getElementById('lvSay');
+  sayBtn.onclick = ()=> lvSpeak(it.en, 0.85, sayBtn);
+  document.getElementById('lvSlow').onclick = ()=> lvSpeak(it.en, 0.55, sayBtn);
+  document.getElementById('lvExitBtn').onclick = ()=> lvExit();
+  document.getElementById('lvShow').onclick = ()=>{
+    const ans = document.getElementById('lvAns');
+    ans.innerHTML = `<div class="lv-en">${escapeHtmlIdx(it.en)}</div>`
+      + (it.ph ? `<div class="lv-ph">${escapeHtmlIdx(it.ph)}</div>` : '')
+      + (it.id ? `<div class="lv-id">${escapeHtmlIdx(it.id)}</div>` : '')
+      + (it.sub ? `<div class="lv-tag">${escapeHtmlIdx(it.sub)}</div>` : '');
+    ans.style.display = 'block';
+    document.getElementById('lvShow').style.display = 'none';
+    document.getElementById('lvJudge').style.display = 'block';
+  };
+  document.getElementById('lvRight').onclick = ()=>{ s.right++; s.i++; lvRenderListen(); };
+  document.getElementById('lvWrong').onclick = ()=>{ s.wrong++; s.redo.push(it); s.i++; lvRenderListen(); };
+  setTimeout(()=>{ if(lvS === s && s.mode==='listen' && s.q[s.i] === it) lvSpeak(it.en, 0.85, sayBtn); }, 300);
+}
+
+/* ---------------- MODE 2: BUAT KALIMAT ---------------- */
+function lvStems(en){
+  let s = String(en).toLowerCase().split('/')[0].split(';')[0].split(',')[0];
+  s = s.replace(/\([^)]*\)/g,' ').replace(/[^a-z'\s-]/g,' ');
+  const stop = {to:1,something:1,someone:1,somebody:1,sth:1,sb:1,a:1,an:1,the:1,"one's":1,ones:1,your:1,his:1,her:1,be:1,of:1,on:1,in:1,at:1,up:1,out:1,off:1,down:1,by:1,for:1,with:1};
+  const tokens = s.split(/[\s-]+/).filter(Boolean);
+  let content = tokens.filter(t=>!stop[t]);
+  if(!content.length) content = tokens;
+  return content.map(t=> t.length>4 ? t.slice(0,t.length-2) : (t.length>3 ? t.slice(0,t.length-1) : t));
+}
+function lvWordUsed(sentence, en){
+  const words = String(sentence).toLowerCase().replace(/[^a-z'\s-]/g,' ').split(/[\s-]+/).filter(Boolean);
+  const stems = lvStems(en);
+  if(!stems.length) return true;
+  return stems.every(st => words.some(w => w.indexOf(st) === 0));
+}
+
+function lvRenderWrite(){
+  const s = lvS; if(!s) return;
+  if(s.i >= s.q.length){ lvFinish(); return; }
+  const it = s.q[s.i];
+  statusVal.textContent = "BUAT KALIMAT";
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#8b5cf6;color:#fff;">✍️ BUAT KALIMAT</div>
+      <div class="lv-prog">Kata ${s.i+1} / ${s.q.length}</div>
+      <div class="lv-bar"><i style="width:${Math.round(s.i/s.q.length*100)}%;background:#8b5cf6;"></i></div>
+      <p class="intro-desc" style="font-size:12.5px;margin:0;">Buat <b>1 kalimat bahasa Inggris</b> memakai vocab ini:</p>
+      <div class="lv-ans" style="border-color:#8b5cf6;background:#f5f3ff;">
+        <div class="lv-en">${escapeHtmlIdx(it.en)}<button class="lv-small-say" id="lvWSay" type="button" aria-label="Putar suara" style="border-color:#8b5cf6;background:#ede9fe;">🔊</button></div>
+        ${it.ph ? `<div class="lv-ph">${escapeHtmlIdx(it.ph)}</div>` : ''}
+        ${it.id ? `<div class="lv-id">Arti: ${escapeHtmlIdx(it.id)}</div>` : ''}
+        ${it.sub ? `<div class="lv-tag">${escapeHtmlIdx(it.sub)}</div>` : ''}
+      </div>
+      <textarea class="lv-ta" id="lvTa" placeholder="Tulis kalimatmu di sini…" autocapitalize="sentences" spellcheck="false"></textarea>
+      <div id="lvFb"></div>
+      <button class="btn" id="lvCheck" type="button" style="background:#8b5cf6;border-color:#8b5cf6;color:#fff;margin-top:8px;">✅ Cek Kalimat</button>
+      <button class="btn ghost" id="lvNext" type="button">Lewati →</button>
+      <button class="btn ghost" id="lvExitBtn" type="button" style="margin-top:6px;">← Keluar</button>
+    </div>`;
+  const sayBtn = document.getElementById('lvWSay');
+  sayBtn.onclick = ()=> lvSpeak(it.en, 0.85, sayBtn);
+  document.getElementById('lvExitBtn').onclick = ()=> lvExit();
+  let counted = false;
+  document.getElementById('lvCheck').onclick = ()=>{
+    const txt = document.getElementById('lvTa').value.trim();
+    const fb = document.getElementById('lvFb');
+    if(!txt){ fb.innerHTML = '<div class="lv-fb warn">Tulis kalimatnya dulu ya.</div>'; return; }
+    const n = txt.split(/\s+/).length;
+    const used = lvWordUsed(txt, it.en);
+    let html = '';
+    if(used) html += `<div class="lv-fb ok">✅ Vocab <b>${escapeHtmlIdx(it.en)}</b> sudah terpakai di kalimatmu.</div>`;
+    else html += `<div class="lv-fb warn">⚠️ Vocab <b>${escapeHtmlIdx(it.en)}</b> belum terdeteksi di kalimatmu. Kalau kamu memakai bentuk lain (mis. past tense), abaikan saja.</div>`;
+    if(n < 4) html += '<div class="lv-fb warn">💡 Kalimatmu masih pendek. Coba kembangkan jadi kalimat lengkap (subjek + verb + keterangan).</div>';
+    fb.innerHTML = html;
+    if(!counted){ counted = true; s.written++; if(used) s.used++; }
+    document.getElementById('lvNext').textContent = 'Lanjut →';
+  };
+  document.getElementById('lvNext').onclick = ()=>{ s.i++; lvRenderWrite(); };
+}
+
+/* ---------------- SELESAI ---------------- */
+function lvFinish(){
+  const s = lvS; if(!s) return;
+  lvStopSpeech();
+  try{ setPresenceStatus('done'); }catch(e){}
+  statusVal.textContent = "SELESAI";
+  let body = '';
+  if(s.mode==='listen'){
+    body = `<div class="lv-info">✅ Benar: <b>${s.right}</b><br>🔁 Perlu diulang: <b>${s.redo.length}</b></div>`;
+  } else {
+    body = `<div class="lv-info">✍️ Kalimat yang kamu tulis: <b>${s.written}</b> dari ${s.total} kata<br>✅ Vocab terpakai dengan benar: <b>${s.used}</b></div>`;
+  }
+  card.innerHTML = `
+    <div class="center-stack" style="align-items:stretch;">
+      <div class="section-tag" style="background:#16a34a;color:#fff;">🎉 SELESAI</div>
+      <h1 class="intro-title" style="font-size:19px;">Latihan selesai!</h1>
+      ${body}
+      ${(s.mode==='listen' && s.redo.length) ? `<button class="btn" id="lvRedo" type="button" style="background:#0ea5e9;border-color:#0ea5e9;color:#fff;">🔁 Ulangi ${s.redo.length} kata yang belum bisa</button>` : ''}
+      <button class="btn ghost" id="lvAgain" type="button">🔄 Latihan baru</button>
+      <button class="btn ghost" id="lvToMenu" type="button">← Kembali ke Menu Belajar</button>
+    </div>`;
+  const redoBtn = document.getElementById('lvRedo');
+  if(redoBtn) redoBtn.onclick = ()=>{
+    const q = lvShuffle(s.redo);
+    lvS = { mode:'listen', q, i:0, round:s.round+1, redo:[], right:0, wrong:0, written:0, used:0, total:q.length };
+    lvRenderListen();
+  };
+  document.getElementById('lvAgain').onclick = ()=> lvStart(s.mode);
+  document.getElementById('lvToMenu').onclick = ()=> renderBelajarSubmenu();
 }
 
 </script>
